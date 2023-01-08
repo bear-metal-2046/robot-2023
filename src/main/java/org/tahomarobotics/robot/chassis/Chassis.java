@@ -49,12 +49,10 @@ public class Chassis extends SubsystemBase {
 
     private final AprilTagVision vision = new AprilTagVision(poseEstimator::addVisionMeasurement);
 
+    public void closeVision() {vision.close();}
+
     private Chassis() {
 
-    }
-
-    public void toggleOriented() {
-        isFieldOriented = !isFieldOriented;
     }
 
     private Rotation2d getYaw() {
@@ -76,12 +74,12 @@ public class Chassis extends SubsystemBase {
 
     private void zeroGyro(){pigeon2.setYaw(0.0);}
 
-    public void toggleOrientation(){
-        isFieldOriented = !isFieldOriented;
-    }
-
     private Rotation2d getGyroRotation(){
         return Rotation2d.fromDegrees(pigeon2.getYaw());
+    }
+
+    public void toggleOrientation(){
+        isFieldOriented = !isFieldOriented;
     }
 
     public Chassis initialize(){

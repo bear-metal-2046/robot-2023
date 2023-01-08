@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoggerManager {
-    private static Logger logger = LoggerFactory.getLogger(LoggerManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoggerManager.class);
 
     public static void log(String msg) {
         DriverStation.reportWarning(msg, false);
@@ -18,7 +18,7 @@ public class LoggerManager {
     }
 
     public static void error(String msg) {
-        DriverStation.reportError(msg, false);
+        DriverStation.reportError(msg, true);
         logger.error(msg);
     }
 }

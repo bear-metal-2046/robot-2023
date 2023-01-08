@@ -25,7 +25,7 @@ public class AprilTagVision {
     /**
      * Helper method to convert measured target data to 3D pose units
      */
-    private static Pose3d createTarget(double x, double y, double z, double roll, double pitch, double yaw) {
+    private static Pose3d createTarget(double x, double y, double z, double yaw) {
         return new Pose3d(
                 new Translation3d(
                         Units.inchesToMeters(x),
@@ -33,8 +33,8 @@ public class AprilTagVision {
                         Units.inchesToMeters(z)
                 ),
                 new Rotation3d(
-                        Units.degreesToRadians(roll),
-                        Units.degreesToRadians(pitch),
+                        Units.degreesToRadians(0),
+                        Units.degreesToRadians(0),
                         Units.degreesToRadians(yaw)
                 )
         );
@@ -44,14 +44,14 @@ public class AprilTagVision {
     private static final Map<Integer, Pose3d> TARGETS = new HashMap<>();
 
     static {
-        TARGETS.put(1, createTarget(610.77, 42.19, 18.22, 0, 0, 180));
-        TARGETS.put(2, createTarget(610.77, 108.19, 18.22, 0, 0, 180));
-        TARGETS.put(3, createTarget(610.77, 147.19, 18.22, 0, 0, 180));
-        TARGETS.put(4, createTarget(636.96, 265.74, 27.38, 0, 0, 180));
-        TARGETS.put(5, createTarget(14.25, 265.74, 27.38, 0, 0, 0));
-        TARGETS.put(6, createTarget(40.45, 147.19, 18.22, 0, 0, 0));
-        TARGETS.put(7, createTarget(40.45, 108.19, 18.22, 0, 0, 0));
-        TARGETS.put(8, createTarget(40.45, 42.19, 18.22, 0, 0, 0));
+        TARGETS.put(1, createTarget(610.77, 42.19, 18.22,  180));
+        TARGETS.put(2, createTarget(610.77, 108.19, 18.22,  180));
+        TARGETS.put(3, createTarget(610.77, 147.19, 18.22,  180));
+        TARGETS.put(4, createTarget(636.96, 265.74, 27.38,  180));
+        TARGETS.put(5, createTarget(14.25, 265.74, 27.38,  0));
+        TARGETS.put(6, createTarget(40.45, 147.19, 18.22,  0));
+        TARGETS.put(7, createTarget(40.45, 108.19, 18.22,  0));
+        TARGETS.put(8, createTarget(40.45, 42.19, 18.22,  0));
     }
 
     private static final Transform3d cameraToCenter = new Transform3d(
@@ -73,7 +73,10 @@ public class AprilTagVision {
     private final DoubleSubscriber latencySub;
     private final int latencySubHandler;
 
+    private boolean disabled;
+
     public AprilTagVision(VisionListener listener) {
+        disabled = false;
 
         this.listener = listener;
 
@@ -91,9 +94,7 @@ public class AprilTagVision {
         latencySubHandler = inst.addListener(
             latencySub,
             EnumSet.of(NetworkTableEvent.Kind.kValueAll),
-            event -> {
-                processVisionUpdate(camera.getLatestResult());
-            }
+            event -> processVisionUpdate(camera.getLatestResult())
         );
     }
 
@@ -140,8 +141,12 @@ public class AprilTagVision {
     }
 
     public void close() {
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        inst.removeListener(latencySubHandler);
-        latencySub.close();
+        if (!disabled) {
+            NetworkTableInstance inst = NetworkTableInstance.getDefault();
+            inst.removeListener(latencySubHandler);
+            latencySub.close();
+
+            disabled = true;
+        }
     }
 }

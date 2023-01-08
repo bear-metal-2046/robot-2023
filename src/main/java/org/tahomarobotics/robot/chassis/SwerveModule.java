@@ -19,14 +19,11 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
 import org.tahomarobotics.robot.util.MotorUtil;
-
-import java.sql.Driver;
 
 public class SwerveModule {
     private static final int CAN_TIMEOUT_MS = 500;
@@ -44,7 +41,6 @@ public class SwerveModule {
     private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, ChassisConstants.kV_DRIVE);
 
     private SwerveModuleState state = new SwerveModuleState();
-    private SwerveModulePosition position = new SwerveModulePosition();
 
     public static void checkCtreError(ErrorCode errorCode, String message) {
         if (errorCode != ErrorCode.OK) {
@@ -204,7 +200,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return RobotBase.isReal() ? new SwerveModulePosition(steerEncoder.getPosition(), new Rotation2d(getSteerAngle())) : position;
+        return new SwerveModulePosition(steerEncoder.getPosition(), new Rotation2d(getSteerAngle()));
     }
 
 
