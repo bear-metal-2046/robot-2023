@@ -1,5 +1,6 @@
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -8,7 +9,10 @@ import org.tahomarobotics.robot.OI.OI;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.util.LoggerManager;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Robot extends TimedRobot
 {
@@ -28,6 +32,32 @@ public class Robot extends TimedRobot
         instances.add(OI.getInstance());
 
         LoggerManager.log("Robot Initialized.");
+    }
+
+    public void logVersion() {
+        File deployDir = Filesystem.getDeployDirectory();
+        File branchFile = new File(deployDir, "branch.txt");
+        File commitFile = new File(deployDir, "commit.txt");
+
+        String branch;
+        try {
+            Scanner s = new Scanner(branchFile);
+            branch = s.next();
+            s.close();
+        } catch (FileNotFoundException e) {
+            branch = "<Not Found>";
+        }
+
+        String commit;
+        try {
+            Scanner s = new Scanner(commitFile);
+            commit = s.next();
+            s.close();
+        } catch (FileNotFoundException e) {
+            commit = "<Not Found>";
+        }
+
+        LoggerManager.warn(String.format("Current Version: %s | %s", branch, commit));
     }
 
     @Override
