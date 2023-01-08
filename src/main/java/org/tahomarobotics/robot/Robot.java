@@ -8,19 +8,18 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.util.LoggerManager;
 
 import java.util.ArrayList;
 
 public class Robot extends TimedRobot
 {
-    private Logger logger = LoggerFactory.getLogger(Robot.class);
-
     private ArrayList<Subsystem> instances = new ArrayList<>();
 
     @Override
     public void robotInit()
     {
-        logger.info("Hit Initialization.");
+        LoggerManager.log("Hit Initialization.");
         instances.add(Chassis.getInstance());
     }
 
@@ -41,8 +40,8 @@ public class Robot extends TimedRobot
     @Override
     public void autonomousInit()
     {
-        logger.info("Hit Autonomous Initialization.");
-        DriverStation.reportWarning("-=-=-=- AUTONOMOUS ENABLED -=-=-=-", false);
+        LoggerManager.log("Hit Autonomous Initialization.");
+        LoggerManager.warn("-=-=-=- AUTONOMOUS ENABLED -=-=-=-");
     }
 
     @Override
@@ -52,9 +51,9 @@ public class Robot extends TimedRobot
     @Override
     public void teleopInit()
     {
-        logger.info("Hit Teleoperated Initialization.");
-        DriverStation.reportWarning("-=-=-=- TELEOP ENABLED -=-=-=-", false);
-        DriverStation.reportWarning("FRC 2023 COMPETITION ROBOT 'AEGIS'", false);
+        LoggerManager.log("Hit Teleoperated Initialization.");
+        LoggerManager.warn("-=-=-=- TELEOP ENABLED -=-=-=-");
+        LoggerManager.warn("FRC 2023 COMPETITION ROBOT 'AEGIS'");
     }
     
     

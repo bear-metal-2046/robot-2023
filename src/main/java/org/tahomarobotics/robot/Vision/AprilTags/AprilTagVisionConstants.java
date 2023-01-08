@@ -1,4 +1,4 @@
-package org.tahomarobotics.robot.Vision.ATs;
+package org.tahomarobotics.robot.Vision.AprilTags;
 
 import edu.wpi.first.math.util.Units;
 

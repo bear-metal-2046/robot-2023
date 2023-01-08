@@ -13,33 +13,20 @@ public final class ChassisConstants {
     static double BACK_LEFT_OFFSET = Math.toRadians(0);
     static double BACK_RIGHT_OFFSET = Math.toRadians(0);
 
-    static double FL_SPARE_OFFSET = Math.toRadians(0);
-    static double FR_SPARE_OFFSET = Math.toRadians(0);
-    static double BL_SPARE_OFFSET = Math.toRadians(0);
-    static double BR_SPARE_OFFSET = Math.toRadians(0);
-
     public static final double CHASSIS_WIDTH = 0.5969;
     public static final double CHASSIS_WHEELBASE = 0.5969;
 
-    public static final SwerveModule.SwerveConfiguration L_F_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "L_FWD", RobotMap.FRONT_LEFT_MOD, FRONT_LEFT_OFFSET);
-    // RobotMap.SPARE_DRIVE, RobotMap.SPARE_STEER, RobotMap.SPARE_ENCODER,
-    // BR_SPARE_OFFSET);
+    public static final SwerveModule.SwerveConfiguration FRONT_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+            "FRONT_LEFT", RobotMap.FRONT_LEFT_MOD, FRONT_LEFT_OFFSET);
 
-    public static final SwerveModule.SwerveConfiguration R_F_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "R_FWD", RobotMap.FRONT_RIGHT_MOD, FRONT_RIGHT_OFFSET);
-    // RobotMap.SPARE_DRIVE, RobotMap.SPARE_STEER, RobotMap.SPARE_ENCODER,
-    // BR_SPARE_OFFSET);
+    public static final SwerveModule.SwerveConfiguration FRONT_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+            "FRONT_RIGHT", RobotMap.FRONT_RIGHT_MOD, FRONT_RIGHT_OFFSET);
 
-    public static final SwerveModule.SwerveConfiguration L_B_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "L_AFT", RobotMap.BACK_LEFT_MOD, BACK_LEFT_OFFSET);
-    // RobotMap.SPARE_DRIVE, RobotMap.SPARE_STEER, RobotMap.SPARE_ENCODER,
-    // BR_SPARE_OFFSET);
+    public static final SwerveModule.SwerveConfiguration BACK_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+            "BACK_LEFT", RobotMap.BACK_LEFT_MOD, BACK_LEFT_OFFSET);
 
-    public static final SwerveModule.SwerveConfiguration R_B_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "R_AFT", RobotMap.BACK_RIGHT_MOD, BACK_RIGHT_OFFSET);
-    // RobotMap.SPARE_DRIVE, RobotMap.SPARE_STEER, RobotMap.SPARE_ENCODER,
-    // BR_SPARE_OFFSET);
+    public static final SwerveModule.SwerveConfiguration BACK_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+            "BACK_RIGHT", RobotMap.BACK_RIGHT_MOD, BACK_RIGHT_OFFSET);
 
     private static final double X_OFFSET = CHASSIS_WIDTH / 2;
     private static final double Y_OFFSET = CHASSIS_WHEELBASE / 2;
@@ -81,7 +68,6 @@ public final class ChassisConstants {
     public static final int ENCODER_RESET_ITERATIONS = 500;
 
     public static final double MASS = Units.lbsToKilograms(55.85);
-    public static final double kInertia = 0;
 
     // volts per mps
     public static final double kV_DRIVE = 1.0 / DRIVE_REDUCTION_MK4_L1

@@ -46,8 +46,6 @@ public class SwerveModule {
     private SwerveModuleState state = new SwerveModuleState();
     private SwerveModulePosition position = new SwerveModulePosition();
 
-    private double distanceDriven = 0.0;
-
     public static void checkCtreError(ErrorCode errorCode, String message) {
         if (errorCode != ErrorCode.OK) {
             DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
@@ -205,11 +203,11 @@ public class SwerveModule {
      * @return The current position of the module.
      */
     public SwerveModulePosition getPosition() {
-        return RobotBase.isReal() ? new SwerveModulePosition(distanceDriven, new Rotation2d(getSteerAngle())) : position;
+        // This code is speculative as the documentation and examples on is non-existent
+        return RobotBase.isReal() ? new SwerveModulePosition(steerEncoder.getPosition(), new Rotation2d(getSteerAngle())) : position;
     }
 
 
-    private double lastStateUpdate = WPIUtilJNI.now() * 1.0e-6; // In seconds
 
     /**
      * Sets the desired state for the module.
@@ -217,8 +215,6 @@ public class SwerveModule {
      * @param desiredState Desired state with speed and angle.
      */
     public void setDesiredState(SwerveModuleState desiredState) {
-        lastStateUpdate = WPIUtilJNI.now() * 1.0e-6;
-
         double steerAngle = getSteerAngle();
 
         // Optimize the reference state to avoid spinning further than 90 degrees

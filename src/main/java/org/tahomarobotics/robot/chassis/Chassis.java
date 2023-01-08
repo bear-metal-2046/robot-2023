@@ -1,24 +1,23 @@
 package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.sensors.Pigeon2;
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.Vision.ATs.AprilTagVision;
+import org.tahomarobotics.robot.Vision.AprilTags.AprilTagVision;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,31 +30,22 @@ public class Chassis extends SubsystemBase {
 
     private final Pigeon2 pigeon2 = new Pigeon2(RobotMap.PIGEON);
 
-    private final SwerveModule lFSwerveModule = new SwerveModule(ChassisConstants.L_F_SWERVE_CONFIG);
-    private final SwerveModule rFSwerveModule = new SwerveModule(ChassisConstants.R_F_SWERVE_CONFIG);
-    private final SwerveModule lBSwerveModule = new SwerveModule(ChassisConstants.L_B_SWERVE_CONFIG);
-    private final SwerveModule rBSwerveModule = new SwerveModule(ChassisConstants.R_B_SWERVE_CONFIG);
+    private final SwerveModule frontLeftSwerveModule = new SwerveModule(ChassisConstants.FRONT_LEFT_SWERVE_CONFIG);
+    private final SwerveModule frontRightSwerveModule = new SwerveModule(ChassisConstants.FRONT_RIGHT_SWERVE_CONFIG);
+    private final SwerveModule backLeftSwerveModule = new SwerveModule(ChassisConstants.BACK_LEFT_SWERVE_CONFIG);
+    private final SwerveModule backRightSwerveModule = new SwerveModule(ChassisConstants.BACK_RIGHT_SWERVE_CONFIG);
 
     private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-            getGyroRotation(),
-            new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
             ChassisConstants.SWERVE_DRIVE_KINEMATICS,
-            // Three below vectors are standard deviations
-            // Increasing the values below decreases trust
-            // Below values are from the WPILIB article (Advanced Controls -> State-Space -> Pose estimators)
-
-            // Model std devs (x, y, theta). Units are meters/radians
+            getGyroRotation(),
+            getSwerveModulePositions(),
+            new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
             new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
-            // Gyro Measurement (theta). Units are radians
-            new MatBuilder<>(Nat.N1(), Nat.N1()).fill(0.01),
-            // Vision measurements std devs (x, y, theta). Units are meters/radians
             new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
     );
 
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
-
-    private double lastVisionUpdate = WPIUtilJNI.now() * 1.0e-6;
 
     private final AprilTagVision vision = new AprilTagVision(poseEstimator::addVisionMeasurement);
 
@@ -97,7 +87,7 @@ public class Chassis extends SubsystemBase {
     public Chassis initialize(){
         zeroGyro();
         poseEstimator.resetPosition(getGyroRotation(),
-                new SwerveModulePosition[]{lFSwerveModule.getPosition(), rFSwerveModule.getPosition(), lBSwerveModule.getPosition(), rBSwerveModule.getPosition()}
+                getSwerveModulePositions()
                 ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
         SmartDashboard.putData(fieldPose);
 
@@ -107,14 +97,14 @@ public class Chassis extends SubsystemBase {
     @Override
     public void periodic() {
         var pose = poseEstimator.update(getGyroRotation(),
-                new SwerveModulePosition[]{lFSwerveModule.getPosition(), rFSwerveModule.getPosition(), lBSwerveModule.getPosition(), rBSwerveModule.getPosition()});
+                new SwerveModulePosition[]{frontLeftSwerveModule.getPosition(), frontRightSwerveModule.getPosition(), backLeftSwerveModule.getPosition(), backRightSwerveModule.getPosition()});
 
         SmartDashboard.putString("pose", pose.toString());
 
-        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(lFSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(rFSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(lBSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(rBSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(frontLeftSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(frontRightSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(backLeftSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
 
         fieldPose.setRobotPose(getPose());
     }
@@ -123,11 +113,15 @@ public class Chassis extends SubsystemBase {
         return poseEstimator.getEstimatedPosition();
     }
 
+    public SwerveModulePosition[] getSwerveModulePositions() {
+        return new SwerveModulePosition[]{frontLeftSwerveModule.getPosition(), frontRightSwerveModule.getPosition(), backLeftSwerveModule.getPosition(), backRightSwerveModule.getPosition()};
+    }
+
     public void setSwerveStates(SwerveModuleState[] states){
-        lFSwerveModule.setDesiredState(states[0]);
-        rFSwerveModule.setDesiredState(states[1]);
-        lBSwerveModule.setDesiredState(states[2]);
-        rBSwerveModule.setDesiredState(states[3]);
+        frontLeftSwerveModule.setDesiredState(states[0]);
+        frontRightSwerveModule.setDesiredState(states[1]);
+        backLeftSwerveModule.setDesiredState(states[2]);
+        backRightSwerveModule.setDesiredState(states[3]);
     }
 
     public void drive(double xSpeed, double ySpeed, double rot) {
@@ -150,15 +144,15 @@ public class Chassis extends SubsystemBase {
     }
 
     public double setDriveVoltage(double voltage) {
-        lFSwerveModule.setDriveVoltage(voltage);
-        rFSwerveModule.setDriveVoltage(voltage);
-        lBSwerveModule.setDriveVoltage(voltage);
-        rBSwerveModule.setDriveVoltage(voltage);
-        return lFSwerveModule.getVelocity();
+        frontLeftSwerveModule.setDriveVoltage(voltage);
+        frontRightSwerveModule.setDriveVoltage(voltage);
+        backLeftSwerveModule.setDriveVoltage(voltage);
+        backRightSwerveModule.setDriveVoltage(voltage);
+        return frontLeftSwerveModule.getVelocity();
     }
 
     public void resetOdometry(Pose2d pose) {
-        poseEstimator.resetPosition(getGyroRotation(), new SwerveModulePosition[]{lFSwerveModule.getPosition(), rFSwerveModule.getPosition(), lBSwerveModule.getPosition(), rBSwerveModule.getPosition()}, pose);
+        poseEstimator.resetPosition(getGyroRotation(), new SwerveModulePosition[]{frontLeftSwerveModule.getPosition(), frontRightSwerveModule.getPosition(), backLeftSwerveModule.getPosition(), backRightSwerveModule.getPosition()}, pose);
     }
 
     /**
@@ -199,8 +193,8 @@ public class Chassis extends SubsystemBase {
         final double dT = 0.02;
 
         ChassisSpeeds speeds = ChassisConstants.SWERVE_DRIVE_KINEMATICS.toChassisSpeeds(
-                lFSwerveModule.getState(), rFSwerveModule.getState(),
-                lBSwerveModule.getState(), rBSwerveModule.getState());
+                frontLeftSwerveModule.getState(), frontRightSwerveModule.getState(),
+                backLeftSwerveModule.getState(), backRightSwerveModule.getState());
 
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
