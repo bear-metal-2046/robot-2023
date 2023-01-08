@@ -28,6 +28,8 @@ public class Robot extends TimedRobot
     @Override
     public void robotInit()
     {
+        logVersion();
+
         instances.add(Chassis.getInstance().initialize());
         instances.add(OI.getInstance());
 

@@ -47,9 +47,12 @@ public class Chassis extends SubsystemBase {
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
 
-    private final AprilTagVision vision = new AprilTagVision(poseEstimator::addVisionMeasurement);
+    // UNCOMMENT
+//    private final AprilTagVision vision = new AprilTagVision(poseEstimator::addVisionMeasurement);
 
-    public void closeVision() {vision.close();}
+    public void closeVision() {
+//        vision.close();
+    }
 
     private Chassis() {
 
@@ -95,7 +98,7 @@ public class Chassis extends SubsystemBase {
     @Override
     public void periodic() {
         var pose = poseEstimator.update(getGyroRotation(),
-                new SwerveModulePosition[]{frontLeftSwerveModule.getPosition(), frontRightSwerveModule.getPosition(), backLeftSwerveModule.getPosition(), backRightSwerveModule.getPosition()});
+                getSwerveModulePositions());
 
         SmartDashboard.putString("pose", pose.toString());
 

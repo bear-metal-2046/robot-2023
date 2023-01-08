@@ -82,33 +82,71 @@ public class SwerveModule {
     private CANSparkMax setupSteerMotor(int steerMotorId) {
         CANSparkMax motor = new CANSparkMax(steerMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
         motor.restoreFactoryDefaults();
-
         steerController = motor.getPIDController();
-
-        steerController.setP(0.3);
-        steerController.setI(0.0);
-        steerController.setD(0.1);
-
-        motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
-        motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
-
-        for (int i = 0; i < 10; i++) {
-            REVLibError rc = motor.getLastError();
-            if (rc == REVLibError.kOk) {
-                LoggerManager.log("Successfully setup Steer Motor for " + name);
+        for (int i = 0; i < 15; i++) {
+            if (setupSteerConfig(motor)) {
+                LoggerManager.log("Successfully setup steer motor for " + name);
                 break;
-            } else {
-                DriverStation.reportError(String.format("Failed to configure Steer Motor for %s.\nError: %s", name, rc), false);
             }
+            LoggerManager.log("Retrying setting up steer motor for " + name);
         }
 
-        motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        motor.setInverted(true);
-
+        // Reduce CAN status frame rates
         MotorUtil.reduceRateGeneralStatus(motor);
-
+        motor.burnFlash();
         return motor;
     }
+    private boolean setupSteerConfig (CANSparkMax motor) {
+        // Idle mode
+        REVLibError rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to setup idle mode for steer motor " + rtnCode);
+            return false;
+        }
+
+        // Inversion
+        motor.setInverted(true);
+        if (!motor.getInverted()) {
+            LoggerManager.error("Failed to setup motor inversion for steer motor ");
+            return false;
+        }
+        rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to setup brake mode for steer motor" + rtnCode);
+            return false;
+        }
+
+
+        //PID
+        rtnCode = steerController.setP(0.3);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to setup P for steer PID" + rtnCode);
+            return false;
+        }
+        rtnCode = steerController.setI(0.0);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to setup I for steer PID" + rtnCode);
+            return false;
+        }
+        rtnCode = steerController.setD(0.1);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to setup D for steer PID" + rtnCode);
+            return false;
+        }
+
+        rtnCode = motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to enable VoltageCompensation for steer" + rtnCode);
+            return false;
+        }
+        rtnCode = motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
+        if (rtnCode != REVLibError.kOk) {
+            LoggerManager.error("Failed to set current limit for steer" + rtnCode);
+            return false;
+        }
+        return true;
+    }
+
 
     private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
         CANCoderConfiguration config = new CANCoderConfiguration();
