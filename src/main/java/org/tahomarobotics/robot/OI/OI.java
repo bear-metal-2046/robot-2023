@@ -13,8 +13,8 @@ public final class OI
     private static final double ROTATIONAL_SENSITIVITY = 3;
     private static final double FORWARD_SENSITIVITY = 3;
 
-    private static final XboxController driveController = new XboxController(0);
-    private static final XboxController manipController = new XboxController(1);
+    private final XboxController driveController = new XboxController(0);
+    private final XboxController manipController = new XboxController(1);
 
     private OI() {
         bindButtons();

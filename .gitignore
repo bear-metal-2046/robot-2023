@@ -334,3 +334,7 @@ bin/
 
 src/main/deploy/branch.txt
 src/main/deploy/commit.txt
+
+simgui-ds.json
+simgui-window.json
+simgui.json
