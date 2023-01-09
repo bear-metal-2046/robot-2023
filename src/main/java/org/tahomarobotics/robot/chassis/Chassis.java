@@ -130,10 +130,23 @@ public class Chassis extends SubsystemBase {
     }
 
     private void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+        SmartDashboard.putNumber("Input X", xSpeed);
+        SmartDashboard.putNumber("Input Y", ySpeed);
+        SmartDashboard.putNumber("Input Rotation", rot);
+
         var swerveModuleStates =
                 ChassisConstants.SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(fieldRelative ?
                         ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getPose().getRotation()) :
                         new ChassisSpeeds(xSpeed, ySpeed, rot));
+
+        SmartDashboard.putString("Left Front Module State", String.format("Speed: %f m/s | Angle: %f°",
+                swerveModuleStates[0].speedMetersPerSecond, swerveModuleStates[0].angle.getDegrees()));
+        SmartDashboard.putString("Right Front Module State", String.format("Speed: %f m/s | Angle: %f°",
+                swerveModuleStates[1].speedMetersPerSecond, swerveModuleStates[1].angle.getDegrees()));
+        SmartDashboard.putString("Left Back Module State", String.format("Speed: %f m/s | Angle: %f°",
+                swerveModuleStates[2].speedMetersPerSecond, swerveModuleStates[2].angle.getDegrees()));
+        SmartDashboard.putString("Right Back Module State", String.format("Speed: %f m/s | Angle: %f°",
+                swerveModuleStates[3].speedMetersPerSecond, swerveModuleStates[3].angle.getDegrees()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS * ChassisConstants.VELOCITY_MULTIPLIER);
 
@@ -153,7 +166,7 @@ public class Chassis extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        poseEstimator.resetPosition(getGyroRotation(), new SwerveModulePosition[]{frontLeftSwerveModule.getPosition(), frontRightSwerveModule.getPosition(), backLeftSwerveModule.getPosition(), backRightSwerveModule.getPosition()}, pose);
+        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
     }
 
     /**

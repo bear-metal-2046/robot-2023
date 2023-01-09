@@ -6,7 +6,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.REVLibError;
+import edu.wpi.first.math.util.Units;
 import org.slf4j.Logger;
+import org.tahomarobotics.robot.chassis.ChassisConstants;
 
 public class MotorUtil {
 
@@ -65,5 +67,12 @@ public class MotorUtil {
         return true;
     }
 
+    public static double dtLinearToMotorRot_rad(double linear_m_in){
+        return linear_m_in / (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) * ChassisConstants.DRIVE_REDUCTION_MK4_L1;
+    }
+
+    public static double dtMotorRotToLinear_m(double motor_rad_in){
+        return motor_rad_in * (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) / ChassisConstants.DRIVE_REDUCTION_MK4_L1;
+    }
 }
 

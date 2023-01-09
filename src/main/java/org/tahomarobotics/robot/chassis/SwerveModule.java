@@ -19,8 +19,10 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
 import org.tahomarobotics.robot.util.MotorUtil;
@@ -93,6 +95,9 @@ public class SwerveModule {
 
         // Reduce CAN status frame rates
         MotorUtil.reduceRateGeneralStatus(motor);
+
+        motor.getEncoder().setPositionConversionFactor(0.5); // Rotations to Radians
+
         motor.burnFlash();
         return motor;
     }
@@ -198,15 +203,19 @@ public class SwerveModule {
         if (currentAngleMod < 0.0) {
             currentAngleMod += 2.0 * Math.PI;
         }
+        SmartDashboard.putNumber(name + " Current Angle Mod (Radians)", currentAngleMod);
 
+        // The reference angle has the range [0, 2pi) but the Neo's encoder can go above that
         double adjustedReferenceAngle = referenceAngle + currentAngle - currentAngleMod;
         if (referenceAngle - currentAngleMod > Math.PI) {
             adjustedReferenceAngle -= 2.0 * Math.PI;
         } else if (referenceAngle - currentAngleMod < -Math.PI) {
             adjustedReferenceAngle += 2.0 * Math.PI;
         }
+        SmartDashboard.putNumber(name + " Adjusted Angle Mod (Radians)", currentAngleMod);
 
-        steerController.setReference(adjustedReferenceAngle / ChassisConstants.STEER_POSITION_COEFFICIENT,
+        SmartDashboard.putNumber(name + " Final Reference Angle (Radians)", adjustedReferenceAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
+        steerController.setReference(Units.radiansToRotations(adjustedReferenceAngle / ChassisConstants.STEER_POSITION_COEFFICIENT),
                                            CANSparkMax.ControlType.kPosition);
     }
 
@@ -238,7 +247,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition(steerEncoder.getPosition(), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition(MotorUtil.dtMotorRotToLinear_m(driveMotor.getSelectedSensorPosition()), new Rotation2d(getSteerAngle()));
     }
 
 
@@ -250,15 +259,22 @@ public class SwerveModule {
      */
     public void setDesiredState(SwerveModuleState desiredState) {
         double steerAngle = getSteerAngle();
+        SmartDashboard.putNumber(name + " Angle Before (Radians)", steerAngle);
 
         // Optimize the reference state to avoid spinning further than 90 degrees
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
+        SmartDashboard.putString(name + " Optimized Module State", String.format("Speed: %f m/s | Angle: %f°",
+                state.speedMetersPerSecond, state.angle.getDegrees()));
 
         // Calculate the drive output from the drive PID controller.
         final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
+        SmartDashboard.putNumber(name + " Drive Output", driveOutput);
         final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
+        SmartDashboard.putNumber(name + " Drive Feedforward", driveFeedforward);
 
+        SmartDashboard.putNumber(name + " Drive Voltage", driveOutput + driveFeedforward);
         setDriveVoltage(driveOutput + driveFeedforward);
+        SmartDashboard.putNumber(name + " Reference Angle", state.angle.getRadians());
         setReferenceAngle(state.angle.getRadians());
     }
 
