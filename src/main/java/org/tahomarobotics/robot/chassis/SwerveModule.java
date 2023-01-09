@@ -183,21 +183,21 @@ public class SwerveModule {
 
         double currentAngle = getSteerAngle();
 
-        // Reset the NEO's encoder periodically when the module is not rotating.
-        // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
-        // end up getting a good reading. If we reset periodically this won't matter anymore.
-        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
-            if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
-                resetIteration = 0;
-                // read degrees from CANcoder
-                double absoluteAngle = getAbsoluteAngle();
-                // System.out.println(name + " angle:" + Units.radiansToDegrees(absoluteAngle));
-                steerMotor.getEncoder().setPosition(absoluteAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
-                currentAngle = absoluteAngle;
-            }
-        } else {
-            resetIteration = 0;
-        }
+//        // Reset the NEO's encoder periodically when the module is not rotating.
+//        // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
+//        // end up getting a good reading. If we reset periodically this won't matter anymore.
+//        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
+//            if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
+//                resetIteration = 0;
+//                // read degrees from CANcoder
+//                double absoluteAngle = getAbsoluteAngle();
+//                // System.out.println(name + " angle:" + Units.radiansToDegrees(absoluteAngle));
+//                steerMotor.getEncoder().setPosition(absoluteAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
+//                currentAngle = absoluteAngle;
+//            }
+//        } else {
+//            resetIteration = 0;
+//        }
 
         double currentAngleMod = currentAngle % (2.0 * Math.PI);
         if (currentAngleMod < 0.0) {
@@ -214,9 +214,8 @@ public class SwerveModule {
         }
         SmartDashboard.putNumber(name + " Adjusted Angle Mod (Radians)", currentAngleMod);
 
-        SmartDashboard.putNumber(name + " Final Reference Angle (Radians)", adjustedReferenceAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
-        steerController.setReference(Units.radiansToRotations(adjustedReferenceAngle / ChassisConstants.STEER_POSITION_COEFFICIENT),
-                                           CANSparkMax.ControlType.kPosition);
+        SmartDashboard.putNumber(name + " Final Reference Angle (Radians)", adjustedReferenceAngle);
+        steerMotor.setVoltage(Units.radiansToRotations(adjustedReferenceAngle));
     }
 
     public double getVelocity() {
@@ -237,7 +236,7 @@ public class SwerveModule {
      * @return The current state of the module.
      */
     public SwerveModuleState getState() {
-        return RobotBase.isReal() ? new SwerveModuleState(getVelocity(), new Rotation2d(getSteerAngle())) : state;
+        return new SwerveModuleState(getVelocity(), new Rotation2d(getSteerAngle()));
     }
 
     /**
@@ -263,7 +262,7 @@ public class SwerveModule {
 
         // Optimize the reference state to avoid spinning further than 90 degrees
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
-        SmartDashboard.putString(name + " Optimized Module State", String.format("Speed: %f m/s | Angle: %f°",
+        SmartDashboard.putString(name + " Optimized Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
                 state.speedMetersPerSecond, state.angle.getDegrees()));
 
         // Calculate the drive output from the drive PID controller.

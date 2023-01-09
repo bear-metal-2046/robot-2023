@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.Vision.AprilTags.AprilTagVision;
+import org.tahomarobotics.robot.util.LoggerManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,12 +101,12 @@ public class Chassis extends SubsystemBase {
         var pose = poseEstimator.update(getGyroRotation(),
                 getSwerveModulePositions());
 
-        SmartDashboard.putString("pose", pose.toString());
-
-        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(frontLeftSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(frontRightSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(backLeftSwerveModule.getSteerAngle()));
-        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
+//        SmartDashboard.putString("pose", pose.toString());
+//
+//        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(frontLeftSwerveModule.getSteerAngle()));
+//        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(frontRightSwerveModule.getSteerAngle()));
+//        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(backLeftSwerveModule.getSteerAngle()));
+//        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
 
         fieldPose.setRobotPose(getPose());
     }
@@ -139,13 +140,15 @@ public class Chassis extends SubsystemBase {
                         ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getPose().getRotation()) :
                         new ChassisSpeeds(xSpeed, ySpeed, rot));
 
-        SmartDashboard.putString("Left Front Module State", String.format("Speed: %f m/s | Angle: %f°",
+        LoggerManager.log("Driving");
+
+        SmartDashboard.putString("Left Front Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
                 swerveModuleStates[0].speedMetersPerSecond, swerveModuleStates[0].angle.getDegrees()));
-        SmartDashboard.putString("Right Front Module State", String.format("Speed: %f m/s | Angle: %f°",
+        SmartDashboard.putString("Right Front Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
                 swerveModuleStates[1].speedMetersPerSecond, swerveModuleStates[1].angle.getDegrees()));
-        SmartDashboard.putString("Left Back Module State", String.format("Speed: %f m/s | Angle: %f°",
+        SmartDashboard.putString("Left Back Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
                 swerveModuleStates[2].speedMetersPerSecond, swerveModuleStates[2].angle.getDegrees()));
-        SmartDashboard.putString("Right Back Module State", String.format("Speed: %f m/s | Angle: %f°",
+        SmartDashboard.putString("Right Back Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
                 swerveModuleStates[3].speedMetersPerSecond, swerveModuleStates[3].angle.getDegrees()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS * ChassisConstants.VELOCITY_MULTIPLIER);
