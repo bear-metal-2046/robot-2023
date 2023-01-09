@@ -78,7 +78,7 @@ public class Chassis extends SubsystemBase {
      * TODO there is definitely a better way to do this
      * @return if the robot is level. With a bit of leniency.
      */
-    public boolean isLevel() {
+    public final boolean isLevel() {
         return (getPitch().getDegrees() < 1 && getPitch().getDegrees() > -1) && (getYaw().getDegrees() < 1 && getYaw().getDegrees() > -1);
     }
 
