@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.Vision.AprilTags.AprilTagVision;
 import org.tahomarobotics.robot.util.LoggerManager;
 
 import java.util.ArrayList;

@@ -189,21 +189,21 @@ public class SwerveModule {
 
         double currentAngle = getSteerAngle();
 
-//        // Reset the NEO's encoder periodically when the module is not rotating.
-//        // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
-//        // end up getting a good reading. If we reset periodically this won't matter anymore.
-//        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
-//            if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
-//                resetIteration = 0;
-//                // read degrees from CANcoder
-//                double absoluteAngle = getAbsoluteAngle();
-//                // System.out.println(name + " angle:" + Units.radiansToDegrees(absoluteAngle));
-//                steerMotor.getEncoder().setPosition(absoluteAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
-//                currentAngle = absoluteAngle;
-//            }
-//        } else {
-//            resetIteration = 0;
-//        }
+        // Reset the NEO's encoder periodically when the module is not rotating.
+        // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
+        // end up getting a good reading. If we reset periodically this won't matter anymore.
+        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
+            if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
+                resetIteration = 0;
+                // read degrees from CANcoder
+                double absoluteAngle = getAbsoluteAngle();
+                // System.out.println(name + " angle:" + Units.radiansToDegrees(absoluteAngle));
+                steerMotor.getEncoder().setPosition(absoluteAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
+                currentAngle = absoluteAngle;
+            }
+        } else {
+            resetIteration = 0;
+        }
 
         double currentAngleMod = currentAngle % (2.0 * Math.PI);
         if (currentAngleMod < 0.0) {

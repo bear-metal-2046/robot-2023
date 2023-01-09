@@ -68,11 +68,11 @@ public class MotorUtil {
     }
 
     public static double dtLinearToMotorRot_rad(double linear_m_in){
-        return linear_m_in / (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) * ChassisConstants.DRIVE_REDUCTION_MK4_L1;
+        return linear_m_in / (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) * ChassisConstants.DRIVE_REDUCTION_MK4I_L2;
     }
 
     public static double dtMotorRotToLinear_m(double motor_rad_in){
-        return motor_rad_in * (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) / ChassisConstants.DRIVE_REDUCTION_MK4_L1;
+        return motor_rad_in * (Units.inchesToMeters(ChassisConstants.WHEEL_RADIUS)) / ChassisConstants.DRIVE_REDUCTION_MK4I_L2;
     }
 }
 
