@@ -4,6 +4,11 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 
 import java.util.function.DoubleSupplier;
 
+/**
+ * Basic Teleoperated Drive Command
+ * Used to make the robot go vrmmm
+ */
+
 public class TeleopDriveCommand extends CommandBase {
     private final DoubleSupplier xSup, ySup, rotSup;
 

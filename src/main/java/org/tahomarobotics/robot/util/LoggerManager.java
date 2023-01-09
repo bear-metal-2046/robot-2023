@@ -4,6 +4,11 @@ import edu.wpi.first.wpilibj.DriverStation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * New Logging Management Class
+ * This class dumps information to log files & straight back to DriverStation.
+ * Reference the class directly.
+ */
 public class LoggerManager {
     private static final Logger logger = LoggerFactory.getLogger(LoggerManager.class);
 

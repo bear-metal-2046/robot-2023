@@ -27,6 +27,12 @@ import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
 import org.tahomarobotics.robot.util.MotorUtil;
 
+/**
+ * SwerveModule Class
+ * Handles setup and various utility methods for Swerve Modules.
+ * @implNote Due to VEX being a non-option for swerve this year, our swerve modules will not be using TalonFX's or CTRE products.
+ * TODO Fix Swerve Modules for NEO's only.
+ */
 public class SwerveModule {
     private static final int CAN_TIMEOUT_MS = 500;
 

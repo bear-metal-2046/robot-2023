@@ -23,6 +23,12 @@ import org.tahomarobotics.robot.util.LoggerManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Chassis Subsystem Class
+ * Handles Drivetrain, Vision/Odometry, Balancing
+ * @implNote If class exceeds 500 lines consider making subclasses...
+ */
+
 public class Chassis extends SubsystemBase {
     private static final Chassis INSTANCE = new Chassis();
     public static Chassis getInstance() { return INSTANCE; }
@@ -68,12 +74,12 @@ public class Chassis extends SubsystemBase {
     }
 
     /**
-     * Checks to see if robot is level (within reason)
-     * (2 degrees of leniency)
-     * @return if the robot is level.
+     * Painful level checking, works now though.
+     * TODO there is definitely a better way to do this
+     * @return if the robot is level. With a bit of leniency.
      */
     public boolean isLevel() {
-        return getPitch().getDegrees() <= 2;
+        return (getPitch().getDegrees() < 1 && getPitch().getDegrees() > -1) && (getYaw().getDegrees() < 1 && getYaw().getDegrees() > -1);
     }
 
     private void zeroGyro(){pigeon2.setYaw(0.0);}

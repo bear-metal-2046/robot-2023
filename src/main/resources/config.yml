@@ -1,0 +1,16 @@
+#░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+#░░░░░░░  ░░░░░░░░         ░░░░     ░░░░░   ░░░      ░░
+#▒▒▒▒▒▒  ▒  ▒▒▒▒▒▒   ▒▒▒▒▒▒▒▒  ▒▒▒▒   ▒▒▒   ▒   ▒▒▒▒
+#▒▒▒▒▒  ▒▒   ▒▒▒▒▒   ▒▒▒▒▒▒▒  ▒▒▒▒▒▒▒▒▒▒▒   ▒▒   ▒▒▒▒▒▒
+#▓▓▓▓   ▓▓▓   ▓▓▓▓       ▓▓▓   ▓▓▓▓▓▓▓▓▓▓   ▓▓▓▓   ▓▓▓▓
+#▓▓▓       ▓   ▓▓▓   ▓▓▓▓▓▓▓   ▓▓▓      ▓   ▓▓▓▓▓▓▓   ▓
+#▓▓   ▓▓▓▓▓▓▓   ▓▓   ▓▓▓▓▓▓▓▓   ▓▓▓▓  ▓▓▓   ▓   ▓▓▓▓
+#█   █████████   █         ███      █████   ███      ██
+#██████████████████████████████████████████████████████
+# Bear Metal 2023 Configuration
+# !IMPORTANT! YOU MUST HIT "Restart Robot Code" IN DRIVERSTATION TO RELOAD THIS CONFIGURATION, IT WILL NOT RELOAD OTHERWISE. !IMPORTANT!
+# Above is due to change eventually.
+# Do not modify below var
+is_this_a_config: true
+version: 0.1
+# You can modify values below this comment

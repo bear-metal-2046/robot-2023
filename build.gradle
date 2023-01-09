@@ -51,6 +51,8 @@ def includeDesktopSupport = false
 repositories {
     mavenLocal()
     mavenCentral()
+    //For Simple-YAML Config
+    maven { url 'https://jitpack.io' }
 }
 
 test {
@@ -79,6 +81,8 @@ dependencies {
     implementation platform("org.junit:junit-bom:5.8.2")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation 'org.slf4j:slf4j-api:2.0.6'
+    //YAML Configuration Support.
+    implementation 'me.carleslc.Simple-YAML:Simple-Yaml:1.8.3'
     testImplementation "org.junit.jupiter:junit-jupiter-api"
     testImplementation "org.junit.jupiter:junit-jupiter-params"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"

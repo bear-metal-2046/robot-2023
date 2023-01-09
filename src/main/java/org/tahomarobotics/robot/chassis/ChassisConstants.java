@@ -6,6 +6,10 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import org.tahomarobotics.robot.RobotMap;
 
+/**
+ * Constants Class
+ * @implNote May be replaced by YAML Configuration.
+ */
 @Deprecated(since = "Values used from 2022; Please Update")
 public final class ChassisConstants {
     static double FRONT_LEFT_OFFSET = Math.toRadians(0);
