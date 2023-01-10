@@ -30,8 +30,7 @@ public class MotorUtil {
 
     public static boolean reduceRateGeneralStatus(CANSparkMax motor) {
 
-        REVLibError rc = motor.setPeriodicFramePeriod(
-                CANSparkMaxLowLevel.PeriodicFrame.kStatus0,
+        REVLibError rc = motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0,
                 STATUS_FRAME_GENERAL_PERIOD_MS);
 
         if (rc != REVLibError.kOk) {

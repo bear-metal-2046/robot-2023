@@ -74,7 +74,9 @@ public class SwerveModule {
         
         motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         motor.setInverted(true);
-        MotorUtil.reduceRateGeneralStatus(motor);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
         motor.burnFlash();
         return motor;
     }
@@ -83,6 +85,7 @@ public class SwerveModule {
         CANSparkMax motor = new CANSparkMax(steerMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
         motor.restoreFactoryDefaults();
         steerPIDController = motor.getPIDController();
+        //Set up motor config
         for (int i = 0; i < 15; i++) {
             if (setupSteerConfig(motor)) {
                 LoggerManager.log("Successfully setup steer motor for " + name);
@@ -92,7 +95,9 @@ public class SwerveModule {
         }
 
         // Reduce CAN status frame rates
-        MotorUtil.reduceRateGeneralStatus(motor);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 50);
 
         motor.getEncoder().setPositionConversionFactor(0.5); // Rotations to Radians
 
