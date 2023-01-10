@@ -44,9 +44,9 @@ public class Robot extends TimedRobot {
         //Do NOT modify
         //If you need an explanation: this ensures that the static instance of this class is ALWAYS what the RoboRIO is currently running.
         INSTANCE = this;
-        RobotConfig robotConfig = new RobotConfig(tryLoadConfig());
-        this.config = robotConfig;
-        LoggerManager.log("Configuration Loaded.");
+//        RobotConfig robotConfig = new RobotConfig(tryLoadConfig());
+//        this.config = robotConfig;
+//        LoggerManager.log("Configuration Loaded.");
         //You can modify now
 
         instances.add(Chassis.getInstance().initialize());

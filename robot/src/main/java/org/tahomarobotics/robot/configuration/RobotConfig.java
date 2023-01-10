@@ -8,9 +8,10 @@ import java.io.IOException;
 
 public class RobotConfig {
 
-    private YamlConfiguration config;
+    private final YamlConfiguration config;
 
     public RobotConfig(File file) {
+        config = new YamlConfiguration();
         loadConfig(file);
     }
 

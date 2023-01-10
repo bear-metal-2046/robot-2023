@@ -245,7 +245,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition(MotorUtil.dtMotorRotToLinear_m(driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition((driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
     }
 
 
