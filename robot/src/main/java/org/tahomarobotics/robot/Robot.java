@@ -44,7 +44,6 @@ public class Robot extends TimedRobot {
         //Do NOT modify
         //If you need an explanation: this ensures that the static instance of this class is ALWAYS what the RoboRIO is currently running.
         INSTANCE = this;
-        logVersion();
         RobotConfig robotConfig = new RobotConfig(tryLoadConfig());
         this.config = robotConfig;
         LoggerManager.log("Configuration Loaded.");
@@ -75,32 +74,6 @@ public class Robot extends TimedRobot {
             }
         }
         return configFile;
-    }
-
-    public void logVersion() {
-        File deployDir = Filesystem.getDeployDirectory();
-        File branchFile = new File(deployDir, "branch.txt");
-        File commitFile = new File(deployDir, "commit.txt");
-
-        String branch;
-        try {
-            Scanner s = new Scanner(branchFile);
-            branch = s.next();
-            s.close();
-        } catch (FileNotFoundException e) {
-            branch = "<Not Found>";
-        }
-
-        String commit;
-        try {
-            Scanner s = new Scanner(commitFile);
-            commit = s.next();
-            s.close();
-        } catch (FileNotFoundException e) {
-            commit = "<Not Found>";
-        }
-
-        LoggerManager.warn(String.format("Current Version: %s | %s", branch, commit));
     }
 
     @Override
