@@ -1,11 +1,7 @@
 package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.ErrorCode;
-import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
@@ -21,7 +17,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
@@ -39,10 +34,10 @@ public class SwerveModule {
     public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {}
 
     private final String name;
-    private final TalonFX driveMotor;
+    private final CANSparkMax driveMotor;
     private final CANSparkMax steerMotor;
-    private final CANCoder steerEncoder;
-    private SparkMaxPIDController steerController;
+    private final CANCoder steerABSEncoder;
+    private SparkMaxPIDController steerPIDController;
     private int resetIteration = ChassisConstants.ENCODER_RESET_ITERATIONS;
 
     private final PIDController drivePIDController = new PIDController(0, 0, 0);
@@ -50,11 +45,6 @@ public class SwerveModule {
 
     private SwerveModuleState state = new SwerveModuleState();
 
-    public static void checkCtreError(ErrorCode errorCode, String message) {
-        if (errorCode != ErrorCode.OK) {
-            DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
-        }
-    }
 
     public SwerveModule(SwerveConfiguration configuration) {
         this(configuration.name, configuration.ports, configuration.referenceAngle);
@@ -64,33 +54,35 @@ public class SwerveModule {
         this.name = name;
         driveMotor = setupDriveMotor(ports.drive());
         steerMotor = setupSteerMotor(ports.steer());
-        steerEncoder = setupSteerEncoder(ports.encoder(), referenceAngle);
+        steerABSEncoder = setupSteerEncoder(ports.encoder(), referenceAngle);
     }
 
-    private TalonFX setupDriveMotor(int driveMotorId) {
-        TalonFXConfiguration motorConfiguration = new TalonFXConfiguration();
-        motorConfiguration.voltageCompSaturation = ChassisConstants.REFERENCE_VOLTAGE;
-        motorConfiguration.supplyCurrLimit.currentLimit = ChassisConstants.DRIVE_CURRENT_LIMIT;
-        motorConfiguration.statorCurrLimit.currentLimit = ChassisConstants.DRIVE_ACCEL_CURRENT_LIMIT;
-        motorConfiguration.supplyCurrLimit.enable = true;
-        motorConfiguration.statorCurrLimit.enable = true;
-        TalonFX motor = new TalonFX(driveMotorId);
+    public static void checkCtreError(ErrorCode errorCode, String message) {
+        if (errorCode != ErrorCode.OK) {
+            DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
+        }
+    }
 
-        checkCtreError(motor.configAllSettings(motorConfiguration), "Failed to set current limit for drive motor " + driveMotorId);
-        motor.enableVoltageCompensation(true);
-        motor.setNeutralMode(NeutralMode.Brake);
-        motor.setInverted(TalonFXInvertType.Clockwise);
-        motor.setSensorPhase(true);
+    private CANSparkMax setupDriveMotor(int driveMotorId) {
+        CANSparkMax motor = new CANSparkMax(driveMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
+        motor.restoreFactoryDefaults();
 
+        motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
+        motor.setSmartCurrentLimit((int) ChassisConstants.DRIVE_CURRENT_LIMIT);
+        motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0);
+        motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
+        
+        motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        motor.setInverted(true);
         MotorUtil.reduceRateGeneralStatus(motor);
-
+        motor.burnFlash();
         return motor;
     }
 
     private CANSparkMax setupSteerMotor(int steerMotorId) {
         CANSparkMax motor = new CANSparkMax(steerMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
         motor.restoreFactoryDefaults();
-        steerController = motor.getPIDController();
+        steerPIDController = motor.getPIDController();
         for (int i = 0; i < 15; i++) {
             if (setupSteerConfig(motor)) {
                 LoggerManager.log("Successfully setup steer motor for " + name);
@@ -129,17 +121,17 @@ public class SwerveModule {
 
 
         //PID
-        rtnCode = steerController.setP(0.3);
+        rtnCode = steerPIDController.setP(0.3);
         if (rtnCode != REVLibError.kOk) {
             LoggerManager.error("Failed to setup P for steer PID" + rtnCode);
             return false;
         }
-        rtnCode = steerController.setI(0.0);
+        rtnCode = steerPIDController.setI(0.0);
         if (rtnCode != REVLibError.kOk) {
             LoggerManager.error("Failed to setup I for steer PID" + rtnCode);
             return false;
         }
-        rtnCode = steerController.setD(0.1);
+        rtnCode = steerPIDController.setD(0.1);
         if (rtnCode != REVLibError.kOk) {
             LoggerManager.error("Failed to setup D for steer PID" + rtnCode);
             return false;
@@ -162,6 +154,7 @@ public class SwerveModule {
     private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
+        config.sensorCoefficient = ChassisConstants.STEER_POSITION_COEFFICIENT;
         config.magnetOffsetDegrees = Math.toDegrees(referenceAngle);
         config.sensorDirection = false;
 
@@ -175,7 +168,7 @@ public class SwerveModule {
     }
 
     private double getAbsoluteAngle() {
-        double angle = Math.toRadians(steerEncoder.getAbsolutePosition());
+        double angle = Math.toRadians(steerABSEncoder.getAbsolutePosition());
         angle %= 2.0 * Math.PI;
         if (angle < 0.0) {
             angle += 2.0 * Math.PI;
@@ -225,7 +218,7 @@ public class SwerveModule {
     }
 
     public double getVelocity() {
-        return driveMotor.getSelectedSensorVelocity() * ChassisConstants.DRIVE_VELOCITY_COEFFICIENT;
+        return driveMotor.getEncoder().getVelocity() * ChassisConstants.DRIVE_VELOCITY_COEFFICIENT;
     }
 
     public double getSteerAngle() {
@@ -252,7 +245,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition(MotorUtil.dtMotorRotToLinear_m(driveMotor.getSelectedSensorPosition()), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition(MotorUtil.dtMotorRotToLinear_m(driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
     }
 
 
@@ -284,6 +277,6 @@ public class SwerveModule {
     }
 
     public void setDriveVoltage(double voltage) {
-        driveMotor.set(TalonFXControlMode.PercentOutput, voltage / ChassisConstants.REFERENCE_VOLTAGE);
+        driveMotor.setVoltage(voltage / ChassisConstants.REFERENCE_VOLTAGE);
     }
 }

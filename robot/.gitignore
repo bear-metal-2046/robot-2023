@@ -288,6 +288,7 @@ $RECYCLE.BIN/
 
 ### Gradle ###
 ../.gradle
+.gradle/
 **/build/
 !src/**/build/
 
@@ -331,9 +332,6 @@ bin/
 *-window.json
 
 # End entries from WPI Lib team
-
-src/main/deploy/branch.txt
-src/main/deploy/commit.txt
 
 simgui-ds.json
 simgui-window.json

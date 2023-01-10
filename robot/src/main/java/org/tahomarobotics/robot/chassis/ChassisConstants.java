@@ -48,10 +48,9 @@ public final class ChassisConstants {
     public static final double WHEEL_RADIUS = WHEEL_DIAMETER / 2;
     public static final double DRIVE_REDUCTION_MK4I_L2 = (14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0);
     public static final double STEER_REDUCTION = (14.0 / 50.0) * (10.0 / 60.0);
-
     public static final double REFERENCE_VOLTAGE = 12.0;
     public static final double DRIVE_CURRENT_LIMIT = 80.0;
-    public static final double DRIVE_ACCEL_CURRENT_LIMIT = 40.0;
+    public static final double DRIVE_ACCEL_RPM_LIMIT = 2016; //idk what to put for RPM CAUSEEEEE AHHHHHH
     public static final double STEER_CURRENT_LIMIT = 20.0;
 
     public static final DCMotor SWERVE_DRIVE_MOTOR = DCMotor.getNEO(1);
