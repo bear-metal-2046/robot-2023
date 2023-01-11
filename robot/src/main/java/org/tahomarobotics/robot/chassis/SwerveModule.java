@@ -13,6 +13,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
 
@@ -69,8 +70,8 @@ public class SwerveModule {
         motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         motor.setInverted(true);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
-        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
-        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
         motor.burnFlash();
         return motor;
     }
@@ -90,10 +91,8 @@ public class SwerveModule {
 
         // Reduce CAN status frame rates
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
-        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 20);
-        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 50);
-
-        motor.getEncoder().setPositionConversionFactor(0.5); // Rotations to Radians
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
+        motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
 
         motor.burnFlash();
         return motor;
@@ -153,7 +152,7 @@ public class SwerveModule {
     private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        config.sensorCoefficient = ChassisConstants.STEER_POSITION_COEFFICIENT;
+        config.sensorCoefficient = 1d / 4096d;
         config.magnetOffsetDegrees = Math.toDegrees(referenceAngle);
         config.sensorDirection = false;
 
@@ -184,7 +183,7 @@ public class SwerveModule {
         // Reset the NEO's encoder periodically when the module is not rotating.
         // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
         // end up getting a good reading. If we reset periodically this won't matter anymore.
-        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
+        if (Math.abs(Units.rotationsToRadians(getSteerVelocity())) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
             if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
                 resetIteration = 0;
                 // read degrees from CANcoder
@@ -218,11 +217,11 @@ public class SwerveModule {
     }
 
     public double getSteerAngle() {
-        return steerMotor.getEncoder().getPosition() * ChassisConstants.STEER_POSITION_COEFFICIENT;
+        return Units.rotationsToRadians(steerMotor.getEncoder().getPosition() * ChassisConstants.STEER_REDUCTION);
     }
 
     private double getSteerVelocity() {
-        return steerMotor.getEncoder().getVelocity() * ChassisConstants.STEER_POSITION_COEFFICIENT * 10;
+        return steerMotor.getEncoder().getVelocity() * ChassisConstants.STEER_REDUCTION; // ROTATIONS
     }
 
     /**
@@ -241,7 +240,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition((driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition((driveMotor.getEncoder().getPosition() * ChassisConstants.WHEEL_CIRCUMFERENCE), new Rotation2d(getSteerAngle()));
     }
 
     public void driveMotor(double power) {
@@ -259,14 +258,20 @@ public class SwerveModule {
      */
     public void setDesiredState(SwerveModuleState desiredState) {
         double steerAngle = getSteerAngle();
+
+        SmartDashboard.putNumber(name + " STEER ANGLE (RELATIVE)", steerAngle);
+
         // Optimize the reference state to avoid spinning further than 90 degrees
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
+        SmartDashboard.putNumber(name + " STEER ANGLE (ABSOLUTE)", getAbsoluteAngle());
+        SmartDashboard.putNumber(name + " DRIVE VELOCITY (REALLY POOL MENISCUS)", getVelocity());
 
         // Calculate the drive output from the drive PID controller.
-        final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
+        final double driveOutput = drivePIDController.calculate(getVelocity() * ChassisConstants.WHEEL_CIRCUMFERENCE * 60, state.speedMetersPerSecond);
         final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
 
         setDriveVoltage(driveOutput + driveFeedforward);
+        SmartDashboard.putNumber(name + " REF ANGLE", state.angle.getRadians());
         setReferenceAngle(state.angle.getRadians());
     }
 

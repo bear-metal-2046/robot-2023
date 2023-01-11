@@ -106,12 +106,12 @@ public class Chassis extends SubsystemBase {
                 ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
         SmartDashboard.putData(fieldPose);
 
-        SmartDashboard.putData("MOD SELECTOR", selector);
-
-        selector.addOption("1", 1);
-        selector.addOption("2", 2);
-        selector.addOption("3", 3);
-        selector.addOption("4", 4);
+//        SmartDashboard.putData("MOD SELECTOR", selector);
+//
+//        selector.addOption("1", 1);
+//        selector.addOption("2", 2);
+//        selector.addOption("3", 3);
+//        selector.addOption("4", 4);
 
 //        int handler = NetworkTableInstance.getDefault().getTable("SmartDashboard").addListener(
 //                "MOD SELECTOR",
@@ -147,30 +147,30 @@ public class Chassis extends SubsystemBase {
 
         fieldPose.setRobotPose(getPose());
 
-        double jx = OI.getInstance().getDriveRightXJoystick();
-        double jy = OI.getInstance().getDriveLeftYJoystick();
-        selectedModule = selector.getSelected() != null ? selector.getSelected() : 0;
-        SmartDashboard.putNumber("JEX", jx);
-        SmartDashboard.putNumber("JWHY", jy);
-        SmartDashboard.putNumber("SelMod", selectedModule);
-        switch (selectedModule) {
-            case 1 -> {
-                frontLeftSwerveModule.driveMotor(jy);
-                frontLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
-            }
-            case 2 -> {
-                frontRightSwerveModule.driveMotor(jy);
-                frontRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
-            }
-            case 3 -> {
-                backLeftSwerveModule.driveMotor(jy);
-                backLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
-            }
-            case 4 -> {
-                backRightSwerveModule.driveMotor(jy);
-                backRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
-            }
-        }
+//        double jx = OI.getInstance().getDriveRightXJoystick();
+//        double jy = OI.getInstance().getDriveLeftYJoystick();
+//        selectedModule = selector.getSelected() != null ? selector.getSelected() : 0;
+//        SmartDashboard.putNumber("JEX", jx);
+//        SmartDashboard.putNumber("JWHY", jy);
+//        SmartDashboard.putNumber("SelMod", selectedModule);
+//        switch (selectedModule) {
+//            case 1 -> {
+//                frontLeftSwerveModule.driveMotor(jy);
+//                frontLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//            }
+//            case 2 -> {
+//                frontRightSwerveModule.driveMotor(jy);
+//                frontRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//            }
+//            case 3 -> {
+//                backLeftSwerveModule.driveMotor(jy);
+//                backLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//            }
+//            case 4 -> {
+//                backRightSwerveModule.driveMotor(jy);
+//                backRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//            }
+//        }
     }
 
     public Pose2d getPose(){
@@ -189,7 +189,7 @@ public class Chassis extends SubsystemBase {
     }
 
     public void drive(double xSpeed, double ySpeed, double rot) {
-//        drive(xSpeed, ySpeed, rot, isFieldOriented);
+        drive(xSpeed, ySpeed, rot, isFieldOriented);
     }
 
     private void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
