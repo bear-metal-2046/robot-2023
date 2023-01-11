@@ -1,10 +1,6 @@
 package org.tahomarobotics.robot.OI;
 
 import edu.wpi.first.wpilibj.XboxController;
-import org.tahomarobotics.robot.Robot;
-import org.tahomarobotics.robot.chassis.Chassis;
-import org.tahomarobotics.robot.chassis.ChassisConstants;
-import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 
 public final class OI
 {
@@ -20,15 +16,15 @@ public final class OI
     private OI() {
         bindButtons();
 
-        Chassis.getInstance().setDefaultCommand(
-                new TeleopDriveCommand(
-                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY)
-                                * ChassisConstants.MAX_VELOCITY_MPS,
-                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY)
-                                * ChassisConstants.MAX_VELOCITY_MPS,
-                        () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
-                                * ChassisConstants.MAX_ANGULAR_VELOCITY_RPS)
-        );
+//        Chassis.getInstance().setDefaultCommand(
+//                new TeleopDriveCommand(
+//                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY)
+//                                * ChassisConstants.MAX_VELOCITY_MPS,
+//                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY)
+//                                * ChassisConstants.MAX_VELOCITY_MPS,
+//                        () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
+//                                * ChassisConstants.MAX_ANGULAR_VELOCITY_RPS)
+//        );
     }
 
     private void bindButtons()
@@ -38,6 +34,14 @@ public final class OI
 
     public void teleopPeriodic() {
 
+    }
+
+    public double getDriveLeftYJoystick() {
+        return -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY);
+    }
+
+    public double getDriveRightXJoystick() {
+        return -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY);
     }
 
 

@@ -12,14 +12,22 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableEvent;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.SendableRegistry;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.tahomarobotics.robot.OI.OI;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.util.LoggerManager;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -98,8 +106,32 @@ public class Chassis extends SubsystemBase {
                 ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
         SmartDashboard.putData(fieldPose);
 
+        SmartDashboard.putData("MOD SELECTOR", selector);
+
+        selector.addOption("1", 1);
+        selector.addOption("2", 2);
+        selector.addOption("3", 3);
+        selector.addOption("4", 4);
+
+//        int handler = NetworkTableInstance.getDefault().getTable("SmartDashboard").addListener(
+//                "MOD SELECTOR",
+//                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
+//                (table, key, event) -> {
+//                    Integer selected = selector.getSelected();
+//                    DriverStation.reportError("Picked " + selected, false);
+//                    selectMod(selected);
+//                }
+//        );
+
         return this;
     }
+
+    public void selectMod(int i) {
+        selectedModule = i;
+    }
+
+    public SendableChooser<Integer> selector = new SendableChooser<>();
+    public int selectedModule = 1;
 
     @Override
     public void periodic() {
@@ -114,6 +146,31 @@ public class Chassis extends SubsystemBase {
 //        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
 
         fieldPose.setRobotPose(getPose());
+
+        double jx = OI.getInstance().getDriveRightXJoystick();
+        double jy = OI.getInstance().getDriveLeftYJoystick();
+        selectedModule = selector.getSelected() != null ? selector.getSelected() : 0;
+        SmartDashboard.putNumber("JEX", jx);
+        SmartDashboard.putNumber("JWHY", jy);
+        SmartDashboard.putNumber("SelMod", selectedModule);
+        switch (selectedModule) {
+            case 1 -> {
+                frontLeftSwerveModule.driveMotor(jy);
+                frontLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+            }
+            case 2 -> {
+                frontRightSwerveModule.driveMotor(jy);
+                frontRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+            }
+            case 3 -> {
+                backLeftSwerveModule.driveMotor(jy);
+                backLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+            }
+            case 4 -> {
+                backRightSwerveModule.driveMotor(jy);
+                backRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+            }
+        }
     }
 
     public Pose2d getPose(){
@@ -132,29 +189,14 @@ public class Chassis extends SubsystemBase {
     }
 
     public void drive(double xSpeed, double ySpeed, double rot) {
-        drive(xSpeed, ySpeed, rot, isFieldOriented);
+//        drive(xSpeed, ySpeed, rot, isFieldOriented);
     }
 
     private void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        SmartDashboard.putNumber("Input X", xSpeed);
-        SmartDashboard.putNumber("Input Y", ySpeed);
-        SmartDashboard.putNumber("Input Rotation", rot);
-
         var swerveModuleStates =
                 ChassisConstants.SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(fieldRelative ?
                         ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getPose().getRotation()) :
                         new ChassisSpeeds(xSpeed, ySpeed, rot));
-
-        LoggerManager.log("Driving");
-
-        SmartDashboard.putString("Left Front Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
-                swerveModuleStates[0].speedMetersPerSecond, swerveModuleStates[0].angle.getDegrees()));
-        SmartDashboard.putString("Right Front Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
-                swerveModuleStates[1].speedMetersPerSecond, swerveModuleStates[1].angle.getDegrees()));
-        SmartDashboard.putString("Left Back Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
-                swerveModuleStates[2].speedMetersPerSecond, swerveModuleStates[2].angle.getDegrees()));
-        SmartDashboard.putString("Right Back Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
-                swerveModuleStates[3].speedMetersPerSecond, swerveModuleStates[3].angle.getDegrees()));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS * ChassisConstants.VELOCITY_MULTIPLIER);
 

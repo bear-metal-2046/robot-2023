@@ -1,15 +1,11 @@
 package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.ErrorCode;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.REVLibError;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.*;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,10 +13,8 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.util.LoggerManager;
-import org.tahomarobotics.robot.util.MotorUtil;
 
 /**
  * SwerveModule Class
@@ -71,7 +65,7 @@ public class SwerveModule {
         motor.setSmartCurrentLimit((int) ChassisConstants.DRIVE_CURRENT_LIMIT);
         motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0);
         motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
-        
+
         motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         motor.setInverted(true);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
@@ -207,7 +201,6 @@ public class SwerveModule {
         if (currentAngleMod < 0.0) {
             currentAngleMod += 2.0 * Math.PI;
         }
-        SmartDashboard.putNumber(name + " Current Angle Mod (Radians)", currentAngleMod);
 
         // The reference angle has the range [0, 2pi) but the Neo's encoder can go above that
         double adjustedReferenceAngle = referenceAngle + currentAngle - currentAngleMod;
@@ -216,10 +209,8 @@ public class SwerveModule {
         } else if (referenceAngle - currentAngleMod < -Math.PI) {
             adjustedReferenceAngle += 2.0 * Math.PI;
         }
-        SmartDashboard.putNumber(name + " Adjusted Angle Mod (Radians)", currentAngleMod);
 
-        SmartDashboard.putNumber(name + " Final Reference Angle (Radians)", adjustedReferenceAngle);
-        steerMotor.setVoltage(Units.radiansToRotations(adjustedReferenceAngle));
+        steerPIDController.setReference(Units.radiansToRotations(adjustedReferenceAngle), CANSparkMax.ControlType.kPosition);
     }
 
     public double getVelocity() {
@@ -253,7 +244,13 @@ public class SwerveModule {
         return new SwerveModulePosition((driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
     }
 
+    public void driveMotor(double power) {
+        driveMotor.set(power);
+    }
 
+    public void applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(double power) {
+        steerMotor.set(power);
+    }
 
     /**
      * Sets the desired state for the module.
@@ -262,22 +259,14 @@ public class SwerveModule {
      */
     public void setDesiredState(SwerveModuleState desiredState) {
         double steerAngle = getSteerAngle();
-        SmartDashboard.putNumber(name + " Angle Before (Radians)", steerAngle);
-
         // Optimize the reference state to avoid spinning further than 90 degrees
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
-        SmartDashboard.putString(name + " Optimized Module State", String.format("Speed: %.3f m/s | Angle: %.3f°",
-                state.speedMetersPerSecond, state.angle.getDegrees()));
 
         // Calculate the drive output from the drive PID controller.
         final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
-        SmartDashboard.putNumber(name + " Drive Output", driveOutput);
         final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
-        SmartDashboard.putNumber(name + " Drive Feedforward", driveFeedforward);
 
-        SmartDashboard.putNumber(name + " Drive Voltage", driveOutput + driveFeedforward);
         setDriveVoltage(driveOutput + driveFeedforward);
-        SmartDashboard.putNumber(name + " Reference Angle", state.angle.getRadians());
         setReferenceAngle(state.angle.getRadians());
     }
 
