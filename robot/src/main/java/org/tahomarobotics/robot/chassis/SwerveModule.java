@@ -62,6 +62,11 @@ public class SwerveModule {
         CANSparkMax motor = new CANSparkMax(driveMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
         motor.restoreFactoryDefaults();
 
+        double positionConversionFactor = Math.PI * ChassisConstants.WHEEL_DIAMETER * ChassisConstants.DRIVE_REDUCTION_MK4I_L2;
+        motor.getEncoder().setPositionConversionFactor(positionConversionFactor);
+        motor.getEncoder().setVelocityConversionFactor(positionConversionFactor / 60.0);
+
+
         motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
         motor.setSmartCurrentLimit((int) ChassisConstants.DRIVE_CURRENT_LIMIT);
         motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0);
@@ -88,6 +93,10 @@ public class SwerveModule {
             }
             LoggerManager.log("Retrying setting up steer motor for " + name);
         }
+
+        double positionConversionFactor = 2 * Math.PI * ChassisConstants.STEER_REDUCTION;
+        motor.getEncoder().setPositionConversionFactor(positionConversionFactor);
+        motor.getEncoder().setVelocityConversionFactor(positionConversionFactor / 60.0);
 
         // Reduce CAN status frame rates
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
@@ -183,7 +192,7 @@ public class SwerveModule {
         // Reset the NEO's encoder periodically when the module is not rotating.
         // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
         // end up getting a good reading. If we reset periodically this won't matter anymore.
-        if (Math.abs(Units.rotationsToRadians(getSteerVelocity())) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
+        if (Math.abs(getSteerVelocity()) < ChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
             if (++resetIteration >= ChassisConstants.ENCODER_RESET_ITERATIONS) {
                 resetIteration = 0;
                 // read degrees from CANcoder
@@ -213,11 +222,11 @@ public class SwerveModule {
     }
 
     public double getVelocity() {
-        return driveMotor.getEncoder().getVelocity() * ChassisConstants.DRIVE_VELOCITY_COEFFICIENT;
+        return driveMotor.getEncoder().getVelocity();
     }
 
     public double getSteerAngle() {
-        return Units.rotationsToRadians(steerMotor.getEncoder().getPosition() * ChassisConstants.STEER_REDUCTION);
+        return steerMotor.getEncoder().getPosition();
     }
 
     private double getSteerVelocity() {
@@ -240,7 +249,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition((driveMotor.getEncoder().getPosition() * ChassisConstants.WHEEL_CIRCUMFERENCE), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition((driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
     }
 
     public void driveMotor(double power) {
