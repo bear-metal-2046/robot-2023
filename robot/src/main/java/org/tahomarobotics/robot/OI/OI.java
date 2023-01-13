@@ -1,6 +1,7 @@
 package org.tahomarobotics.robot.OI;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.ChassisConstants;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
@@ -28,6 +29,11 @@ public final class OI
                         () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
                                 * ChassisConstants.MAX_ANGULAR_VELOCITY_RPS)
         );
+
+        JoystickButton AButton = new JoystickButton(driveController, 1);
+        AButton.whenPressed(Chassis.getInstance()::orientToZeroHeading);
+        JoystickButton BButton = new JoystickButton(driveController, 2);
+        BButton.whenPressed(Chassis.getInstance()::toggleOrientation);
     }
 
     private void bindButtons()
