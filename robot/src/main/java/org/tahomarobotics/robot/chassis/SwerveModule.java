@@ -152,7 +152,7 @@ public class SwerveModule {
     private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        config.sensorCoefficient = 1d / 4096d;
+        config.sensorCoefficient = Units.rotationsToRadians(1d / 4096d);
         config.magnetOffsetDegrees = Math.toDegrees(referenceAngle);
         config.sensorDirection = false;
 
@@ -165,7 +165,7 @@ public class SwerveModule {
         return encoder;
     }
 
-    private double getAbsoluteAngle() {
+    public double getAbsoluteAngle() {
         double angle = Math.toRadians(steerABSEncoder.getAbsolutePosition());
         angle %= 2.0 * Math.PI;
         if (angle < 0.0) {
@@ -221,7 +221,7 @@ public class SwerveModule {
     }
 
     private double getSteerVelocity() {
-        return steerMotor.getEncoder().getVelocity() * ChassisConstants.STEER_REDUCTION; // ROTATIONS
+        return steerMotor.getEncoder().getVelocity();
     }
 
     /**
@@ -259,15 +259,11 @@ public class SwerveModule {
     public void setDesiredState(SwerveModuleState desiredState) {
         double steerAngle = getSteerAngle();
 
-        SmartDashboard.putNumber(name + " STEER ANGLE (RELATIVE)", steerAngle);
-
         // Optimize the reference state to avoid spinning further than 90 degrees
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
-        SmartDashboard.putNumber(name + " STEER ANGLE (ABSOLUTE)", getAbsoluteAngle());
-        SmartDashboard.putNumber(name + " DRIVE VELOCITY (REALLY POOL MENISCUS)", getVelocity());
 
         // Calculate the drive output from the drive PID controller.
-        final double driveOutput = drivePIDController.calculate(getVelocity() * ChassisConstants.WHEEL_CIRCUMFERENCE * 60, state.speedMetersPerSecond);
+        final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
         final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
 
         setDriveVoltage(driveOutput + driveFeedforward);

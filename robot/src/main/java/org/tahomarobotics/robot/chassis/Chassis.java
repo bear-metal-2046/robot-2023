@@ -147,6 +147,11 @@ public class Chassis extends SubsystemBase {
 
         fieldPose.setRobotPose(getPose());
 
+        SmartDashboard.putNumber("LF ABSOLUTE ANGLE :)", frontLeftSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("RF ABSOLUTE ANGLE :)", frontRightSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("LB ABSOLUTE ANGLE :)", backLeftSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("RB ABSOLUTE ANGLE :)", backRightSwerveModule.getAbsoluteAngle());
+
 //        double jx = OI.getInstance().getDriveRightXJoystick();
 //        double jy = OI.getInstance().getDriveLeftYJoystick();
 //        selectedModule = selector.getSelected() != null ? selector.getSelected() : 0;
