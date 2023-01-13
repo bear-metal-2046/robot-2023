@@ -161,7 +161,6 @@ public class SwerveModule {
     private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        config.sensorCoefficient = Units.rotationsToRadians(1d / 4096d);
         config.magnetOffsetDegrees = Math.toDegrees(referenceAngle);
         config.sensorDirection = false;
 
@@ -198,7 +197,7 @@ public class SwerveModule {
                 // read degrees from CANcoder
                 double absoluteAngle = getAbsoluteAngle();
                 // System.out.println(name + " angle:" + Units.radiansToDegrees(absoluteAngle));
-                steerMotor.getEncoder().setPosition(absoluteAngle / ChassisConstants.STEER_POSITION_COEFFICIENT);
+                steerMotor.getEncoder().setPosition(absoluteAngle);
                 currentAngle = absoluteAngle;
             }
         } else {
@@ -218,7 +217,7 @@ public class SwerveModule {
             adjustedReferenceAngle += 2.0 * Math.PI;
         }
 
-        steerPIDController.setReference(Units.radiansToRotations(adjustedReferenceAngle), CANSparkMax.ControlType.kPosition);
+        steerPIDController.setReference(adjustedReferenceAngle, CANSparkMax.ControlType.kPosition);
     }
 
     public double getVelocity() {
@@ -249,7 +248,7 @@ public class SwerveModule {
      */
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition((driveMotor.getEncoder().getPosition()), new Rotation2d(getSteerAngle()));
+        return new SwerveModulePosition(driveMotor.getEncoder().getPosition(), new Rotation2d(getSteerAngle()));
     }
 
     public void driveMotor(double power) {
@@ -281,6 +280,6 @@ public class SwerveModule {
     }
 
     public void setDriveVoltage(double voltage) {
-        driveMotor.setVoltage(voltage / ChassisConstants.REFERENCE_VOLTAGE);
+        driveMotor.set(voltage / ChassisConstants.REFERENCE_VOLTAGE);
     }
 }

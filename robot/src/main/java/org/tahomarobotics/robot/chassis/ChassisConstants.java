@@ -12,10 +12,10 @@ import org.tahomarobotics.robot.RobotMap;
  */
 public final class ChassisConstants {
     //TODO all the measuringggggg
-    static double FRONT_LEFT_OFFSET = Math.toRadians(0);
-    static double FRONT_RIGHT_OFFSET = Math.toRadians(0);
-    static double BACK_LEFT_OFFSET = Math.toRadians(0);
-    static double BACK_RIGHT_OFFSET = Math.toRadians(0);
+    static double FRONT_LEFT_OFFSET = Math.toRadians(-158.897630);
+    static double FRONT_RIGHT_OFFSET = Math.toRadians(-133.629741);
+    static double BACK_LEFT_OFFSET = Math.toRadians(-109.200170);
+    static double BACK_RIGHT_OFFSET = Math.toRadians(-141.649230);
 
     //TODO measuringggg
     public static final double CHASSIS_WIDTH = 0.5969;

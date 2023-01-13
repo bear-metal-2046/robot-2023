@@ -112,7 +112,7 @@ public class Chassis extends SubsystemBase {
 //        selector.addOption("2", 2);
 //        selector.addOption("3", 3);
 //        selector.addOption("4", 4);
-
+//
 //        int handler = NetworkTableInstance.getDefault().getTable("SmartDashboard").addListener(
 //                "MOD SELECTOR",
 //                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
@@ -140,10 +140,10 @@ public class Chassis extends SubsystemBase {
 
 //        SmartDashboard.putString("pose", pose.toString());
 //
-//        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(frontLeftSwerveModule.getSteerAngle()));
-//        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(frontRightSwerveModule.getSteerAngle()));
-//        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(backLeftSwerveModule.getSteerAngle()));
-//        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("L-F Steer Angle", Units.radiansToDegrees(frontLeftSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("R-F Steer Angle", Units.radiansToDegrees(frontRightSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("L-B Steer Angle",  Units.radiansToDegrees(backLeftSwerveModule.getSteerAngle()));
+        SmartDashboard.putNumber("R-B Steer Angle", Units.radiansToDegrees(backRightSwerveModule.getSteerAngle()));
 
         fieldPose.setRobotPose(getPose());
 
@@ -151,6 +151,10 @@ public class Chassis extends SubsystemBase {
         SmartDashboard.putNumber("RF ABSOLUTE ANGLE :)", frontRightSwerveModule.getAbsoluteAngle());
         SmartDashboard.putNumber("LB ABSOLUTE ANGLE :)", backLeftSwerveModule.getAbsoluteAngle());
         SmartDashboard.putNumber("RB ABSOLUTE ANGLE :)", backRightSwerveModule.getAbsoluteAngle());
+
+        SmartDashboard.putNumber("steer angle", frontRightSwerveModule.getSteerAngle());
+        SmartDashboard.putNumber("ABS angle", frontRightSwerveModule.getAbsoluteAngle());
+
 
 //        double jx = OI.getInstance().getDriveRightXJoystick();
 //        double jy = OI.getInstance().getDriveLeftYJoystick();
@@ -160,20 +164,16 @@ public class Chassis extends SubsystemBase {
 //        SmartDashboard.putNumber("SelMod", selectedModule);
 //        switch (selectedModule) {
 //            case 1 -> {
-//                frontLeftSwerveModule.driveMotor(jy);
-//                frontLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//                frontLeftSwerveModule.setDesiredState(new SwerveModuleState(jy, Rotation2d.fromRadians(jx * 2 * Math.PI)));
 //            }
 //            case 2 -> {
-//                frontRightSwerveModule.driveMotor(jy);
-//                frontRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//                frontRightSwerveModule.setDesiredState(new SwerveModuleState(jy, Rotation2d.fromRadians(jx * 2 * Math.PI)));
 //            }
 //            case 3 -> {
-//                backLeftSwerveModule.driveMotor(jy);
-//                backLeftSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//                backLeftSwerveModule.setDesiredState(new SwerveModuleState(jy, Rotation2d.fromRadians(jx * 2 * Math.PI)));
 //            }
 //            case 4 -> {
-//                backRightSwerveModule.driveMotor(jy);
-//                backRightSwerveModule.applyPowerToTheRotationMotorInOrderToTestItOutAndMakeSureItWorks(jx);
+//                backRightSwerveModule.setDesiredState(new SwerveModuleState(jy, Rotation2d.fromRadians(jx * 2 * Math.PI)));
 //            }
 //        }
     }
