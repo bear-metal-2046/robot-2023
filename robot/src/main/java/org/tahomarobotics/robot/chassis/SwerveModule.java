@@ -1,3 +1,22 @@
+/**
+ * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
 package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.ErrorCode;
@@ -5,17 +24,20 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
-import com.revrobotics.*;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel;
+import com.revrobotics.REVLibError;
+import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.util.LoggerManager;
 
 /**
  * SwerveModule Class
@@ -24,6 +46,9 @@ import org.tahomarobotics.robot.util.LoggerManager;
  * TODO Fix Swerve Modules for NEO's only.
  */
 public class SwerveModule {
+
+    private static final Logger logger = LoggerFactory.getLogger(SwerveModule.class);
+
     private static final int CAN_TIMEOUT_MS = 500;
 
     public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {}
@@ -52,7 +77,7 @@ public class SwerveModule {
         steerABSEncoder = setupSteerEncoder(ports.encoder(), referenceAngle);
     }
 
-    public static void checkCtreError(ErrorCode errorCode, String message) {
+    private static void checkCtreError(ErrorCode errorCode, String message) {
         if (errorCode != ErrorCode.OK) {
             DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
         }
@@ -70,7 +95,6 @@ public class SwerveModule {
         motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
         motor.setSmartCurrentLimit((int) ChassisConstants.DRIVE_CURRENT_LIMIT);
         motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0);
-        motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
 
         motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         motor.setInverted(true);
@@ -88,10 +112,10 @@ public class SwerveModule {
         //Set up motor config
         for (int i = 0; i < 15; i++) {
             if (setupSteerConfig(motor)) {
-                LoggerManager.log("Successfully setup steer motor for " + name);
+                logger.info("Successfully setup steer motor for " + name);
                 break;
             }
-            LoggerManager.log("Retrying setting up steer motor for " + name);
+            logger.warn("Retrying setting up steer motor for " + name);
         }
 
         double positionConversionFactor = 2 * Math.PI * ChassisConstants.STEER_REDUCTION;
@@ -110,19 +134,19 @@ public class SwerveModule {
         // Idle mode
         REVLibError rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to setup idle mode for steer motor " + rtnCode);
+            logger.error("Failed to setup idle mode for steer motor " + rtnCode);
             return false;
         }
 
         // Inversion
         motor.setInverted(true);
         if (!motor.getInverted()) {
-            LoggerManager.error("Failed to setup motor inversion for steer motor ");
+            logger.error("Failed to setup motor inversion for steer motor ");
             return false;
         }
         rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to setup brake mode for steer motor" + rtnCode);
+            logger.error("Failed to setup brake mode for steer motor" + rtnCode);
             return false;
         }
 
@@ -130,28 +154,28 @@ public class SwerveModule {
         //PID
         rtnCode = steerPIDController.setP(0.3);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to setup P for steer PID" + rtnCode);
+            logger.error("Failed to setup P for steer PID" + rtnCode);
             return false;
         }
         rtnCode = steerPIDController.setI(0.0);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to setup I for steer PID" + rtnCode);
+            logger.error("Failed to setup I for steer PID" + rtnCode);
             return false;
         }
         rtnCode = steerPIDController.setD(0.1);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to setup D for steer PID" + rtnCode);
+            logger.error("Failed to setup D for steer PID" + rtnCode);
             return false;
         }
 
         rtnCode = motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to enable VoltageCompensation for steer" + rtnCode);
+            logger.error("Failed to enable VoltageCompensation for steer" + rtnCode);
             return false;
         }
         rtnCode = motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
         if (rtnCode != REVLibError.kOk) {
-            LoggerManager.error("Failed to set current limit for steer" + rtnCode);
+            logger.error("Failed to set current limit for steer" + rtnCode);
             return false;
         }
         return true;

@@ -1,28 +1,37 @@
+/**
+ * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
 package org.tahomarobotics.robot;
 
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Subsystem;
-import org.tahomarobotics.robot.OI.OI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
-import org.tahomarobotics.robot.configuration.RobotConfig;
-import org.tahomarobotics.robot.util.LoggerManager;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Robot extends TimedRobot {
 
-    private static Robot INSTANCE;
+    private static final Logger logger = LoggerFactory.getLogger(Robot.class);
 
-    //Configuration Path; Currently held at project dir.
-    private static final String CONFIG_PATH = "config.yml";
 
     static {
         // Initialize use of async loggers. Only to be done statically in the main class.
@@ -33,47 +42,15 @@ public class Robot extends TimedRobot {
     @SuppressWarnings(value = "MismatchedQueryAndUpdateOfCollection")
     private final ArrayList<Object> instances = new ArrayList<>();
 
-    private RobotConfig config;
-
     /**
      * Ran on Code startup by RoboRIO Java Runtime
      */
     @Override
-    public void robotInit()
-    {
-        //Do NOT modify
-        //If you need an explanation: this ensures that the static instance of this class is ALWAYS what the RoboRIO is currently running.
-        INSTANCE = this;
-//        RobotConfig robotConfig = new RobotConfig(tryLoadConfig());
-//        this.config = robotConfig;
-//        LoggerManager.log("Configuration Loaded.");
-        //You can modify now
-
+    public void robotInit() {
         instances.add(Chassis.getInstance().initialize());
         instances.add(OI.getInstance());
 
-        LoggerManager.log("Robot Initialized.");
-        LoggerManager.log("Now with AprilTags!");
-    }
-
-    /**
-     * Attempts to load a pre-existing config, if one is not present it will generate the default one.
-     * @return Newly created or pre-existing configuration file.
-     */
-    public File tryLoadConfig() {
-        File configFile = new File(CONFIG_PATH);
-        LoggerManager.log("Config Path: " + configFile.toPath());
-        if(!configFile.exists()) {
-            LoggerManager.warn("Configuration File does not exist, attempting creation of default config.");
-            try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("config.yml")) {
-                Files.copy(is, configFile.toPath());
-                LoggerManager.warn("Default Configuration saved to run directory. You WILL need to modify this for the robot to function.");
-            } catch (Exception ex) {
-                LoggerManager.error("Failed to save configuration, check file permission?");
-                ex.printStackTrace();
-            }
-        }
-        return configFile;
+        logger.info("Robot Initialized.");
     }
 
     @Override
@@ -82,10 +59,8 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
     }
     
-    
     @Override
     public void disabledInit() {
-        Chassis.getInstance().closeVision();
     }
     
     
@@ -95,7 +70,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit()
     {
-        LoggerManager.warn("-=-=-=- AUTONOMOUS ENABLED -=-=-=-");
+        logger.info("-=-=-=- AUTONOMOUS ENABLED -=-=-=-");
     }
 
     @Override
@@ -105,7 +80,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit()
     {
-        LoggerManager.warn("-=-=-=- TELEOP ENABLED -=-=-=-");
+        logger.warn("-=-=-=- TELEOP ENABLED -=-=-=-");
     }
     
     
@@ -124,12 +99,7 @@ public class Robot extends TimedRobot {
     @Override
     public void testPeriodic() {}
 
-    public static void main(String... args)
-    {
+    public static void main(String... args) {
         RobotBase.startRobot(Robot::new);
-    }
-
-    public static RobotConfig getConfig() {
-        return Robot.INSTANCE.config;
     }
 }
