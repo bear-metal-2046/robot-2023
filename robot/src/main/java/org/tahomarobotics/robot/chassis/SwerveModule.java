@@ -151,23 +151,19 @@ public class SwerveModule {
     }
 
     private boolean setSetting(Supplier<Boolean> isBueno, Supplier<REVLibError> set, String err) {
-        boolean settingsChanged = false;
-        int i = 0;
         if (!isBueno.get()) {
-            REVLibError rtnCode;
-            do {
+            REVLibError rtnCode = REVLibError.kOk;
+            for (int i = 0; i < ChassisConstants.SETUP_RETRY_LIMIT; i++) {
                 rtnCode = set.get();
                 if (rtnCode == REVLibError.kOk) {
-                    settingsChanged = true;
-                    break;
+                    return true;
                 }
-            } while(i < ChassisConstants.SETUP_RETRY_LIMIT);
+            };
 
-            if (rtnCode != REVLibError.kOk)
-                logger.error(err + " for steer motor on " + name + "\n\tError: " + rtnCode);
+            logger.error(err + " for motor on " + name + "\n\tError: " + rtnCode);
         }
 
-        return settingsChanged;
+        return false;
     }
 
     private boolean setupMotorConfig(CANSparkMax motor, double posConversion, boolean inverted) {
