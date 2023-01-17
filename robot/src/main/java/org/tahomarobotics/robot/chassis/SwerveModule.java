@@ -24,10 +24,8 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.REVLibError;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.*;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -38,6 +36,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * SwerveModule Class
@@ -85,100 +86,120 @@ public class SwerveModule {
 
     private CANSparkMax setupDriveMotor(int driveMotorId) {
         CANSparkMax motor = new CANSparkMax(driveMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
-        motor.restoreFactoryDefaults();
 
-        double positionConversionFactor = Math.PI * ChassisConstants.WHEEL_DIAMETER * ChassisConstants.DRIVE_REDUCTION_MK4I_L2;
-        motor.getEncoder().setPositionConversionFactor(positionConversionFactor);
-        motor.getEncoder().setVelocityConversionFactor(positionConversionFactor / 60.0);
+        boolean settingsChanged = setupMotorConfig(
+                motor,
+  Math.PI * ChassisConstants.WHEEL_DIAMETER * ChassisConstants.DRIVE_REDUCTION_MK4I_L2,
+                true
+        ) |
+        setSetting(
+                () -> motor.getPIDController().getSmartMotionMaxAccel(0) != ChassisConstants.DRIVE_ACCEL_RPM_LIMIT,
+                () -> motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0),
+                "Failed to set max accel"
+        );
 
-
-        motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
-        motor.setSmartCurrentLimit((int) ChassisConstants.DRIVE_CURRENT_LIMIT);
-        motor.getPIDController().setSmartMotionMaxAccel(ChassisConstants.DRIVE_ACCEL_RPM_LIMIT, 0);
-
-        motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        motor.setInverted(true);
+        // Is not stored in flash and has to be set every time.
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 100);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
-        motor.burnFlash();
+
+        if (settingsChanged)
+            motor.burnFlash();
+
         return motor;
     }
 
     private CANSparkMax setupSteerMotor(int steerMotorId) {
         CANSparkMax motor = new CANSparkMax(steerMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
-        motor.restoreFactoryDefaults();
         steerPIDController = motor.getPIDController();
-        //Set up motor config
-        for (int i = 0; i < 15; i++) {
-            if (setupSteerConfig(motor)) {
-                logger.info("Successfully setup steer motor for " + name);
-                break;
-            }
-            logger.warn("Retrying setting up steer motor for " + name);
-        }
 
-        double positionConversionFactor = 2 * Math.PI * ChassisConstants.STEER_REDUCTION;
-        motor.getEncoder().setPositionConversionFactor(positionConversionFactor);
-        motor.getEncoder().setVelocityConversionFactor(positionConversionFactor / 60.0);
+        boolean settingsChanged = setupMotorConfig(
+                motor,
+                2 * Math.PI * ChassisConstants.STEER_REDUCTION,
+                true
+        ) |
+        setSetting(
+                () -> false, // This does not have a get method
+                () -> motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT),
+                "Failed to set smart current limit"
+        ) |
+        setSetting(
+                () -> steerPIDController.getP() == .3,
+                () -> steerPIDController.setP(.3),
+                "Failed to set P"
+        ) |
+        setSetting(
+                () -> steerPIDController.getI() == 0,
+                () -> steerPIDController.setI(0),
+                "Failed to set I"
+        ) |
+        setSetting(
+                () -> steerPIDController.getD() == .1,
+                () -> steerPIDController.setD(.1),
+                "Failed to set D"
+        );
 
         // Reduce CAN status frame rates
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus0, 10);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus1, 20);
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
 
-        motor.burnFlash();
+        if (settingsChanged)
+            motor.burnFlash();
+
         return motor;
     }
-    private boolean setupSteerConfig (CANSparkMax motor) {
-        // Idle mode
-        REVLibError rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to setup idle mode for steer motor " + rtnCode);
-            return false;
+
+    private boolean setSetting(Supplier<Boolean> isBueno, Supplier<REVLibError> set, String err) {
+        boolean settingsChanged = false;
+        int i = 0;
+        if (!isBueno.get()) {
+            REVLibError rtnCode;
+            do {
+                rtnCode = set.get();
+                if (rtnCode == REVLibError.kOk) {
+                    settingsChanged = true;
+                    break;
+                }
+            } while(i < ChassisConstants.SETUP_RETRY_LIMIT);
+
+            if (rtnCode != REVLibError.kOk)
+                logger.error(err + " for steer motor on " + name + "\n\tError: " + rtnCode);
         }
 
-        // Inversion
-        motor.setInverted(true);
-        if (!motor.getInverted()) {
-            logger.error("Failed to setup motor inversion for steer motor ");
-            return false;
-        }
-        rtnCode = motor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to setup brake mode for steer motor" + rtnCode);
-            return false;
-        }
+        return settingsChanged;
+    }
 
-
-        //PID
-        rtnCode = steerPIDController.setP(0.3);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to setup P for steer PID" + rtnCode);
-            return false;
-        }
-        rtnCode = steerPIDController.setI(0.0);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to setup I for steer PID" + rtnCode);
-            return false;
-        }
-        rtnCode = steerPIDController.setD(0.1);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to setup D for steer PID" + rtnCode);
-            return false;
-        }
-
-        rtnCode = motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to enable VoltageCompensation for steer" + rtnCode);
-            return false;
-        }
-        rtnCode = motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
-        if (rtnCode != REVLibError.kOk) {
-            logger.error("Failed to set current limit for steer" + rtnCode);
-            return false;
-        }
-        return true;
+    private boolean setupMotorConfig(CANSparkMax motor, double posConversion, boolean inverted) {
+        return
+            setSetting(
+                    () -> motor.getEncoder().getPositionConversionFactor() == posConversion,
+                    () -> motor.getEncoder().setPositionConversionFactor(posConversion),
+                    "Failed to set position conversion factor"
+            ) |
+            setSetting(
+                    () -> motor.getEncoder().getVelocityConversionFactor() == posConversion / 60.0,
+                    () -> motor.getEncoder().setVelocityConversionFactor(posConversion / 60.0),
+                    "Failed to set velocity conversion factor"
+            ) |
+            setSetting(
+                () -> motor.getIdleMode() == CANSparkMax.IdleMode.kBrake,
+                () -> motor.setIdleMode(CANSparkMax.IdleMode.kBrake),
+                "Failed to set brake mode"
+            ) |
+            setSetting(
+                    motor::getInverted,
+                    () -> {
+                        motor.setInverted(inverted);
+                        return REVLibError.kOk;
+                    },
+                    "Failed to set inversion"
+            ) |
+            setSetting(
+                    () -> motor.getVoltageCompensationNominalVoltage() != 0.0,
+                    () -> motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE),
+                    "Failed to set voltage compensation"
+            );
     }
 
 

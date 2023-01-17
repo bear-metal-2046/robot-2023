@@ -36,6 +36,8 @@ public final class ChassisConstants {
     static double BACK_LEFT_OFFSET = Math.toRadians(-109.200170);
     static double BACK_RIGHT_OFFSET = Math.toRadians(-141.649230);
 
+    public static int SETUP_RETRY_LIMIT = 15;
+
     //TODO measuringggg
     public static final double CHASSIS_WIDTH = 0.5969;
     //TODO more measuringggggg
