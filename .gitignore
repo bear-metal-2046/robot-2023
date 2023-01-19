@@ -242,7 +242,7 @@ nbdist/
 .nb-gradle/
 
 ### VisualStudioCode ###
-.vscode/*
+robot/.vscode/launch.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
