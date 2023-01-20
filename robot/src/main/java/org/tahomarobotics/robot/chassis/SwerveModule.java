@@ -172,8 +172,8 @@ public class SwerveModule {
         );
 
         settingsChanged |= setSetting(
-                () -> motor.getEncoder().getVelocityConversionFactor() == posConversion / 60.0,
-                () -> motor.getEncoder().setVelocityConversionFactor(posConversion / 60.0),
+                () -> motor.getEncoder().getVelocityConversionFactor() == velConversion,
+                () -> motor.getEncoder().setVelocityConversionFactor(velConversion),
                 "Failed to set velocity conversion factor"
         );
 
