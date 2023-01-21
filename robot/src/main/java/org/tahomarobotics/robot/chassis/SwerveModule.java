@@ -101,11 +101,15 @@ public class SwerveModule {
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
 
         if (settingsChanged) {
-            logger.warn("Flashing settings to drive motor for swerve module " + name);
+            DriverStation.reportWarning("Flashing settings to drive motor for swerve module " + name, false);
             motor.burnFlash();
         }
 
         return motor;
+    }
+
+    private boolean kindaEqual(double a, double b) {
+        return Math.abs(a - b) < 0.01;
     }
 
     private CANSparkMax setupSteerMotor(int steerMotorId) {
@@ -121,17 +125,17 @@ public class SwerveModule {
                 true
         ) |
         setSetting(
-                () -> steerPIDController.getP() == .3,
+                kindaEqual(steerPIDController.getP(), .3),
                 () -> steerPIDController.setP(.3),
                 "Failed to set P"
         ) |
         setSetting(
-                () -> steerPIDController.getI() == 0,
+                kindaEqual(steerPIDController.getI(), 0.0),
                 () -> steerPIDController.setI(0),
                 "Failed to set I"
         ) |
         setSetting(
-                () -> steerPIDController.getD() == .1,
+                kindaEqual(steerPIDController.getD(), .1),
                 () -> steerPIDController.setD(.1),
                 "Failed to set D"
         );
@@ -145,15 +149,15 @@ public class SwerveModule {
         motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
 
         if (settingsChanged) {
-            logger.warn("Flashing settings to steer motor for swerve module " + name);
+            DriverStation.reportWarning("Flashing settings to steer motor for swerve module " + name, false);
             motor.burnFlash();
         }
 
         return motor;
     }
 
-    private boolean setSetting(Supplier<Boolean> isBueno, Supplier<REVLibError> set, String err) {
-        if (!isBueno.get()) {
+    private boolean setSetting(boolean isBueno, Supplier<REVLibError> set, String err) {
+        if (!isBueno) {
             REVLibError rtnCode = set.get();
             if (rtnCode == REVLibError.kOk) {
                 return true;
@@ -166,25 +170,25 @@ public class SwerveModule {
 
     private boolean setupMotorConfig(CANSparkMax motor, double posConversion, double velConversion, boolean inverted) {
         boolean settingsChanged = setSetting(
-                () -> motor.getEncoder().getPositionConversionFactor() == posConversion,
+                kindaEqual(motor.getEncoder().getPositionConversionFactor(), posConversion),
                 () -> motor.getEncoder().setPositionConversionFactor(posConversion),
                 "Failed to set position conversion factor"
         );
 
         settingsChanged |= setSetting(
-                () -> motor.getEncoder().getVelocityConversionFactor() == velConversion,
+                kindaEqual(motor.getEncoder().getVelocityConversionFactor(), velConversion),
                 () -> motor.getEncoder().setVelocityConversionFactor(velConversion),
                 "Failed to set velocity conversion factor"
         );
 
         settingsChanged |= setSetting(
-                () -> motor.getIdleMode() == CANSparkMax.IdleMode.kBrake,
+                motor.getIdleMode() == CANSparkMax.IdleMode.kBrake,
                 () -> motor.setIdleMode(CANSparkMax.IdleMode.kBrake),
                 "Failed to set brake mode"
         );
 
         settingsChanged |= setSetting(
-                () -> motor.getInverted() == inverted,
+                motor.getInverted() == inverted,
                 () -> {
                     motor.setInverted(inverted);
                     return REVLibError.kOk;
@@ -193,7 +197,7 @@ public class SwerveModule {
         );
 
         settingsChanged |= setSetting(
-                () -> Math.abs(motor.getVoltageCompensationNominalVoltage() - ChassisConstants.REFERENCE_VOLTAGE) < 0.01,
+                kindaEqual(motor.getVoltageCompensationNominalVoltage(), ChassisConstants.REFERENCE_VOLTAGE),
                 () -> motor.enableVoltageCompensation(ChassisConstants.REFERENCE_VOLTAGE),
                 "Failed to set voltage compensation"
         );
