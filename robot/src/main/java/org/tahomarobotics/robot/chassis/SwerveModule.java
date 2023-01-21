@@ -91,7 +91,6 @@ public class SwerveModule {
         boolean settingsChanged = setupMotorConfig(
                 motor,
                 posConv,
-                posConv / 60.0,
                 true
         );
 
@@ -121,7 +120,6 @@ public class SwerveModule {
         boolean settingsChanged = setupMotorConfig(
                 motor,
                 posConv,
-                posConv / 60.0,
                 true
         ) |
         setSetting(
@@ -168,7 +166,8 @@ public class SwerveModule {
         return false;
     }
 
-    private boolean setupMotorConfig(CANSparkMax motor, double posConversion, double velConversion, boolean inverted) {
+    private boolean setupMotorConfig(CANSparkMax motor, double posConversion, boolean inverted) {
+        double velConversion = posConversion / 60.0;
         boolean settingsChanged = setSetting(
                 kindaEqual(motor.getEncoder().getPositionConversionFactor(), posConversion),
                 () -> motor.getEncoder().setPositionConversionFactor(posConversion),
