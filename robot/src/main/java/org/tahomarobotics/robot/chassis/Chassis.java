@@ -136,17 +136,20 @@ public class Chassis extends SubsystemBase {
         backRightSwerveModule.setDesiredState(states[3]);
     }
 
-    public void drive(double xSpeed, double ySpeed, double rot) {
-        drive(xSpeed, ySpeed, rot, isFieldOriented);
+    public void drive(ChassisSpeeds velocity) {
+        drive(velocity, isFieldOriented);
+
     }
 
-    private void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        var swerveModuleStates =
-                ChassisConstants.SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(fieldRelative ?
-                        ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getPose().getRotation()) :
-                        new ChassisSpeeds(xSpeed, ySpeed, rot));
+    private void drive(ChassisSpeeds velocity, boolean fieldRelative) {
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS * ChassisConstants.VELOCITY_MULTIPLIER);
+        if (fieldRelative) {
+            velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());
+        }
+
+        var swerveModuleStates = ChassisConstants.SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(velocity);
+
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS);
 
         setSwerveStates(swerveModuleStates);
     }
@@ -182,4 +185,6 @@ public class Chassis extends SubsystemBase {
 
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
+
+
 }

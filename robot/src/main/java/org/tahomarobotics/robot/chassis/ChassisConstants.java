@@ -83,6 +83,14 @@ public final class ChassisConstants {
     public static final double MAX_ANGULAR_VELOCITY_RPS = MAX_VELOCITY_MPS
             / Math.hypot(CHASSIS_WIDTH / 2.0, CHASSIS_WHEELBASE / 2.0);
 
+
+    //The Acceleration limiters for translation
+    public static final double TRANSLATION_LIMIT = 9.0;
+
+    //The Acceleration limiters for rotation
+    public static final double ROTATION_LIMIT = TRANSLATION_LIMIT / (CHASSIS_WIDTH / 2.0);
+
+
     // For the times when you don't want your max velocity to be max (0.0 - 1.0)
     public static final double VELOCITY_MULTIPLIER = 1.0;
 

@@ -19,19 +19,23 @@
  */
 package org.tahomarobotics.robot.chassis;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 import java.util.function.DoubleSupplier;
 
-/**
- * Basic Teleoperated Drive Command
- * Used to make the robot go vrmmm
- */
-
 public class TeleopDriveCommand extends CommandBase {
+
+    SwerveRateLimiter translationLimiter = new SwerveRateLimiter(
+            ChassisConstants.TRANSLATION_LIMIT, ChassisConstants.ROTATION_LIMIT);
+
     private final DoubleSupplier xSup, ySup, rotSup;
 
     private final Chassis chassis = Chassis.getInstance();
+
+    private ChassisSpeeds velocityInput = new ChassisSpeeds();
 
     public TeleopDriveCommand(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rotation) {
         this.xSup = x;
@@ -43,16 +47,23 @@ public class TeleopDriveCommand extends CommandBase {
 
     @Override
     public void execute() {
-        chassis.drive(
-            xSup.getAsDouble(),
-            ySup.getAsDouble(),
-            rotSup.getAsDouble()
-        );
+
+        velocityInput.vxMetersPerSecond = xSup.getAsDouble();
+        velocityInput.vyMetersPerSecond = ySup.getAsDouble();
+        velocityInput.omegaRadiansPerSecond = rotSup.getAsDouble();
+
+        ChassisSpeeds velocityOutput = translationLimiter.calculate(velocityInput);
+        SmartDashboard.putNumber("X", velocityInput.vxMetersPerSecond);
+        SmartDashboard.putNumber("Y", velocityInput.vyMetersPerSecond);
+        SmartDashboard.putNumber("X'", velocityOutput.vxMetersPerSecond);
+        SmartDashboard.putNumber("Y'", velocityOutput.vyMetersPerSecond);
+
+        chassis.drive(velocityOutput);
     }
 
     @Override
     public void end(boolean interrupted) {
-        chassis.drive(0.0, 0.0, 0.0);
+        chassis.drive(new ChassisSpeeds());
     }
 
 }
