@@ -33,6 +33,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ import java.util.List;
  */
 
 public class Chassis extends SubsystemBase {
+    private static final Logger logger = LoggerFactory.getLogger(Chassis.class);
+
     private static final Chassis INSTANCE = new Chassis();
     public static Chassis getInstance() { return INSTANCE; }
 
@@ -71,6 +75,27 @@ public class Chassis extends SubsystemBase {
 
     private Chassis() {
 
+    }
+
+    public void align() {
+        frontLeftSwerveModule.align();
+        frontRightSwerveModule.align();
+        backLeftSwerveModule.align();
+        backRightSwerveModule.align();
+    }
+
+    public void zeroOffsets() {
+        frontLeftSwerveModule.zeroOffset();
+        frontRightSwerveModule.zeroOffset();
+        backLeftSwerveModule.zeroOffset();
+        backRightSwerveModule.zeroOffset();
+    }
+
+    public void updateOffsets() {
+        frontLeftSwerveModule.updateOffset();
+        frontRightSwerveModule.updateOffset();
+        backLeftSwerveModule.updateOffset();
+        backRightSwerveModule.updateOffset();
     }
 
     private Rotation2d getYaw() {
@@ -106,7 +131,7 @@ public class Chassis extends SubsystemBase {
                 getSwerveModulePositions()
                 ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
         SmartDashboard.putData(fieldPose);
-
+        updateOffsets();
         return this;
     }
 
@@ -186,5 +211,10 @@ public class Chassis extends SubsystemBase {
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
 
-
+    public void displayAbsolutePositions() {
+        frontLeftSwerveModule.displayPosition();
+        frontRightSwerveModule.displayPosition();
+        backLeftSwerveModule.displayPosition();
+        backRightSwerveModule.displayPosition();
+    }
 }

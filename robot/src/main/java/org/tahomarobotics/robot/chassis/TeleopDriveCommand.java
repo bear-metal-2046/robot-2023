@@ -46,6 +46,14 @@ public class TeleopDriveCommand extends CommandBase {
     }
 
     @Override
+    public void initialize() {
+//        I attempted to make it run at robot enable; which it did, but it did not help us not having to restart the robot
+//        to set the offsets;
+
+//        chassis.updateOffsets();
+    }
+
+    @Override
     public void execute() {
 
         velocityInput.vxMetersPerSecond = xSup.getAsDouble();

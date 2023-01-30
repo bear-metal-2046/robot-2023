@@ -79,11 +79,13 @@ dependencies {
 
 
     implementation platform("org.junit:junit-bom:5.8.2")
+
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     implementation 'org.slf4j:slf4j-api:2.0.6'
-    implementation('org.apache.logging.log4j:log4j-api:2.17.0')
-    implementation('org.apache.logging.log4j:log4j-core:2.17.0')
-    implementation 'org.slf4j:slf4j-log4j12:2.0.6'
+// https://mvnrepository.com/artifact/org.slf4j/log4j-over-slf4j
+    implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0'
+    implementation('org.apache.logging.log4j:log4j-api:2.19.0')
+    implementation('org.apache.logging.log4j:log4j-core:2.19.0')
 
     //YAML Configuration Support.
     implementation 'me.carleslc.Simple-YAML:Simple-Yaml:1.8.3'
@@ -103,6 +105,9 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    manifest.attributes(
+        "Multi-Release": true
+    )
 }
 
 // Configure jar and deploy tasks

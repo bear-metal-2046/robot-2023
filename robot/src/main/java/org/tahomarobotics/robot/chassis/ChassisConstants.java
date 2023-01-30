@@ -24,34 +24,33 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.util.DoubleProperty;
 
 /**
  * Constants Class
  * @implNote May be replaced by YAML Configuration.
  */
 public final class ChassisConstants {
-    //TODO all the measuringggggg
-    static double FRONT_LEFT_OFFSET = Math.toRadians(-158.897630);
-    static double FRONT_RIGHT_OFFSET = Math.toRadians(-133.629741);
-    static double BACK_LEFT_OFFSET = Math.toRadians(-109.200170);
-    static double BACK_RIGHT_OFFSET = Math.toRadians(-141.649230);
-
     //TODO measuringggg
     public static final double CHASSIS_WIDTH = 0.5969;
     //TODO more measuringggggg
     public static final double CHASSIS_WHEELBASE = 0.5969;
 
     public static final SwerveModule.SwerveConfiguration FRONT_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "FRONT_LEFT", RobotMap.FRONT_LEFT_MOD, FRONT_LEFT_OFFSET);
+            "FRONT_LEFT", RobotMap.FRONT_LEFT_MOD,
+            new DoubleProperty("FL", 0.0));
 
     public static final SwerveModule.SwerveConfiguration FRONT_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "FRONT_RIGHT", RobotMap.FRONT_RIGHT_MOD, FRONT_RIGHT_OFFSET);
+            "FRONT_RIGHT", RobotMap.FRONT_RIGHT_MOD,
+            new DoubleProperty("FR", 0.0));
 
     public static final SwerveModule.SwerveConfiguration BACK_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "BACK_LEFT", RobotMap.BACK_LEFT_MOD, BACK_LEFT_OFFSET);
+            "BACK_LEFT", RobotMap.BACK_LEFT_MOD,
+            new DoubleProperty("BL", 0.0));
 
     public static final SwerveModule.SwerveConfiguration BACK_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
-            "BACK_RIGHT", RobotMap.BACK_RIGHT_MOD, BACK_RIGHT_OFFSET);
+            "BACK_RIGHT", RobotMap.BACK_RIGHT_MOD,
+            new DoubleProperty("BR", 0.0));
 
     private static final double X_OFFSET = CHASSIS_WIDTH / 2;
     private static final double Y_OFFSET = CHASSIS_WHEELBASE / 2;

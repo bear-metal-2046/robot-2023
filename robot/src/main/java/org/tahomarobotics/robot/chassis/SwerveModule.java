@@ -24,19 +24,19 @@ import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.revrobotics.*;
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.util.DoubleProperty;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -51,7 +51,11 @@ public class SwerveModule {
 
     private static final int CAN_TIMEOUT_MS = 500;
 
-    public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
+    public void displayPosition() {
+        SmartDashboard.putNumber(name + " Swerve Module Position", getSteerAngle());
+    }
+
+    public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, DoubleProperty offset) {
     }
 
     private final String name;
@@ -65,22 +69,23 @@ public class SwerveModule {
     private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, ChassisConstants.kV_DRIVE);
 
     private SwerveModuleState state = new SwerveModuleState();
-
+    private final DoubleProperty offset;
 
     public SwerveModule(SwerveConfiguration configuration) {
-        this(configuration.name, configuration.ports, configuration.referenceAngle);
+        this(configuration.name, configuration.ports, configuration.offset);
     }
 
-    public SwerveModule(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
+    public SwerveModule(String name, RobotMap.SwerveModulePorts ports, DoubleProperty offset) {
         this.name = name;
         driveMotor = setupDriveMotor(ports.drive());
         steerMotor = setupSteerMotor(ports.steer());
-        steerABSEncoder = setupSteerEncoder(ports.encoder(), referenceAngle);
+        this.offset = offset;
+        steerABSEncoder = setupSteerEncoder(ports.encoder());
     }
 
     private static void checkCtreError(ErrorCode errorCode, String message) {
         if (errorCode != ErrorCode.OK) {
-            DriverStation.reportError(String.format("%s: %s", message, errorCode.toString()), false);
+            logger.error(String.format("%s: %s", message, errorCode.toString()));
         }
     }
 
@@ -100,7 +105,7 @@ public class SwerveModule {
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 20);
 
         if (settingsChanged) {
-            DriverStation.reportWarning("Flashing settings to drive motor for swerve module " + name, false);
+            logger.info("Flashing settings to drive motor for swerve module " + name);
             motor.burnFlash();
         }
 
@@ -147,7 +152,7 @@ public class SwerveModule {
         motor.setSmartCurrentLimit((int) ChassisConstants.STEER_CURRENT_LIMIT);
 
         if (settingsChanged) {
-            DriverStation.reportWarning("Flashing settings to steer motor for swerve module " + name, false);
+            logger.warn("Flashing settings to steer motor for swerve module " + name);
             motor.burnFlash();
         }
 
@@ -205,10 +210,10 @@ public class SwerveModule {
     }
 
 
-    private CANCoder setupSteerEncoder(int steerEncoderId, double referenceAngle) {
+    private CANCoder setupSteerEncoder(int steerEncoderId) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        config.magnetOffsetDegrees = Math.toDegrees(referenceAngle);
+        config.magnetOffsetDegrees = Math.toDegrees(offset.getValue());
         config.sensorDirection = false;
 
         CANCoder encoder = new CANCoder(steerEncoderId);
@@ -218,6 +223,23 @@ public class SwerveModule {
                 "Failed to configure CANCoder update rate " + steerEncoderId);
 
         return encoder;
+    }
+
+    public void updateOffset() {
+        steerABSEncoder.configMagnetOffset(Units.radiansToDegrees(offset.getValue()));
+        setReferenceAngle(0);
+    }
+
+    public void align() {
+        offset.setValue(-getAbsoluteAngle());
+        updateOffset();
+        steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        logger.info(name + " successfully calibrated! New Offset: " + -getAbsoluteAngle());
+    }
+
+    public void zeroOffset() {
+        steerABSEncoder.configMagnetOffset(0);
+        steerMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     }
 
     public double getAbsoluteAngle() {
