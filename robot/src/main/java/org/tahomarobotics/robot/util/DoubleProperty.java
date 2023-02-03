@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Scanner;
 
+/**
+ * DoubleProperty Class
+ * Persistently saved property.
+ */
 public class DoubleProperty {
     private final static Logger logger = LoggerFactory.getLogger(DoubleProperty.class);
 

@@ -17,38 +17,41 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot.chassis;
+package org.tahomarobotics.robot.chassis.config;
 
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.chassis.module.MK4iSwerveModule;
 import org.tahomarobotics.robot.util.DoubleProperty;
 
 /**
- * Constants Class
- * @implNote May be replaced by YAML Configuration.
+ * MK4I Chassis Configuration
+ * // TODO: 1/31/2023 Change Chassis Specific Configuration to their own classes. However keep SwerveModule related configuration the same.
  */
-public final class ChassisConstants {
+public final class MK4iConstants implements SwerveConstantsIF {
     //TODO measuringggg
     public static final double CHASSIS_WIDTH = 0.5969;
     //TODO more measuringggggg
     public static final double CHASSIS_WHEELBASE = 0.5969;
 
-    public static final SwerveModule.SwerveConfiguration FRONT_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+    public static final MK4iSwerveModule.SwerveConfiguration FRONT_LEFT_SWERVE_CONFIG = new MK4iSwerveModule.SwerveConfiguration(
             "FRONT_LEFT", RobotMap.FRONT_LEFT_MOD,
             new DoubleProperty("FL", 0.0));
 
-    public static final SwerveModule.SwerveConfiguration FRONT_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+    public static final MK4iSwerveModule.SwerveConfiguration FRONT_RIGHT_SWERVE_CONFIG = new MK4iSwerveModule.SwerveConfiguration(
             "FRONT_RIGHT", RobotMap.FRONT_RIGHT_MOD,
             new DoubleProperty("FR", 0.0));
 
-    public static final SwerveModule.SwerveConfiguration BACK_LEFT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+    public static final MK4iSwerveModule.SwerveConfiguration BACK_LEFT_SWERVE_CONFIG = new MK4iSwerveModule.SwerveConfiguration(
             "BACK_LEFT", RobotMap.BACK_LEFT_MOD,
             new DoubleProperty("BL", 0.0));
 
-    public static final SwerveModule.SwerveConfiguration BACK_RIGHT_SWERVE_CONFIG = new SwerveModule.SwerveConfiguration(
+    public static final MK4iSwerveModule.SwerveConfiguration BACK_RIGHT_SWERVE_CONFIG = new MK4iSwerveModule.SwerveConfiguration(
             "BACK_RIGHT", RobotMap.BACK_RIGHT_MOD,
             new DoubleProperty("BR", 0.0));
 
@@ -94,11 +97,11 @@ public final class ChassisConstants {
     public static final double VELOCITY_MULTIPLIER = 1.0;
 
     public static final double DRIVE_VELOCITY_COEFFICIENT = Math.PI * WHEEL_DIAMETER * DRIVE_REDUCTION_MK4I_L2 / 4096 * 10;
-    
+
     public static final double STEER_POSITION_COEFFICIENT = 2.0 * Math.PI * STEER_REDUCTION / 4096;
-    
+
     public static final double ENCODER_RESET_MAX_ANGULAR_VELOCITY = Math.toRadians(0.5);
-    
+
     public static final int ENCODER_RESET_ITERATIONS = 500;
 
     public static final double MASS = Units.lbsToKilograms(55.85);
@@ -106,11 +109,47 @@ public final class ChassisConstants {
     // volts per mps
     public static final double kV_DRIVE = 1.0 / DRIVE_REDUCTION_MK4I_L2
             / (SWERVE_DRIVE_MOTOR.KvRadPerSecPerVolt * WHEEL_RADIUS);
-    
+
     // volts per mps^2
     // ohms * meter * kg / Nm * Amps = volts * kg / N = volts * kg / (kg m/s^2) =
     // volts / m/s2
     public static final double kA_DRIVE = SWERVE_DRIVE_MOTOR.rOhms * WHEEL_RADIUS * MASS
             / (DRIVE_REDUCTION_MK4I_L2 * SWERVE_DRIVE_MOTOR.KtNMPerAmp);
 
+
+
+    @Override
+    public SwerveModuleState[] toSwerveModuleStates(ChassisSpeeds speeds) {
+        return SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(speeds);
+    }
+
+    @Override
+    public ChassisSpeeds toChassisSpeeds(SwerveModuleState... swerveModuleStates) {
+        return SWERVE_DRIVE_KINEMATICS.toChassisSpeeds(swerveModuleStates);
+    }
+
+    @Override
+    public double maxAttainableMps() {
+        return MAX_VELOCITY_MPS * VELOCITY_MULTIPLIER;
+    }
+
+    @Override
+    public SwerveDriveKinematics getSwerveDriveKinematics() {
+        return SWERVE_DRIVE_KINEMATICS;
+    }
+
+    @Override
+    public double maxRotationalVelocity() {
+        return MAX_ANGULAR_VELOCITY_RPS;
+    }
+
+    @Override
+    public double accelerationLimit() {
+        return TRANSLATION_LIMIT;
+    }
+
+    @Override
+    public double angularAccelerationLimit() {
+        return ROTATION_LIMIT;
+    }
 }

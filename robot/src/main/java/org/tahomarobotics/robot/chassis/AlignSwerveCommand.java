@@ -1,9 +1,7 @@
 package org.tahomarobotics.robot.chassis;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 public class AlignSwerveCommand extends CommandBase {
 

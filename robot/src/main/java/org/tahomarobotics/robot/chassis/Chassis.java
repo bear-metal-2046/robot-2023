@@ -36,6 +36,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.chassis.config.MK4iConstants;
+import org.tahomarobotics.robot.chassis.config.REVMAXConstants;
+import org.tahomarobotics.robot.chassis.config.SwerveConstantsIF;
+import org.tahomarobotics.robot.chassis.module.MAXSwerveModule;
+import org.tahomarobotics.robot.chassis.module.MK4iSwerveModule;
+import org.tahomarobotics.robot.chassis.module.SwerveModuleIF;
+import org.tahomarobotics.robot.ident.RobotIdentity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,36 +54,91 @@ import java.util.List;
  */
 
 public class Chassis extends SubsystemBase {
+
     private static final Logger logger = LoggerFactory.getLogger(Chassis.class);
 
-    private static final Chassis INSTANCE = new Chassis();
+    private static final Chassis INSTANCE = new Chassis().initialize();
+
     public static Chassis getInstance() { return INSTANCE; }
 
     public boolean isFieldOriented = true;
 
     private final Pigeon2 pigeon2 = new Pigeon2(RobotMap.PIGEON);
 
-    private final SwerveModule frontLeftSwerveModule = new SwerveModule(ChassisConstants.FRONT_LEFT_SWERVE_CONFIG);
-    private final SwerveModule frontRightSwerveModule = new SwerveModule(ChassisConstants.FRONT_RIGHT_SWERVE_CONFIG);
-    private final SwerveModule backLeftSwerveModule = new SwerveModule(ChassisConstants.BACK_LEFT_SWERVE_CONFIG);
-    private final SwerveModule backRightSwerveModule = new SwerveModule(ChassisConstants.BACK_RIGHT_SWERVE_CONFIG);
+    private final SwerveModuleIF frontLeftSwerveModule;
+    private final SwerveModuleIF frontRightSwerveModule;
+    private final SwerveModuleIF backLeftSwerveModule;
+    private final SwerveModuleIF backRightSwerveModule;
 
-    private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
-            ChassisConstants.SWERVE_DRIVE_KINEMATICS,
-            getGyroRotation(),
-            getSwerveModulePositions(),
-            new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
-            new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
-            new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
-    );
+    private final SwerveConstantsIF swerveConstants;
+
+    private final SwerveDrivePoseEstimator poseEstimator;
 
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
 
+    /*
+    Base Constructor
+    Contains some example comments in order to help with understanding.
+     */
     private Chassis() {
+        /*
+        Configures the Chassis according to the current RobotID.
+         */
+        switch (RobotIdentity.getInstance().getRobotID()) {
+            case PROTOTYPE:
 
+                // configure Mk4I Swerve
+                /*
+                The current swerveConstants must be defined in order for Chassis to configure properly.
+                These constants classes should not vary per robot, and are determined by the swerve module.
+                It is possible that in the future there may also be a "RobotConstant" class that IS robot
+                specific. However, at this time that is not needed.
+                 */
+                swerveConstants = new MK4iConstants();
+                /*
+                Each Swerve Module must be configured according to its module.
+                IMPORTANT NOTE: ALL FOUR MODULES MUST BE THE SAME. (Currently either MK4i or REVMax)
+                 */
+                frontRightSwerveModule = new MK4iSwerveModule(MK4iConstants.FRONT_RIGHT_SWERVE_CONFIG);
+                frontLeftSwerveModule = new MK4iSwerveModule(MK4iConstants.FRONT_LEFT_SWERVE_CONFIG);
+                backRightSwerveModule = new MK4iSwerveModule(MK4iConstants.BACK_RIGHT_SWERVE_CONFIG);
+                backLeftSwerveModule = new MK4iSwerveModule(MK4iConstants.BACK_LEFT_SWERVE_CONFIG);
+
+                break;
+
+            case ALPHA:
+            case COMPETITION :
+            default : // always default to COMPETITION robot as this is the most important configuration
+
+                // configure REV Swerve
+                swerveConstants = new REVMAXConstants();
+                frontRightSwerveModule = new MAXSwerveModule(RobotMap.FRONT_RIGHT_MOD, REVMAXConstants.DriveConstants.kFrontRightChassisAngularOffset);
+                frontLeftSwerveModule = new MAXSwerveModule(RobotMap.FRONT_LEFT_MOD, REVMAXConstants.DriveConstants.kFrontLeftChassisAngularOffset);
+                backLeftSwerveModule = new MAXSwerveModule(RobotMap.BACK_LEFT_MOD, REVMAXConstants.DriveConstants.kBackLeftChassisAngularOffset);
+                backRightSwerveModule = new MAXSwerveModule(RobotMap.BACK_RIGHT_MOD, REVMAXConstants.DriveConstants.kBackRightChassisAngularOffset);
+
+                break;
+        }
+
+        /*
+        Pose Estimator is configured further down the line, and utilizes the previously set swerveConstants.
+         */
+        poseEstimator = new SwerveDrivePoseEstimator(
+                swerveConstants.getSwerveDriveKinematics(),
+                getGyroRotation(),
+                getSwerveModulePositions(),
+                new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
+                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
+                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
+        );
     }
 
+
+    /*
+    Alignment Method
+    Aligns all modules according to offsets.
+     */
     public void align() {
         frontLeftSwerveModule.align();
         frontRightSwerveModule.align();
@@ -84,6 +146,9 @@ public class Chassis extends SubsystemBase {
         backRightSwerveModule.align();
     }
 
+    /*
+    Zeroes all offsets, used for offset configuration.
+     */
     public void zeroOffsets() {
         frontLeftSwerveModule.zeroOffset();
         frontRightSwerveModule.zeroOffset();
@@ -91,6 +156,9 @@ public class Chassis extends SubsystemBase {
         backRightSwerveModule.zeroOffset();
     }
 
+    /*
+    Updates each offset to the new one defined in DriverStation.
+     */
     public void updateOffsets() {
         frontLeftSwerveModule.updateOffset();
         frontRightSwerveModule.updateOffset();
@@ -106,14 +174,6 @@ public class Chassis extends SubsystemBase {
         return Rotation2d.fromDegrees(pigeon2.getPitch());
     }
 
-    /**
-     * Painful level checking, works now though.
-     * TODO there is definitely a better way to do this
-     * @return if the robot is level. With a bit of leniency.
-     */
-    public final boolean isLevel() {
-        return (getPitch().getDegrees() < 1 && getPitch().getDegrees() > -1) && (getYaw().getDegrees() < 1 && getYaw().getDegrees() > -1);
-    }
 
     private void zeroGyro(){pigeon2.setYaw(0.0);}
 
@@ -145,6 +205,7 @@ public class Chassis extends SubsystemBase {
         return poseEstimator.getEstimatedPosition();
     }
 
+    //TODO Abstract Impl Done
     private SwerveModulePosition[] getSwerveModulePositions() {
         return new SwerveModulePosition[] {
                 frontLeftSwerveModule.getPosition(),
@@ -154,6 +215,7 @@ public class Chassis extends SubsystemBase {
         };
     }
 
+    //TODO Abstract Impl Done
     private void setSwerveStates(SwerveModuleState[] states){
         frontLeftSwerveModule.setDesiredState(states[0]);
         frontRightSwerveModule.setDesiredState(states[1]);
@@ -172,9 +234,9 @@ public class Chassis extends SubsystemBase {
             velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());
         }
 
-        var swerveModuleStates = ChassisConstants.SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(velocity);
+        var swerveModuleStates = swerveConstants.getSwerveDriveKinematics().toSwerveModuleStates(velocity);
 
-        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, ChassisConstants.MAX_VELOCITY_MPS);
+        SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, swerveConstants.maxAttainableMps());
 
         setSwerveStates(swerveModuleStates);
     }
@@ -200,11 +262,13 @@ public class Chassis extends SubsystemBase {
         resetOdometry(new Pose2d(pose.getTranslation(), new Rotation2d(0)));
     }
 
+    public SwerveConstantsIF getSwerveConstants() { return swerveConstants; }
+
     @Override
     public void simulationPeriodic() {
         final double dT = 0.02;
 
-        ChassisSpeeds speeds = ChassisConstants.SWERVE_DRIVE_KINEMATICS.toChassisSpeeds(
+        ChassisSpeeds speeds = swerveConstants.toChassisSpeeds(
                 frontLeftSwerveModule.getState(), frontRightSwerveModule.getState(),
                 backLeftSwerveModule.getState(), backRightSwerveModule.getState());
 

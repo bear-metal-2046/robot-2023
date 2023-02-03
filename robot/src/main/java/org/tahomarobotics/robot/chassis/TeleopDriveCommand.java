@@ -19,23 +19,25 @@
  */
 package org.tahomarobotics.robot.chassis;
 
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import org.tahomarobotics.robot.chassis.config.SwerveConstantsIF;
 
 import java.util.function.DoubleSupplier;
 
 public class TeleopDriveCommand extends CommandBase {
 
-    SwerveRateLimiter translationLimiter = new SwerveRateLimiter(
-            ChassisConstants.TRANSLATION_LIMIT, ChassisConstants.ROTATION_LIMIT);
-
-    private final DoubleSupplier xSup, ySup, rotSup;
-
     private final Chassis chassis = Chassis.getInstance();
 
     private ChassisSpeeds velocityInput = new ChassisSpeeds();
+
+    SwerveRateLimiter rateLimiter;
+
+    private final DoubleSupplier xSup, ySup, rotSup;
+
+    private final double maxVelocity;
+    private final double maxRotationalVelocity;
 
     public TeleopDriveCommand(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rotation) {
         this.xSup = x;
@@ -43,24 +45,29 @@ public class TeleopDriveCommand extends CommandBase {
         this.rotSup = rotation;
 
         addRequirements(chassis);
+
+        SwerveConstantsIF constants = chassis.getSwerveConstants();
+
+        rateLimiter = new SwerveRateLimiter(
+                constants.accelerationLimit(),
+                constants.angularAccelerationLimit());
+
+        maxVelocity = constants.maxRotationalVelocity();
+        maxRotationalVelocity = constants.maxRotationalVelocity();
     }
 
     @Override
     public void initialize() {
-//        I attempted to make it run at robot enable; which it did, but it did not help us not having to restart the robot
-//        to set the offsets;
-
-//        chassis.updateOffsets();
     }
 
     @Override
     public void execute() {
 
-        velocityInput.vxMetersPerSecond = xSup.getAsDouble();
-        velocityInput.vyMetersPerSecond = ySup.getAsDouble();
-        velocityInput.omegaRadiansPerSecond = rotSup.getAsDouble();
+        velocityInput.vxMetersPerSecond = xSup.getAsDouble() * maxVelocity;
+        velocityInput.vyMetersPerSecond = ySup.getAsDouble() * maxVelocity;
+        velocityInput.omegaRadiansPerSecond = rotSup.getAsDouble() * maxRotationalVelocity;
 
-        ChassisSpeeds velocityOutput = translationLimiter.calculate(velocityInput);
+        ChassisSpeeds velocityOutput = rateLimiter.calculate(velocityInput);
         SmartDashboard.putNumber("X", velocityInput.vxMetersPerSecond);
         SmartDashboard.putNumber("Y", velocityInput.vyMetersPerSecond);
         SmartDashboard.putNumber("X'", velocityOutput.vxMetersPerSecond);

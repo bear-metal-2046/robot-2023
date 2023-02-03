@@ -26,6 +26,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.ident.RobotID;
+import org.tahomarobotics.robot.ident.RobotIdentity;
 import org.tahomarobotics.robot.chassis.AlignSwerveCommand;
 
 import java.util.ArrayList;
@@ -49,6 +51,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
+        //Below code is fine.
         instances.add(Chassis.getInstance().initialize());
         instances.add(OI.getInstance());
 

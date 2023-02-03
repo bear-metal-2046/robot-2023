@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.tahomarobotics.robot.chassis.Chassis;
-import org.tahomarobotics.robot.chassis.ChassisConstants;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 
 public final class OI
@@ -35,19 +34,16 @@ public final class OI
     private static final double FORWARD_SENSITIVITY = 3;
 
     private final XboxController driveController = new XboxController(0);
-    private final XboxController manipController = new XboxController(1);
 
     private OI() {
         bindButtons();
 
         Chassis.getInstance().setDefaultCommand(
                 new TeleopDriveCommand(
-                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY)
-                                * ChassisConstants.MAX_VELOCITY_MPS,
-                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY)
-                                * ChassisConstants.MAX_VELOCITY_MPS,
+                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY),
+                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY),
                         () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
-                                * ChassisConstants.MAX_ANGULAR_VELOCITY_RPS)
+                )
         );
 
         JoystickButton AButton = new JoystickButton(driveController, 1);
