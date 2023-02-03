@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.chassis.config.MK4iConstants;
-import org.tahomarobotics.robot.chassis.config.REVMAXConstants;
+import org.tahomarobotics.robot.chassis.config.REVMaxConstants;
 import org.tahomarobotics.robot.chassis.config.SwerveConstantsIF;
 import org.tahomarobotics.robot.chassis.module.MAXSwerveModule;
 import org.tahomarobotics.robot.chassis.module.MK4iSwerveModule;
@@ -112,11 +112,11 @@ public class Chassis extends SubsystemBase {
             default : // always default to COMPETITION robot as this is the most important configuration
 
                 // configure REV Swerve
-                swerveConstants = new REVMAXConstants();
-                frontRightSwerveModule = new MAXSwerveModule(RobotMap.FRONT_RIGHT_MOD, REVMAXConstants.DriveConstants.kFrontRightChassisAngularOffset);
-                frontLeftSwerveModule = new MAXSwerveModule(RobotMap.FRONT_LEFT_MOD, REVMAXConstants.DriveConstants.kFrontLeftChassisAngularOffset);
-                backLeftSwerveModule = new MAXSwerveModule(RobotMap.BACK_LEFT_MOD, REVMAXConstants.DriveConstants.kBackLeftChassisAngularOffset);
-                backRightSwerveModule = new MAXSwerveModule(RobotMap.BACK_RIGHT_MOD, REVMAXConstants.DriveConstants.kBackRightChassisAngularOffset);
+                swerveConstants = new REVMaxConstants();
+                frontRightSwerveModule = new MAXSwerveModule(REVMaxConstants.FRONT_RIGHT_SWERVE_CONFIG);
+                frontLeftSwerveModule = new MAXSwerveModule(REVMaxConstants.FRONT_LEFT_SWERVE_CONFIG);
+                backLeftSwerveModule = new MAXSwerveModule(REVMaxConstants.BACK_LEFT_SWERVE_CONFIG);
+                backRightSwerveModule = new MAXSwerveModule(REVMaxConstants.BACK_RIGHT_SWERVE_CONFIG);
 
                 break;
         }
@@ -199,6 +199,13 @@ public class Chassis extends SubsystemBase {
     public void periodic() {
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
         fieldPose.setRobotPose(getPose());
+//
+        SmartDashboard.putNumber("FL " +
+                "offset", frontLeftSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("FR offset", frontRightSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("BL offset", backLeftSwerveModule.getAbsoluteAngle());
+        SmartDashboard.putNumber("BR offset", backRightSwerveModule.getAbsoluteAngle());
+//        SmartDashboard.putNumber("Steer ABS angle not method", frontRightSwerveModule.getSteerABSEncoder().getPosition());
     }
 
     public Pose2d getPose(){

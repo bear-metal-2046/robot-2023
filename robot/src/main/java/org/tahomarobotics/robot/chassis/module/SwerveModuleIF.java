@@ -58,4 +58,10 @@ public interface SwerveModuleIF {
      * @return SwerveModuleState, the current state.
      */
     SwerveModuleState getState();
+
+    /**
+     * Gets the absolute angle of the swerve module.
+     * @return double, the angle usually in radians.
+     */
+    double getAbsoluteAngle();
 }

@@ -71,7 +71,7 @@ public final class OI
     }
 
 
-    private static final double DEAD_ZONE = 15.0 / 127.0;
+    private static final double DEAD_ZONE = 0.15;
 
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {

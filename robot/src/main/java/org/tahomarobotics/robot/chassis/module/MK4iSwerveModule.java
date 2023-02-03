@@ -245,6 +245,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         steerMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     }
 
+    @Override
     public double getAbsoluteAngle() {
         double angle = Math.toRadians(steerABSEncoder.getAbsolutePosition());
         angle %= 2.0 * Math.PI;

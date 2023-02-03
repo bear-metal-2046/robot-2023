@@ -1,169 +1,172 @@
+/**
+ * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions
+ * of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
 package org.tahomarobotics.robot.chassis.module;
 
 import com.revrobotics.*;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.chassis.config.REVMAXConstants;
+import org.tahomarobotics.robot.chassis.config.REVMaxConstants;
 
 /**
- * Imported from Example REVMAXSwerve Project on GitHub
- * TODO Replace with Zach's MAXSwerve code, and setup for SwerveModuleBase
+ * SwerveModule Class
+ * Handles setup and various utility methods for Swerve Modules.
+ * @implNote Due to VEX being a non-option for swerve this year, our swerve modules will not be using TalonFX's or CTRE products.
+ *
  */
 public class MAXSwerveModule implements SwerveModuleIF {
-    private final CANSparkMax m_drivingSparkMax;
-    private final CANSparkMax m_turningSparkMax;
 
-    private final RelativeEncoder m_drivingEncoder;
-    private final AbsoluteEncoder m_turningEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(MAXSwerveModule.class);
 
-    private final SparkMaxPIDController m_drivingPIDController;
-    private final SparkMaxPIDController m_turningPIDController;
+    public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
+    }
 
-    private double m_chassisAngularOffset = 0;
-    private SwerveModuleState m_desiredState = new SwerveModuleState(0.0, new Rotation2d());
+    private final String name;
 
-    /**
-     * Constructs a MAXSwerveModule and configures the driving and turning motor,
-     * encoder, and PID controller. This configuration is specific to the REV
-     * MAXSwerve Module built with NEOs, SPARKS MAX, and a Through Bore
-     * Encoder.
-     *
-     * TODO Fix configuration as is necessary.
-     */
-    public MAXSwerveModule(RobotMap.SwerveModulePorts ports, double chassisAngularOffset) {
-        int drivingCANId = ports.drive();
-        int turningCANId = ports.steer();
-        m_drivingSparkMax = new CANSparkMax(drivingCANId, CANSparkMaxLowLevel.MotorType.kBrushless);
-        m_turningSparkMax = new CANSparkMax(turningCANId, CANSparkMaxLowLevel.MotorType.kBrushless);
+    private final CANSparkMax driveMotor;
+    private final CANSparkMax steerMotor;
+    private final AbsoluteEncoder steerABSEncoder;
 
-        // Factory reset, so we get the SPARKS MAX to a known state before configuring
-        // them. This is useful in case a SPARK MAX is swapped out.
-        m_drivingSparkMax.restoreFactoryDefaults();
-        m_turningSparkMax.restoreFactoryDefaults();
+    private final PIDController drivePIDController = new PIDController(0, 0, 0);
+    private SparkMaxPIDController steerPIDController;
+    private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, REVMaxConstants.kV_DRIVE);
+    private SwerveModuleState state = new SwerveModuleState();
 
-        // Setup encoders and PID controllers for the driving and turning SPARKS MAX.
-        m_drivingEncoder = m_drivingSparkMax.getEncoder();
-        m_turningEncoder = m_turningSparkMax.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
-        m_drivingPIDController = m_drivingSparkMax.getPIDController();
-        m_turningPIDController = m_turningSparkMax.getPIDController();
-        m_drivingPIDController.setFeedbackDevice(m_drivingEncoder);
-        m_turningPIDController.setFeedbackDevice(m_turningEncoder);
+    private final SparkMaxConfig steerConfig;
 
-        // Apply position and velocity conversion factors for the driving encoder. The
-        // native units for position and velocity are rotations and RPM, respectively,
-        // but we want meters and meters per second to use with WPILib's swerve APIs.
-        m_drivingEncoder.setPositionConversionFactor(REVMAXConstants.ModuleConstants.kDrivingEncoderPositionFactor);
-        m_drivingEncoder.setVelocityConversionFactor(REVMAXConstants.ModuleConstants.kDrivingEncoderVelocityFactor);
+    private final SparkMaxConfig driveConfig;
 
-        // Apply position and velocity conversion factors for the turning encoder. We
-        // want these in radians and radians per second to use with WPILib's swerve
-        // APIs.
-        m_turningEncoder.setPositionConversionFactor(REVMAXConstants.ModuleConstants.kTurningEncoderPositionFactor);
-        m_turningEncoder.setVelocityConversionFactor(REVMAXConstants.ModuleConstants.kTurningEncoderVelocityFactor);
 
-        // Invert the turning encoder, since the output shaft rotates in the opposite direction of
-        // the steering motor in the MAXSwerve Module.
-        m_turningEncoder.setInverted(REVMAXConstants.ModuleConstants.kTurningEncoderInverted);
 
-        // Enable PID wrap around for the turning motor. This will allow the PID
-        // controller to go through 0 to get to the setpoint i.e. going from 350 degrees
-        // to 10 degrees will go through 0 rather than the other direction which is a
-        // longer route.
-        m_turningPIDController.setPositionPIDWrappingEnabled(true);
-        m_turningPIDController.setPositionPIDWrappingMinInput(REVMAXConstants.ModuleConstants.kTurningEncoderPositionPIDMinInput);
-        m_turningPIDController.setPositionPIDWrappingMaxInput(REVMAXConstants.ModuleConstants.kTurningEncoderPositionPIDMaxInput);
+    public MAXSwerveModule(SwerveConfiguration configuration) {
+        this(configuration.name, configuration.ports, configuration.referenceAngle);
+    }
 
-        // Set the PID gains for the driving motor. Note these are example gains, and you
-        // may need to tune them for your own robot!
-        m_drivingPIDController.setP(REVMAXConstants.ModuleConstants.kDrivingP);
-        m_drivingPIDController.setI(REVMAXConstants.ModuleConstants.kDrivingI);
-        m_drivingPIDController.setD(REVMAXConstants.ModuleConstants.kDrivingD);
-        m_drivingPIDController.setFF(REVMAXConstants.ModuleConstants.kDrivingFF);
-        m_drivingPIDController.setOutputRange(REVMAXConstants.ModuleConstants.kDrivingMinOutput,
-                REVMAXConstants.ModuleConstants.kDrivingMaxOutput);
+    public MAXSwerveModule(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
+        this.name = name;
+        driveMotor = new CANSparkMax(ports.drive(), CANSparkMaxLowLevel.MotorType.kBrushless);
+        steerMotor = new CANSparkMax(ports.steer(), CANSparkMaxLowLevel.MotorType.kBrushless);
+        steerABSEncoder = steerMotor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
+        steerPIDController = steerMotor.getPIDController();
+        driveConfig = setDriveConfig(ports.drive());
+        steerConfig = setSteerConfig(ports.steer(), referenceAngle);
+        if (SparkMaxHelper.needsConfiguring(driveConfig, driveMotor, driveMotor.getEncoder())) {
+            logger.error("Configured DRIVE motors");
+            SparkMaxHelper.configure(logger, driveConfig, driveMotor, driveMotor.getEncoder());
+        }
+        if (SparkMaxHelper.needsConfiguring(steerConfig, steerMotor, steerABSEncoder, steerPIDController)) {
+            logger.error("Configured STEER motors");
+            SparkMaxHelper.configure(logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController);
+        }
+    }
+    private SparkMaxConfig setDriveConfig(int id) {
+        SparkMaxConfig cfg = new SparkMaxConfig();
+        cfg.canId = id;
+        cfg.currentLimit = (int) REVMaxConstants.DRIVE_CURRENT_LIMIT;
+        cfg.positionConversionFactor = REVMaxConstants.DRIVE_ENCODER_POSITION_FACTOR;
+        cfg.velocityConversionFact = REVMaxConstants.DRIVE_ENCODER_VELOCITY_FACTOR;
+        cfg.kP = 0.04;
+        cfg.kFF = 1 / REVMaxConstants.DRIVE_WHEEL_FREE_SPEED_RPS;
+        return cfg;
+    }
+    private SparkMaxConfig setSteerConfig(int id, double offset) {
+        SparkMaxConfig cfg = new SparkMaxConfig();
+        cfg.canId = id;
+        cfg.currentLimit = (int) REVMaxConstants.STEER_CURRENT_LIMIT;
+        cfg.positionConversionFactor = REVMaxConstants.STEER_ENCODER_POSITION_FACTOR;
+        cfg.velocityConversionFact = REVMaxConstants.STEER_ENCODER_VELOCITY_FACTOR;
+        cfg.encoderInverted = true;
+        cfg.encoderOffset = offset;
+        cfg.kP = 0.75;
+        cfg.wrapEnabled = true;
+        return cfg;
+    }
 
-        // Set the PID gains for the turning motor. Note these are example gains, and you
-        // may need to tune them for your own robot!
-        m_turningPIDController.setP(REVMAXConstants.ModuleConstants.kTurningP);
-        m_turningPIDController.setI(REVMAXConstants.ModuleConstants.kTurningI);
-        m_turningPIDController.setD(REVMAXConstants.ModuleConstants.kTurningD);
-        m_turningPIDController.setFF(REVMAXConstants.ModuleConstants.kTurningFF);
-        m_turningPIDController.setOutputRange(REVMAXConstants.ModuleConstants.kTurningMinOutput,
-                REVMAXConstants.ModuleConstants.kTurningMaxOutput);
+    @Override
+    public double getAbsoluteAngle() {
+        double angle = steerABSEncoder.getPosition();
+        angle %= 2.0 * Math.PI;
+        if (angle < 0.0) {
+            angle += 2.0 * Math.PI;
+        }
 
-        m_drivingSparkMax.setIdleMode(REVMAXConstants.ModuleConstants.kDrivingMotorIdleMode);
-        m_turningSparkMax.setIdleMode(REVMAXConstants.ModuleConstants.kTurningMotorIdleMode);
-        m_drivingSparkMax.setSmartCurrentLimit(REVMAXConstants.ModuleConstants.kDrivingMotorCurrentLimit);
-        m_turningSparkMax.setSmartCurrentLimit(REVMAXConstants.ModuleConstants.kTurningMotorCurrentLimit);
+        return angle;
+    }
 
-        // Save the SPARK MAX configurations. If a SPARK MAX browns out during
-        // operation, it will maintain the above configurations.
-        m_drivingSparkMax.burnFlash();
-        m_turningSparkMax.burnFlash();
+    @Override
+    public double getVelocity() {
+        return driveMotor.getEncoder().getVelocity();
+    }
 
-        m_chassisAngularOffset = chassisAngularOffset;
-        m_desiredState.angle = new Rotation2d(m_turningEncoder.getPosition());
-        m_drivingEncoder.setPosition(0);
+    public double getDrivePos() {
+        return driveMotor.getEncoder().getPosition();
     }
 
     /**
      * Returns the current state of the module.
-     *
      * @return The current state of the module.
      */
     @Override
     public SwerveModuleState getState() {
-        // Apply chassis angular offset to the encoder position to get the position
-        // relative to the chassis.
-        return new SwerveModuleState(m_drivingEncoder.getVelocity(),
-                new Rotation2d(m_turningEncoder.getPosition() - m_chassisAngularOffset));
+        return new SwerveModuleState(getVelocity(), new Rotation2d(getAbsoluteAngle()));
     }
 
     /**
      * Returns the current position of the module.
-     *
      * @return The current position of the module.
      */
     @Override
     public SwerveModulePosition getPosition() {
-        // Apply chassis angular offset to the encoder position to get the position
-        // relative to the chassis.
-        return new SwerveModulePosition(
-                m_drivingEncoder.getPosition(),
-                new Rotation2d(m_turningEncoder.getPosition() - m_chassisAngularOffset));
+        // This code is speculative as the documentation and examples on is non-existent
+        return new SwerveModulePosition(getDrivePos(), new Rotation2d(getAbsoluteAngle()));
     }
 
     /**
      * Sets the desired state for the module.
-     *
      * @param desiredState Desired state with speed and angle.
      */
     @Override
     public void setDesiredState(SwerveModuleState desiredState) {
-        // Apply chassis angular offset to the desired state.
-        SwerveModuleState correctedDesiredState = new SwerveModuleState();
-        correctedDesiredState.speedMetersPerSecond = desiredState.speedMetersPerSecond;
-        correctedDesiredState.angle = desiredState.angle.plus(Rotation2d.fromRadians(m_chassisAngularOffset));
+        double steerAngle = getAbsoluteAngle();
 
-        // Optimize the reference state to avoid spinning further than 90 degrees.
-        SwerveModuleState optimizedDesiredState = SwerveModuleState.optimize(correctedDesiredState,
-                new Rotation2d(m_turningEncoder.getPosition()));
+        state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
 
-        // Command driving and turning SPARKS MAX towards their respective setpoints.
-        m_drivingPIDController.setReference(optimizedDesiredState.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
-        m_turningPIDController.setReference(optimizedDesiredState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
+        // Calculate the drive output from the drive PID controller.
+        final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
+        final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
 
-        m_desiredState = desiredState;
+        setDriveVoltage(driveOutput + driveFeedforward);
+        SmartDashboard.putNumber(name + " REF ANGLE", state.angle.getRadians());
+        steerPIDController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
     }
 
-    @Override
     public void setDriveVoltage(double voltage) {
-        m_drivingSparkMax.set(voltage / 12.0);
+        driveMotor.set(voltage / REVMaxConstants.REFERENCE_VOLTAGE);
     }
 
-    //TODO Alignment & Calibration for REVMAXSwerves.
+    //TODO Alignment.
     @Override
     public void align() {
 
@@ -182,13 +185,5 @@ public class MAXSwerveModule implements SwerveModuleIF {
     @Override
     public void displayPosition() {
 
-    }
-
-    @Override
-    public double getVelocity() { return m_drivingSparkMax.getEncoder().getVelocity(); }
-
-    /** Zeroes all the SwerveModule encoders. */
-    public void resetEncoders() {
-        m_drivingEncoder.setPosition(0);
     }
 }
