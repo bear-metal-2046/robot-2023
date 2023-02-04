@@ -33,10 +33,11 @@ import org.tahomarobotics.robot.chassis.module.MAXSwerveModule;
  * @implNote May be replaced by YAML Configuration.
  */
 public final class REVMaxConstants implements SwerveConstantsIF{
-    static double FRONT_LEFT_OFFSET = 0.484559;
-    static double FRONT_RIGHT_OFFSET = 4.168374;
-    static double BACK_LEFT_OFFSET = 4.150256;
-    static double BACK_RIGHT_OFFSET = 1.753335;
+    static double FRONT_LEFT_OFFSET = 3.672287;
+    static double FRONT_RIGHT_OFFSET = 1.048095;
+    static double BACK_LEFT_OFFSET = 4.015447;
+    static double BACK_RIGHT_OFFSET = 1.140168;
+
 
     //TODO measuringggg
     public static final double CHASSIS_WIDTH = 0.5969;
