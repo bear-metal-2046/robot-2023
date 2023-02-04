@@ -17,7 +17,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot.chassis;
+package org.tahomarobotics.robot.util;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -36,7 +36,7 @@ public class SwerveRateLimiter {
         angularRateLimiter = new SlewRateLimiter(angularAccelerationLimit);
     }
 
-    ChassisSpeeds calculate(ChassisSpeeds input) {
+    public ChassisSpeeds calculate(ChassisSpeeds input) {
 
         // calculate elapsed time
         double currentTime = WPIUtilJNI.now() * 1e-6;

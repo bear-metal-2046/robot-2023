@@ -1,5 +1,6 @@
-package org.tahomarobotics.robot.chassis.module;
+package org.tahomarobotics.robot.chassis;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
@@ -30,17 +31,17 @@ public interface SwerveModuleIF {
     /**
      * Alignment method for the module
      */
-    void align();
+    double finalizeCalibration();
 
     /**
      * Zeroes the current offset of the module.
      */
-    void zeroOffset();
+    void initializeCalibration();
 
     /**
      * Update the offset of the module.
      */
-    void updateOffset();
+    void cancelCalibration();
 
     /**
      * Displays the position of the module to dashboard.
@@ -64,4 +65,10 @@ public interface SwerveModuleIF {
      * @return double, the angle usually in radians.
      */
     double getAbsoluteAngle();
+
+    /**
+     * SwerveModule offset for robot center
+     * @return Translation2d
+     */
+    Translation2d getPositionOffset();
 }

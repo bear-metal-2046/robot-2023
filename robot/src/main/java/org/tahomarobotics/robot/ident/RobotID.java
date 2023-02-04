@@ -34,13 +34,6 @@ public enum RobotID {
         public byte[] getMAC() {
             return new byte[]{0x00, (byte) 0x80, 0x2F, 0x32, (byte) 0xFC, (byte) 0xD7};
         }
-    },
-
-    UNDEFINED {
-        @Override
-        public byte[] getMAC() {
-            return null;
-        }
     };
 
     /**

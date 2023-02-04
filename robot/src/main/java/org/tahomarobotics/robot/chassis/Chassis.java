@@ -25,6 +25,7 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -36,13 +37,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.chassis.config.MK4iConstants;
-import org.tahomarobotics.robot.chassis.config.REVMaxConstants;
-import org.tahomarobotics.robot.chassis.config.SwerveConstantsIF;
-import org.tahomarobotics.robot.chassis.module.MAXSwerveModule;
-import org.tahomarobotics.robot.chassis.module.MK4iSwerveModule;
-import org.tahomarobotics.robot.chassis.module.SwerveModuleIF;
+import org.tahomarobotics.robot.chassis.mk4i.MK4iChassisConstants;
+import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
+import org.tahomarobotics.robot.util.CalibrationData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +55,7 @@ public class Chassis extends SubsystemBase {
 
     private static final Logger logger = LoggerFactory.getLogger(Chassis.class);
 
-    private static final Chassis INSTANCE = new Chassis().initialize();
+    private static final Chassis INSTANCE = new Chassis();
 
     public static Chassis getInstance() { return INSTANCE; }
 
@@ -65,67 +63,45 @@ public class Chassis extends SubsystemBase {
 
     private final Pigeon2 pigeon2 = new Pigeon2(RobotMap.PIGEON);
 
-    private final SwerveModuleIF frontLeftSwerveModule;
-    private final SwerveModuleIF frontRightSwerveModule;
-    private final SwerveModuleIF backLeftSwerveModule;
-    private final SwerveModuleIF backRightSwerveModule;
-
-    private final SwerveConstantsIF swerveConstants;
+    private final List<SwerveModuleIF> swerveModules;
+    private final ChassisConstantsIF swerveConstants;
 
     private final SwerveDrivePoseEstimator poseEstimator;
 
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
 
-    /*
-    Base Constructor
-    Contains some example comments in order to help with understanding.
-     */
+    private final SwerveDriveKinematics swerveDriveKinematics;
+
+    private final CalibrationData<Double[]> swerveCalibration;
+
     private Chassis() {
-        /*
-        Configures the Chassis according to the current RobotID.
-         */
-        switch (RobotIdentity.getInstance().getRobotID()) {
-            case PROTOTYPE:
 
-                // configure Mk4I Swerve
-                /*
-                The current swerveConstants must be defined in order for Chassis to configure properly.
-                These constants classes should not vary per robot, and are determined by the swerve module.
-                It is possible that in the future there may also be a "RobotConstant" class that IS robot
-                specific. However, at this time that is not needed.
-                 */
-                swerveConstants = new MK4iConstants();
-                /*
-                Each Swerve Module must be configured according to its module.
-                IMPORTANT NOTE: ALL FOUR MODULES MUST BE THE SAME. (Currently either MK4i or REVMax)
-                 */
-                frontRightSwerveModule = new MK4iSwerveModule(MK4iConstants.FRONT_RIGHT_SWERVE_CONFIG);
-                frontLeftSwerveModule = new MK4iSwerveModule(MK4iConstants.FRONT_LEFT_SWERVE_CONFIG);
-                backRightSwerveModule = new MK4iSwerveModule(MK4iConstants.BACK_RIGHT_SWERVE_CONFIG);
-                backLeftSwerveModule = new MK4iSwerveModule(MK4iConstants.BACK_LEFT_SWERVE_CONFIG);
+        // Configures the Chassis according to the current RobotID.
+        swerveConstants = switch (RobotIdentity.getInstance().getRobotID()) {
+            // configure Mk4I Swerve
+            case PROTOTYPE -> new MK4iChassisConstants();
+            // configure Rev Swerve
+            case ALPHA, COMPETITION ->  new RevChassisConstants();
+        };
 
-                break;
+        // read calibration data
+        swerveCalibration = new CalibrationData<>("SwerveCalibration", new Double[]{0d, 0d, 0d, 0d});
 
-            case ALPHA:
-            case COMPETITION :
-            default : // always default to COMPETITION robot as this is the most important configuration
+        // create swerve modules
+        swerveModules = swerveConstants.createSwerveModules(swerveCalibration.get());
 
-                // configure REV Swerve
-                swerveConstants = new REVMaxConstants();
-                frontRightSwerveModule = new MAXSwerveModule(REVMaxConstants.FRONT_RIGHT_SWERVE_CONFIG);
-                frontLeftSwerveModule = new MAXSwerveModule(REVMaxConstants.FRONT_LEFT_SWERVE_CONFIG);
-                backLeftSwerveModule = new MAXSwerveModule(REVMaxConstants.BACK_LEFT_SWERVE_CONFIG);
-                backRightSwerveModule = new MAXSwerveModule(REVMaxConstants.BACK_RIGHT_SWERVE_CONFIG);
-
-                break;
-        }
+        swerveDriveKinematics = new SwerveDriveKinematics(
+                swerveModules.stream()
+                        .map(SwerveModuleIF::getPositionOffset)
+                        .toArray(Translation2d[]::new)
+        );
 
         /*
         Pose Estimator is configured further down the line, and utilizes the previously set swerveConstants.
          */
         poseEstimator = new SwerveDrivePoseEstimator(
-                swerveConstants.getSwerveDriveKinematics(),
+                swerveDriveKinematics,
                 getGyroRotation(),
                 getSwerveModulePositions(),
                 new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
@@ -139,32 +115,23 @@ public class Chassis extends SubsystemBase {
     Alignment Method
     Aligns all modules according to offsets.
      */
-    public void align() {
-        frontLeftSwerveModule.align();
-        frontRightSwerveModule.align();
-        backLeftSwerveModule.align();
-        backRightSwerveModule.align();
+    public void finalizeCalibration() {
+        swerveCalibration.set(
+                swerveModules.stream()
+                .map(SwerveModuleIF::finalizeCalibration)
+                .toArray(Double[]::new)
+        );
     }
 
     /*
     Zeroes all offsets, used for offset configuration.
      */
-    public void zeroOffsets() {
-        frontLeftSwerveModule.zeroOffset();
-        frontRightSwerveModule.zeroOffset();
-        backLeftSwerveModule.zeroOffset();
-        backRightSwerveModule.zeroOffset();
-    }
+    public void initalizeCalibration() { swerveModules.forEach(SwerveModuleIF::initializeCalibration); }
 
     /*
     Updates each offset to the new one defined in DriverStation.
      */
-    public void updateOffsets() {
-        frontLeftSwerveModule.updateOffset();
-        frontRightSwerveModule.updateOffset();
-        backLeftSwerveModule.updateOffset();
-        backRightSwerveModule.updateOffset();
-    }
+    public void cancelCalibration() { swerveModules.forEach(SwerveModuleIF::cancelCalibration); }
 
     private Rotation2d getYaw() {
         return Rotation2d.fromDegrees(pigeon2.getYaw());
@@ -185,13 +152,18 @@ public class Chassis extends SubsystemBase {
         isFieldOriented = !isFieldOriented;
     }
 
-    public Chassis initialize(){
+    public Chassis initialize() {
+
+        SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
+
         zeroGyro();
+
         poseEstimator.resetPosition(getGyroRotation(),
                 getSwerveModulePositions()
                 ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
+
         SmartDashboard.putData(fieldPose);
-        updateOffsets();
+
         return this;
     }
 
@@ -199,41 +171,22 @@ public class Chassis extends SubsystemBase {
     public void periodic() {
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
         fieldPose.setRobotPose(getPose());
-//
-        SmartDashboard.putNumber("FL " +
-                "offset", frontLeftSwerveModule.getAbsoluteAngle());
-        SmartDashboard.putNumber("FR offset", frontRightSwerveModule.getAbsoluteAngle());
-        SmartDashboard.putNumber("BL offset", backLeftSwerveModule.getAbsoluteAngle());
-        SmartDashboard.putNumber("BR offset", backRightSwerveModule.getAbsoluteAngle());
-//        SmartDashboard.putNumber("Steer ABS angle not method", frontRightSwerveModule.getSteerABSEncoder().getPosition());
+        swerveModules.forEach(SwerveModuleIF::displayPosition);
     }
 
     public Pose2d getPose(){
         return poseEstimator.getEstimatedPosition();
     }
 
-    //TODO Abstract Impl Done
     private SwerveModulePosition[] getSwerveModulePositions() {
-        return new SwerveModulePosition[] {
-                frontLeftSwerveModule.getPosition(),
-                frontRightSwerveModule.getPosition(),
-                backLeftSwerveModule.getPosition(),
-                backRightSwerveModule.getPosition()
-        };
+        return swerveModules.stream().map(SwerveModuleIF::getPosition).toArray(SwerveModulePosition[]::new);
     }
 
-    //TODO Abstract Impl Done
-    private void setSwerveStates(SwerveModuleState[] states){
-        frontLeftSwerveModule.setDesiredState(states[0]);
-        frontRightSwerveModule.setDesiredState(states[1]);
-        backLeftSwerveModule.setDesiredState(states[2]);
-        backRightSwerveModule.setDesiredState(states[3]);
+    private void setSwerveStates(SwerveModuleState[] states) {
+        for(int i = 0; i < states.length; i++) swerveModules.get(i).setDesiredState(states[i]);
     }
 
-    public void drive(ChassisSpeeds velocity) {
-        drive(velocity, isFieldOriented);
-
-    }
+    public void drive(ChassisSpeeds velocity) { drive(velocity, isFieldOriented); }
 
     private void drive(ChassisSpeeds velocity, boolean fieldRelative) {
 
@@ -241,24 +194,15 @@ public class Chassis extends SubsystemBase {
             velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());
         }
 
-        var swerveModuleStates = swerveConstants.getSwerveDriveKinematics().toSwerveModuleStates(velocity);
+        var swerveModuleStates = swerveDriveKinematics.toSwerveModuleStates(velocity);
 
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, swerveConstants.maxAttainableMps());
 
         setSwerveStates(swerveModuleStates);
     }
 
-    public void stop() {
-        setDriveVoltage(0);
-    }
+    public void stop() { swerveModules.forEach(s -> s.setDriveVoltage(0)); }
 
-    public double setDriveVoltage(double voltage) {
-        frontLeftSwerveModule.setDriveVoltage(voltage);
-        frontRightSwerveModule.setDriveVoltage(voltage);
-        backLeftSwerveModule.setDriveVoltage(voltage);
-        backRightSwerveModule.setDriveVoltage(voltage);
-        return frontLeftSwerveModule.getVelocity();
-    }
 
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
@@ -269,23 +213,18 @@ public class Chassis extends SubsystemBase {
         resetOdometry(new Pose2d(pose.getTranslation(), new Rotation2d(0)));
     }
 
-    public SwerveConstantsIF getSwerveConstants() { return swerveConstants; }
+    public ChassisConstantsIF getSwerveConstants() { return swerveConstants; }
 
     @Override
     public void simulationPeriodic() {
         final double dT = 0.02;
 
-        ChassisSpeeds speeds = swerveConstants.toChassisSpeeds(
-                frontLeftSwerveModule.getState(), frontRightSwerveModule.getState(),
-                backLeftSwerveModule.getState(), backRightSwerveModule.getState());
+        ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(swerveModules.stream()
+                .map(SwerveModuleIF::getState)
+                .toArray(SwerveModuleState[]::new));
 
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
 
-    public void displayAbsolutePositions() {
-        frontLeftSwerveModule.displayPosition();
-        frontRightSwerveModule.displayPosition();
-        backLeftSwerveModule.displayPosition();
-        backRightSwerveModule.displayPosition();
-    }
+    public void displayAbsolutePositions() { swerveModules.forEach(SwerveModuleIF::displayPosition); }
 }

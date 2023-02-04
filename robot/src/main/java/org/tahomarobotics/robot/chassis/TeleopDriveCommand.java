@@ -20,9 +20,8 @@
 package org.tahomarobotics.robot.chassis;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import org.tahomarobotics.robot.chassis.config.SwerveConstantsIF;
+import org.tahomarobotics.robot.util.SwerveRateLimiter;
 
 import java.util.function.DoubleSupplier;
 
@@ -46,7 +45,7 @@ public class TeleopDriveCommand extends CommandBase {
 
         addRequirements(chassis);
 
-        SwerveConstantsIF constants = chassis.getSwerveConstants();
+        ChassisConstantsIF constants = chassis.getSwerveConstants();
 
         rateLimiter = new SwerveRateLimiter(
                 constants.accelerationLimit(),
@@ -68,10 +67,6 @@ public class TeleopDriveCommand extends CommandBase {
         velocityInput.omegaRadiansPerSecond = rotSup.getAsDouble() * maxRotationalVelocity;
 
         ChassisSpeeds velocityOutput = rateLimiter.calculate(velocityInput);
-        SmartDashboard.putNumber("X", velocityInput.vxMetersPerSecond);
-        SmartDashboard.putNumber("Y", velocityInput.vyMetersPerSecond);
-        SmartDashboard.putNumber("X'", velocityOutput.vxMetersPerSecond);
-        SmartDashboard.putNumber("Y'", velocityOutput.vyMetersPerSecond);
 
         chassis.drive(velocityOutput);
     }

@@ -1,7 +1,9 @@
 package org.tahomarobotics.robot.chassis;
 
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import org.tahomarobotics.robot.Robot;
 
 public class AlignSwerveCommand extends CommandBase {
 
@@ -16,12 +18,18 @@ public class AlignSwerveCommand extends CommandBase {
 
     @Override
     public void initialize() {
+        if (!RobotState.isDisabled()) {
+            cancel();
+        }
         SmartDashboard.putBoolean(FINALIZE_KEY, false);
-        chassis.zeroOffsets();
+        chassis.initalizeCalibration();
     }
 
     @Override
     public void execute() {
+        if (!RobotState.isDisabled()) {
+            cancel();
+        }
         chassis.displayAbsolutePositions();
         finalized = SmartDashboard.getBoolean(FINALIZE_KEY, false);
     }
@@ -33,10 +41,10 @@ public class AlignSwerveCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        if (!interrupted) {
-            chassis.align();
+        if (interrupted) {
+            chassis.cancelCalibration();
         } else {
-            chassis.updateOffsets();
+            chassis.finalizeCalibration();
         }
     }
 

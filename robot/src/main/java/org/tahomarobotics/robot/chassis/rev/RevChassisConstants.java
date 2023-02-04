@@ -17,53 +17,29 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot.chassis.config;
+package org.tahomarobotics.robot.chassis.rev;
 
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.chassis.module.MAXSwerveModule;
+import org.tahomarobotics.robot.chassis.ChassisConstantsIF;
+import org.tahomarobotics.robot.chassis.SwerveModuleIF;
+import org.tahomarobotics.robot.util.SparkMaxConfig;
+
+import java.util.List;
 
 /**
  * Constants Class
  * @implNote May be replaced by YAML Configuration.
  */
-public final class REVMaxConstants implements SwerveConstantsIF{
-    static double FRONT_LEFT_OFFSET = 3.672287;
-    static double FRONT_RIGHT_OFFSET = 1.048095;
-    static double BACK_LEFT_OFFSET = 4.015447;
-    static double BACK_RIGHT_OFFSET = 1.140168;
+public final class RevChassisConstants implements ChassisConstantsIF {
 
-
-    //TODO measuringggg
-    public static final double CHASSIS_WIDTH = 0.5969;
-    //TODO more measuringggggg
-    public static final double CHASSIS_WHEELBASE = 0.5969;
-
-    public static final MAXSwerveModule.SwerveConfiguration FRONT_LEFT_SWERVE_CONFIG = new MAXSwerveModule.SwerveConfiguration(
-            "FRONT_LEFT", RobotMap.FRONT_LEFT_MOD, FRONT_LEFT_OFFSET);
-
-    public static final MAXSwerveModule.SwerveConfiguration FRONT_RIGHT_SWERVE_CONFIG = new MAXSwerveModule.SwerveConfiguration(
-            "FRONT_RIGHT", RobotMap.FRONT_RIGHT_MOD, FRONT_RIGHT_OFFSET);
-
-    public static final MAXSwerveModule.SwerveConfiguration BACK_LEFT_SWERVE_CONFIG = new MAXSwerveModule.SwerveConfiguration(
-            "BACK_LEFT", RobotMap.BACK_LEFT_MOD, BACK_LEFT_OFFSET);
-
-    public static final MAXSwerveModule.SwerveConfiguration BACK_RIGHT_SWERVE_CONFIG = new MAXSwerveModule.SwerveConfiguration(
-            "BACK_RIGHT", RobotMap.BACK_RIGHT_MOD, BACK_RIGHT_OFFSET);
-
-    private static final double X_OFFSET = CHASSIS_WIDTH / 2;
-    private static final double Y_OFFSET = CHASSIS_WHEELBASE / 2;
-
-    public static final SwerveDriveKinematics SWERVE_DRIVE_KINEMATICS = new SwerveDriveKinematics(
-            new Translation2d(X_OFFSET, Y_OFFSET),
-            new Translation2d(X_OFFSET, -Y_OFFSET),
-            new Translation2d(-X_OFFSET, Y_OFFSET),
-            new Translation2d(-X_OFFSET, -Y_OFFSET));
+    public static final double TRACK_WIDTH = Units.inchesToMeters(24.5);
+    public static final double WHEELBASE = Units.inchesToMeters(24.5);
+    private static final double HALF_TRACK_WIDTH = TRACK_WIDTH / 2;
+    private static final double HALF_WHEELBASE = WHEELBASE / 2;
 
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
     // This changes the drive speed of the module (a pinion gear with more teeth will result in a
@@ -82,9 +58,8 @@ public final class REVMaxConstants implements SwerveConstantsIF{
     public static final double STEER_ENCODER_POSITION_FACTOR = (2 * Math.PI);
     public static final double STEER_ENCODER_VELOCITY_FACTOR = (2 * Math.PI) / 60;
 
-    public static final double REFERENCE_VOLTAGE = 12.0;
-    public static final double DRIVE_CURRENT_LIMIT = 50.0;
-    public static final double STEER_CURRENT_LIMIT = 20.0;
+    public static final int DRIVE_CURRENT_LIMIT = 50;
+    public static final int STEER_CURRENT_LIMIT = 20;
 
     public static final DCMotor SWERVE_DRIVE_MOTOR = DCMotor.getNEO(1);
 
@@ -98,14 +73,14 @@ public final class REVMaxConstants implements SwerveConstantsIF{
 
     // Hypothetical max velocity of spinning chassis in RADIANS per second
     public static final double MAX_ANGULAR_VELOCITY_RPS = MAX_VELOCITY_MPS
-            / Math.hypot(CHASSIS_WIDTH / 2.0, CHASSIS_WHEELBASE / 2.0);
+            / Math.hypot(HALF_TRACK_WIDTH, HALF_WHEELBASE);
 
 
     //The Acceleration limiters for translation
     public static final double TRANSLATION_LIMIT = 9.0;
 
     //The Acceleration limiters for rotation
-    public static final double ROTATION_LIMIT = TRANSLATION_LIMIT / (CHASSIS_WIDTH / 2.0);
+    public static final double ROTATION_LIMIT = TRANSLATION_LIMIT/ Math.hypot(HALF_TRACK_WIDTH, HALF_WHEELBASE);
 
     public static final double MASS = Units.lbsToKilograms(55.85);
 
@@ -119,14 +94,18 @@ public final class REVMaxConstants implements SwerveConstantsIF{
     public static final double kA_DRIVE = SWERVE_DRIVE_MOTOR.rOhms * WHEEL_RADIUS * MASS
             / (DRIVE_REDUCTION * SWERVE_DRIVE_MOTOR.KtNMPerAmp);
 
-    @Override
-    public SwerveModuleState[] toSwerveModuleStates(ChassisSpeeds speeds) {
-        return SWERVE_DRIVE_KINEMATICS.toSwerveModuleStates(speeds);
-    }
+    private static final Translation2d FRONT_LEFT_OFFSET  = new Translation2d( HALF_WHEELBASE,  HALF_TRACK_WIDTH);
+    private static final Translation2d FRONT_RIGHT_OFFSET = new Translation2d( HALF_WHEELBASE, -HALF_TRACK_WIDTH);
+    private static final Translation2d REAR_LEFT_OFFSET   = new Translation2d(-HALF_WHEELBASE,  HALF_TRACK_WIDTH);
+    private static final Translation2d REAR_RIGHT_OFFSET  = new Translation2d(-HALF_WHEELBASE, -HALF_TRACK_WIDTH);
 
     @Override
-    public ChassisSpeeds toChassisSpeeds(SwerveModuleState... swerveModuleStates) {
-        return SWERVE_DRIVE_KINEMATICS.toChassisSpeeds(swerveModuleStates);
+    public List<SwerveModuleIF> createSwerveModules(Double  angularOffsets[]) {
+        return List.of(
+                new RevSwerveModule("Front-Left",  RobotMap.FRONT_LEFT_MOD,  FRONT_LEFT_OFFSET,  angularOffsets[0]),
+                new RevSwerveModule("Front-Right", RobotMap.FRONT_RIGHT_MOD, FRONT_RIGHT_OFFSET, angularOffsets[1]),
+                new RevSwerveModule("Back-Left",   RobotMap.BACK_LEFT_MOD,   REAR_LEFT_OFFSET,   angularOffsets[2]),
+                new RevSwerveModule("Back-Right",  RobotMap.BACK_RIGHT_MOD,  REAR_RIGHT_OFFSET,  angularOffsets[3]));
     }
 
     @Override
@@ -145,12 +124,29 @@ public final class REVMaxConstants implements SwerveConstantsIF{
     }
 
     @Override
-    public SwerveDriveKinematics getSwerveDriveKinematics() {
-        return SWERVE_DRIVE_KINEMATICS;
-    }
-
-    @Override
     public double maxRotationalVelocity() {
         return MAX_ANGULAR_VELOCITY_RPS;
+    }
+
+
+    public static SparkMaxConfig createDriveConfig(int id) {
+        SparkMaxConfig cfg = new SparkMaxConfig();
+        cfg.canId = id;
+        cfg.currentLimit = DRIVE_CURRENT_LIMIT;
+        cfg.positionConversionFactor = DRIVE_ENCODER_POSITION_FACTOR;
+        cfg.velocityConversionFactor = DRIVE_ENCODER_VELOCITY_FACTOR;
+        return cfg;
+    }
+    public static SparkMaxConfig createSteerConfig(int id, double offset) {
+        SparkMaxConfig cfg = new SparkMaxConfig();
+        cfg.canId = id;
+        cfg.currentLimit = STEER_CURRENT_LIMIT;
+        cfg.positionConversionFactor = STEER_ENCODER_POSITION_FACTOR;
+        cfg.velocityConversionFactor = STEER_ENCODER_VELOCITY_FACTOR;
+        cfg.encoderInverted = true;
+        cfg.encoderOffset = offset;
+        cfg.kP = 0.75;
+        cfg.wrapEnabled = true;
+        return cfg;
     }
 }

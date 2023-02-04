@@ -16,32 +16,32 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package org.tahomarobotics.robot.chassis.module;
+package org.tahomarobotics.robot.chassis.rev;
 
 import com.revrobotics.*;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.chassis.config.REVMaxConstants;
+import org.tahomarobotics.robot.chassis.SwerveModuleIF;
+import org.tahomarobotics.robot.util.SparkMaxConfig;
+import org.tahomarobotics.robot.util.SparkMaxHelper;
 
 /**
  * SwerveModule Class
  * Handles setup and various utility methods for Swerve Modules.
- * @implNote Due to VEX being a non-option for swerve this year, our swerve modules will not be using TalonFX's or CTRE products.
  *
  */
-public class MAXSwerveModule implements SwerveModuleIF {
+public class RevSwerveModule implements SwerveModuleIF {
 
-    private static final Logger logger = LoggerFactory.getLogger(MAXSwerveModule.class);
-
-    public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
-    }
+    private static final Logger logger = LoggerFactory.getLogger(RevSwerveModule.class);
 
     private final String name;
 
@@ -51,57 +51,37 @@ public class MAXSwerveModule implements SwerveModuleIF {
 
     private final PIDController drivePIDController = new PIDController(0, 0, 0);
     private SparkMaxPIDController steerPIDController;
-    private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, REVMaxConstants.kV_DRIVE);
+    private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, RevChassisConstants.kV_DRIVE);
     private SwerveModuleState state = new SwerveModuleState();
 
-    private final SparkMaxConfig steerConfig;
+    private final Translation2d positionOffset;
 
-    private final SparkMaxConfig driveConfig;
+    private double angularOffset;
 
-
-
-    public MAXSwerveModule(SwerveConfiguration configuration) {
-        this(configuration.name, configuration.ports, configuration.referenceAngle);
-    }
-
-    public MAXSwerveModule(String name, RobotMap.SwerveModulePorts ports, double referenceAngle) {
+    public RevSwerveModule(String name, RobotMap.SwerveModulePorts ports, Translation2d positionOffset, double angularOffset) {
         this.name = name;
+        this.positionOffset = positionOffset;
+        this.angularOffset = angularOffset;
+
+        // configure drive motor
         driveMotor = new CANSparkMax(ports.drive(), CANSparkMaxLowLevel.MotorType.kBrushless);
+        SparkMaxConfig driveConfig = RevChassisConstants.createDriveConfig(ports.drive());
+
+        if (SparkMaxHelper.needsConfiguring(logger, driveConfig, driveMotor)) {
+            logger.error("Configured DRIVE motors");
+            SparkMaxHelper.configure(logger, driveConfig, driveMotor);
+        }
+
+        // configure steer motor
         steerMotor = new CANSparkMax(ports.steer(), CANSparkMaxLowLevel.MotorType.kBrushless);
         steerABSEncoder = steerMotor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
         steerPIDController = steerMotor.getPIDController();
-        driveConfig = setDriveConfig(ports.drive());
-        steerConfig = setSteerConfig(ports.steer(), referenceAngle);
-        if (SparkMaxHelper.needsConfiguring(driveConfig, driveMotor, driveMotor.getEncoder())) {
-            logger.error("Configured DRIVE motors");
-            SparkMaxHelper.configure(logger, driveConfig, driveMotor, driveMotor.getEncoder());
-        }
-        if (SparkMaxHelper.needsConfiguring(steerConfig, steerMotor, steerABSEncoder, steerPIDController)) {
+        SparkMaxConfig steerConfig = RevChassisConstants.createSteerConfig(ports.steer(), angularOffset);
+
+        if (SparkMaxHelper.needsConfiguring(logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController)) {
             logger.error("Configured STEER motors");
             SparkMaxHelper.configure(logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController);
         }
-    }
-    private SparkMaxConfig setDriveConfig(int id) {
-        SparkMaxConfig cfg = new SparkMaxConfig();
-        cfg.canId = id;
-        cfg.currentLimit = (int) REVMaxConstants.DRIVE_CURRENT_LIMIT;
-        cfg.positionConversionFactor = REVMaxConstants.DRIVE_ENCODER_POSITION_FACTOR;
-        cfg.velocityConversionFact = REVMaxConstants.DRIVE_ENCODER_VELOCITY_FACTOR;
-        cfg.kP = 0.04;
-        cfg.kFF = 1 / REVMaxConstants.DRIVE_WHEEL_FREE_SPEED_RPS;
-        return cfg;
-    }
-    private SparkMaxConfig setSteerConfig(int id, double offset) {
-        SparkMaxConfig cfg = new SparkMaxConfig();
-        cfg.canId = id;
-        cfg.currentLimit = (int) REVMaxConstants.STEER_CURRENT_LIMIT;
-        cfg.positionConversionFactor = REVMaxConstants.STEER_ENCODER_POSITION_FACTOR;
-        cfg.velocityConversionFact = REVMaxConstants.STEER_ENCODER_VELOCITY_FACTOR;
-        cfg.encoderInverted = true;
-        cfg.encoderOffset = offset;
-        cfg.kP = 0.75;
-        cfg.wrapEnabled = true;
-        return cfg;
     }
 
     @Override
@@ -113,6 +93,11 @@ public class MAXSwerveModule implements SwerveModuleIF {
         }
 
         return angle;
+    }
+
+    @Override
+    public Translation2d getPositionOffset() {
+        return positionOffset;
     }
 
     @Override
@@ -154,36 +139,46 @@ public class MAXSwerveModule implements SwerveModuleIF {
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
 
         // Calculate the drive output from the drive PID controller.
-        final double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
-        final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
+        double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
+        driveOutput += driveFeedforward.calculate(state.speedMetersPerSecond);
 
-        setDriveVoltage(driveOutput + driveFeedforward);
-        SmartDashboard.putNumber(name + " REF ANGLE", state.angle.getRadians());
+        setDriveVoltage(driveOutput);
         steerPIDController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
     }
 
     public void setDriveVoltage(double voltage) {
-        driveMotor.set(voltage / REVMaxConstants.REFERENCE_VOLTAGE);
+        driveMotor.setVoltage(voltage);
     }
 
     //TODO Alignment.
     @Override
-    public void align() {
-
+    public double finalizeCalibration() {
+        angularOffset = getAbsoluteAngle();
+        applyAngularOffset(angularOffset);
+        steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
+        return angularOffset;
     }
 
     @Override
-    public void zeroOffset() {
-
+    public void initializeCalibration() {
+        applyAngularOffset(0);
+        steerMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
     }
 
     @Override
-    public void updateOffset() {
+    public void cancelCalibration() {
+        applyAngularOffset(angularOffset);
+    }
 
+    private void applyAngularOffset(double offset) {
+        var rtncode = steerABSEncoder.setZeroOffset(offset);
+        if (rtncode != REVLibError.kOk) {
+            logger.error("Failed to apply angular offset to " + offset);
+        }
     }
 
     @Override
     public void displayPosition() {
-
+        SmartDashboard.putNumber(name + " angle", getAbsoluteAngle());
     }
 }

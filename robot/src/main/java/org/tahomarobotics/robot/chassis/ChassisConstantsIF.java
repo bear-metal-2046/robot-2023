@@ -1,28 +1,21 @@
-package org.tahomarobotics.robot.chassis.config;
+package org.tahomarobotics.robot.chassis;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * SwerveConstants Interface
  * This acts as a basic interface for Chassis in order to allow for various types of chassis.
  */
-public interface SwerveConstantsIF {
+public interface ChassisConstantsIF {
 
     /**
-     * Converts ChassisSpeeds into SwerveModuleState (Array)
-     * @param speeds ChassisSpeeds, the calculated speed of the robot.
-     * @return SwerveModuleState, in an array according to ChassisSpeeds parameter.
+     * Return the set of swerve modules
+     * @return List<SwerveModuleIF>, list of modules
      */
-    SwerveModuleState[] toSwerveModuleStates(ChassisSpeeds speeds);
-
-    /**
-     * Converts SwerveModuleStates into ChassisSpeeds
-     * @param swerveModuleStates all currently active swervemodulestates
-     * @return ChassisSpeeds, the calculated speed of the chassis.
-     */
-    ChassisSpeeds toChassisSpeeds(SwerveModuleState... swerveModuleStates);
+    List<SwerveModuleIF> createSwerveModules(Double angularOffsets[]);
 
     /**
      * The calculated maximum speed of the robot
@@ -46,7 +39,6 @@ public interface SwerveConstantsIF {
      * Fetches currently active SwerveDriveKinematics.
      * @return SwerveDriveKinematics
      */
-    SwerveDriveKinematics getSwerveDriveKinematics();
 
     double  maxRotationalVelocity();
 

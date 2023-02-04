@@ -16,7 +16,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-package org.tahomarobotics.robot.chassis.module;
+package org.tahomarobotics.robot.chassis.mk4i;
 
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
@@ -27,6 +27,7 @@ import com.revrobotics.*;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -34,8 +35,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
-import org.tahomarobotics.robot.chassis.config.MK4iConstants;
-import org.tahomarobotics.robot.util.DoubleProperty;
+import org.tahomarobotics.robot.chassis.SwerveModuleIF;
 
 import java.util.function.Supplier;
 
@@ -54,31 +54,28 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         SmartDashboard.putNumber(name + " Swerve Module Position", getSteerAngle());
     }
 
-    public record SwerveConfiguration(String name, RobotMap.SwerveModulePorts ports, DoubleProperty offset) {
-    }
-
     private final String name;
     private final CANSparkMax driveMotor;
     private final CANSparkMax steerMotor;
     private final CANCoder steerABSEncoder;
     private SparkMaxPIDController steerPIDController;
-    private int resetIteration = MK4iConstants.ENCODER_RESET_ITERATIONS;
+    private int resetIteration = MK4iChassisConstants.ENCODER_RESET_ITERATIONS;
 
     private final PIDController drivePIDController = new PIDController(0, 0, 0);
-    private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, MK4iConstants.kV_DRIVE);
+    private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, MK4iChassisConstants.kV_DRIVE);
 
     private SwerveModuleState state = new SwerveModuleState();
-    private final DoubleProperty offset;
+    private double angularOffset;
 
-    public MK4iSwerveModule(SwerveConfiguration configuration) {
-        this(configuration.name, configuration.ports, configuration.offset);
-    }
+    private final Translation2d positionOffset;
 
-    public MK4iSwerveModule(String name, RobotMap.SwerveModulePorts ports, DoubleProperty offset) {
+    public MK4iSwerveModule(String name, RobotMap.SwerveModulePorts ports, Translation2d positionOffset, double augularOffset) {
         this.name = name;
+        this.positionOffset = positionOffset;
+
         driveMotor = setupDriveMotor(ports.drive());
         steerMotor = setupSteerMotor(ports.steer());
-        this.offset = offset;
+        this.angularOffset = augularOffset;
         steerABSEncoder = setupSteerEncoder(ports.encoder());
     }
 
@@ -92,7 +89,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
     private CANSparkMax setupDriveMotor(int driveMotorId) {
         CANSparkMax motor = new CANSparkMax(driveMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
 
-        double posConv = Math.PI * MK4iConstants.WHEEL_DIAMETER * MK4iConstants.DRIVE_REDUCTION_MK4I_L2;
+        double posConv = Math.PI * MK4iChassisConstants.WHEEL_DIAMETER * MK4iChassisConstants.DRIVE_REDUCTION_MK4I_L2;
         boolean settingsChanged = setupMotorConfig(
                 motor,
                 posConv,
@@ -120,7 +117,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         CANSparkMax motor = new CANSparkMax(steerMotorId, CANSparkMaxLowLevel.MotorType.kBrushless);
         steerPIDController = motor.getPIDController();
 
-        double posConv = 2 * Math.PI * MK4iConstants.STEER_REDUCTION;
+        double posConv = 2 * Math.PI * MK4iChassisConstants.STEER_REDUCTION;
 
         boolean settingsChanged = setupMotorConfig(
                 motor,
@@ -149,7 +146,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         motor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus2, 50);
 
         // No getter; Sets on other settings changed.
-        motor.setSmartCurrentLimit((int) MK4iConstants.STEER_CURRENT_LIMIT);
+        motor.setSmartCurrentLimit((int) MK4iChassisConstants.STEER_CURRENT_LIMIT);
 
         if (settingsChanged) {
             logger.warn("Flashing settings to steer motor for swerve module " + name);
@@ -201,8 +198,8 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         );
 
         settingsChanged |= setSetting(
-                kindaEqual(motor.getVoltageCompensationNominalVoltage(), MK4iConstants.REFERENCE_VOLTAGE),
-                () -> motor.enableVoltageCompensation(MK4iConstants.REFERENCE_VOLTAGE),
+                kindaEqual(motor.getVoltageCompensationNominalVoltage(), MK4iChassisConstants.REFERENCE_VOLTAGE),
+                () -> motor.enableVoltageCompensation(MK4iChassisConstants.REFERENCE_VOLTAGE),
                 "Failed to set voltage compensation"
         );
 
@@ -213,7 +210,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
     private CANCoder setupSteerEncoder(int steerEncoderId) {
         CANCoderConfiguration config = new CANCoderConfiguration();
         config.absoluteSensorRange = AbsoluteSensorRange.Unsigned_0_to_360;
-        config.magnetOffsetDegrees = Math.toDegrees(offset.getValue());
+        config.magnetOffsetDegrees = Math.toDegrees(angularOffset);
         config.sensorDirection = false;
 
         CANCoder encoder = new CANCoder(steerEncoderId);
@@ -226,23 +223,29 @@ public class MK4iSwerveModule implements SwerveModuleIF {
     }
 
     @Override
-    public void updateOffset() {
-        steerABSEncoder.configMagnetOffset(Units.radiansToDegrees(offset.getValue()));
-        setReferenceAngle(0);
+    public void cancelCalibration() {
+        applyAngularOffset(angularOffset);
     }
 
     @Override
-    public void align() {
-        offset.setValue(-getAbsoluteAngle());
-        updateOffset();
+    public double finalizeCalibration() {
+        angularOffset = -getAbsoluteAngle();
+        applyAngularOffset(angularOffset);
         steerMotor.setIdleMode(CANSparkMax.IdleMode.kBrake);
-        logger.info(name + " successfully calibrated! New Offset: " + -getAbsoluteAngle());
+        return angularOffset;
     }
 
     @Override
-    public void zeroOffset() {
-        steerABSEncoder.configMagnetOffset(0);
+    public void initializeCalibration() {
+        applyAngularOffset(0);
         steerMotor.setIdleMode(CANSparkMax.IdleMode.kCoast);
+    }
+
+    private void applyAngularOffset(double offset) {
+        var rtncode = steerABSEncoder.configMagnetOffset(Units.radiansToDegrees(offset));
+        if (rtncode != ErrorCode.OK) {
+            logger.error("Failed to apply angular offset to " + offset);
+        }
     }
 
     @Override
@@ -256,6 +259,11 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         return angle;
     }
 
+    @Override
+    public Translation2d getPositionOffset() {
+        return positionOffset;
+    }
+
     /* From SDS with Modifications */
     public void setReferenceAngle(double referenceAngle) {
 
@@ -264,8 +272,8 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         // Reset the NEO's encoder periodically when the module is not rotating.
         // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
         // end up getting a good reading. If we reset periodically this won't matter anymore.
-        if (Math.abs(getSteerVelocity()) < MK4iConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
-            if (++resetIteration >= MK4iConstants.ENCODER_RESET_ITERATIONS) {
+        if (Math.abs(getSteerVelocity()) < MK4iChassisConstants.ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
+            if (++resetIteration >= MK4iChassisConstants.ENCODER_RESET_ITERATIONS) {
                 resetIteration = 0;
                 // read degrees from CANcoder
                 double absoluteAngle = getAbsoluteAngle();
@@ -358,6 +366,6 @@ public class MK4iSwerveModule implements SwerveModuleIF {
 
     @Override
     public void setDriveVoltage(double voltage) {
-        driveMotor.set(voltage / MK4iConstants.REFERENCE_VOLTAGE);
+        driveMotor.set(voltage / MK4iChassisConstants.REFERENCE_VOLTAGE);
     }
 }

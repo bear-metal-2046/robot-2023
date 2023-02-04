@@ -21,14 +21,10 @@ package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
-import org.tahomarobotics.robot.ident.RobotID;
-import org.tahomarobotics.robot.ident.RobotIdentity;
-import org.tahomarobotics.robot.chassis.AlignSwerveCommand;
 
 import java.util.ArrayList;
 
@@ -65,9 +61,7 @@ public class Robot extends TimedRobot {
     }
     
     @Override
-    public void disabledInit() {
-        SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
-    }
+    public void disabledInit() {   }
     
     
     @Override
