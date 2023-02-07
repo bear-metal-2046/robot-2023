@@ -41,6 +41,8 @@ import org.tahomarobotics.robot.chassis.mk4i.MK4iChassisConstants;
 import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
 import org.tahomarobotics.robot.util.CalibrationData;
+import org.tahomarobotics.robot.vision.Vision;
+import org.tahomarobotics.robot.vision.VisionConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +77,8 @@ public class Chassis extends SubsystemBase {
 
     private final CalibrationData<Double[]> swerveCalibration;
 
+    private final Vision vision;
+
     private Chassis() {
 
         // Configures the Chassis according to the current RobotID.
@@ -108,6 +112,16 @@ public class Chassis extends SubsystemBase {
                 new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
                 new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
         );
+
+        vision = new Vision((pose, time) -> {
+            var poseDiff = getPose().minus(pose);
+            double diff = Math.sqrt(Math.pow(poseDiff.getX(), 2) + Math.pow(poseDiff.getY(), 2));
+            if (diff > VisionConstants.RESET_THRESHOLD) {
+                poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
+            } else {
+                poseEstimator.addVisionMeasurement(pose, time);
+            }
+        });
     }
 
 
@@ -172,6 +186,8 @@ public class Chassis extends SubsystemBase {
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
         fieldPose.setRobotPose(getPose());
         swerveModules.forEach(SwerveModuleIF::displayPosition);
+
+        SmartDashboard.putString("Pose", getPose().toString());
     }
 
     public Pose2d getPose(){

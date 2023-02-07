@@ -36,8 +36,8 @@ public final class MK4iChassisConstants implements ChassisConstantsIF {
 
 
 
-    public static final double TRACK_WIDTH = Units.inchesToMeters(23.5);
-    public static final double WHEELBASE = Units.inchesToMeters(23.5);
+    public static final double TRACK_WIDTH = Units.inchesToMeters(20.75);
+    public static final double WHEELBASE = Units.inchesToMeters(20.75);
     private static final double HALF_TRACK_WIDTH = TRACK_WIDTH / 2;
     private static final double HALF_WHEELBASE = WHEELBASE / 2;
 
