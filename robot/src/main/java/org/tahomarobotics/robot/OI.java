@@ -59,7 +59,6 @@ public final class OI
     }
 
     public void teleopPeriodic() {
-
     }
 
     public double getDriveLeftYJoystick() {
@@ -71,7 +70,8 @@ public final class OI
     }
 
 
-    private static final double DEAD_ZONE = 0.15;
+    private static final double DEAD_ZONE = 0.09;
+    //If 9% does not fell responsive enough try 10.5%
 
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {
