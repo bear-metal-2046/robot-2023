@@ -29,7 +29,7 @@ public class TeleopDriveCommand extends CommandBase {
 
     private final Chassis chassis = Chassis.getInstance();
 
-    private ChassisSpeeds velocityInput = new ChassisSpeeds();
+    private final ChassisSpeeds velocityInput = new ChassisSpeeds();
 
     SwerveRateLimiter rateLimiter;
 

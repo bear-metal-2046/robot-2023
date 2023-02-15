@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Robot extends TimedRobot {
 
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
-
 
     static {
         // Initialize use of async loggers. Only to be done statically in the main class.
@@ -39,17 +39,16 @@ public class Robot extends TimedRobot {
                 "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector");
     }
 
-    @SuppressWarnings(value = "MismatchedQueryAndUpdateOfCollection")
-    private final ArrayList<Object> instances = new ArrayList<>();
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+    private final List<SubsystemIF> subsystems = new ArrayList<>();
 
     /**
      * Ran on Code startup by RoboRIO Java Runtime
      */
     @Override
     public void robotInit() {
-        //Below code is fine.
-        instances.add(Chassis.getInstance().initialize());
-        instances.add(OI.getInstance());
+        subsystems.add(Chassis.getInstance().initialize());
+        subsystems.add(OI.getInstance());
 
         logger.info("Robot Initialized.");
     }
@@ -86,7 +85,6 @@ public class Robot extends TimedRobot {
     
     @Override
     public void teleopPeriodic() {
-        OI.getInstance().teleopPeriodic();
     }
     
     

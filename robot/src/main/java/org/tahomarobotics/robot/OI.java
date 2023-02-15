@@ -25,8 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 
-public final class OI
-{
+public final class OI implements SubsystemIF {
     private static final OI INSTANCE = new OI();
     public static OI getInstance() {return INSTANCE;}
 
@@ -36,9 +35,10 @@ public final class OI
     private final XboxController driveController = new XboxController(0);
 
     private OI() {
-        bindButtons();
 
-        Chassis.getInstance().setDefaultCommand(
+        Chassis chassis = Chassis.getInstance();
+
+        chassis.setDefaultCommand(
                 new TeleopDriveCommand(
                         () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY),
                         () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY),
@@ -47,28 +47,11 @@ public final class OI
         );
 
         JoystickButton AButton = new JoystickButton(driveController, 1);
-        AButton.onTrue(new InstantCommand(Chassis.getInstance()::orientToZeroHeading));
+        AButton.onTrue(new InstantCommand(chassis::orientToZeroHeading));
 
         JoystickButton BButton = new JoystickButton(driveController, 2);
-        BButton.onTrue(new InstantCommand(Chassis.getInstance()::toggleOrientation));
+        BButton.onTrue(new InstantCommand(chassis::toggleOrientation));
     }
-
-    private void bindButtons()
-    {
-
-    }
-
-    public void teleopPeriodic() {
-    }
-
-    public double getDriveLeftYJoystick() {
-        return -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY);
-    }
-
-    public double getDriveRightXJoystick() {
-        return -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY);
-    }
-
 
     private static final double DEAD_ZONE = 0.09;
     //If 9% does not fell responsive enough try 10.5%

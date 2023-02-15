@@ -3,7 +3,6 @@ package org.tahomarobotics.robot.chassis;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import org.tahomarobotics.robot.Robot;
 
 public class AlignSwerveCommand extends CommandBase {
 
@@ -22,7 +21,7 @@ public class AlignSwerveCommand extends CommandBase {
             cancel();
         }
         SmartDashboard.putBoolean(FINALIZE_KEY, false);
-        chassis.initalizeCalibration();
+        chassis.initializeCalibration();
     }
 
     @Override

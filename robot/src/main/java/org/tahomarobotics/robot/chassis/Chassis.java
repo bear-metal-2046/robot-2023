@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.chassis.mk4i.MK4iChassisConstants;
 import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
@@ -53,13 +54,14 @@ import java.util.List;
  * @implNote If class exceeds 500 lines consider making subclasses...
  */
 
-public class Chassis extends SubsystemBase {
+public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private static final Logger logger = LoggerFactory.getLogger(Chassis.class);
+    private static Chassis INSTANCE = new Chassis();
 
-    private static final Chassis INSTANCE = new Chassis();
-
-    public static Chassis getInstance() { return INSTANCE; }
+    public static Chassis getInstance() {
+        return INSTANCE;
+    }
 
     public boolean isFieldOriented = true;
 
@@ -80,7 +82,6 @@ public class Chassis extends SubsystemBase {
     private final Vision vision;
 
     private Chassis() {
-
         // Configures the Chassis according to the current RobotID.
         swerveConstants = switch (RobotIdentity.getInstance().getRobotID()) {
             // configure Mk4I Swerve
@@ -140,7 +141,7 @@ public class Chassis extends SubsystemBase {
     /*
     Zeroes all offsets, used for offset configuration.
      */
-    public void initalizeCalibration() { swerveModules.forEach(SwerveModuleIF::initializeCalibration); }
+    public void initializeCalibration() { swerveModules.forEach(SwerveModuleIF::initializeCalibration); }
 
     /*
     Updates each offset to the new one defined in DriverStation.
@@ -167,7 +168,6 @@ public class Chassis extends SubsystemBase {
     }
 
     public Chassis initialize() {
-
         SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
 
         zeroGyro();
@@ -217,9 +217,6 @@ public class Chassis extends SubsystemBase {
         setSwerveStates(swerveModuleStates);
     }
 
-    public void stop() { swerveModules.forEach(s -> s.setDriveVoltage(0)); }
-
-
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
     }
@@ -243,4 +240,9 @@ public class Chassis extends SubsystemBase {
     }
 
     public void displayAbsolutePositions() { swerveModules.forEach(SwerveModuleIF::displayPosition); }
+
+    @Override
+    public void disable() {
+        swerveModules.forEach(s -> s.setDriveVoltage(0));
+    }
 }
