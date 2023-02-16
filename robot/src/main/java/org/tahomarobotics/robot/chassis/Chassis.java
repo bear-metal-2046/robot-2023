@@ -87,7 +87,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             // configure Mk4I Swerve
             case PROTOTYPE -> new MK4iChassisConstants();
             // configure Rev Swerve
-            case ALPHA, COMPETITION ->  new RevChassisConstants();
+            case ALPHA, PRACTICE, COMPETITION ->  new RevChassisConstants();
         };
 
         // read calibration data
