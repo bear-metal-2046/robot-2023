@@ -1,0 +1,105 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+}
+
+group 'org.tahomarobotics'
+version '1.0'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url "https://frcmaven.wpi.edu/artifactory/release/" }
+}
+
+ext {
+    wpiVersion = '2021.3.1'
+    junitVersion = '5.7.1'
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    //mainClass = 'org.openfx.Dashboard'
+    mainClass = 'org.tahomarobotics.dashboard.Main'
+}
+
+javafx {
+    version = '11.0.2'
+    modules = ['javafx.controls']
+}
+
+dependencies {
+    implementation('org.controlsfx:controlsfx:11.1.0')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+
+    //Bear-essentials dependency
+    implementation('org.tahomarobotics:bear-essentials:2020.1.0-SNAPSHOT')
+
+    // Add wpi network tables
+    implementation("edu.wpi.first.ntcore:ntcore-java:${wpiVersion}")
+    implementation("edu.wpi.first.wpiutil:wpiutil-java:${wpiVersion}")
+    implementation("edu.wpi.first.wpilibj:wpilibj-java:${wpiVersion}")
+    implementation("edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:${wpiVersion}")
+
+    runtimeOnly("edu.wpi.first.ntcore:ntcore-jni:${wpiVersion}:windowsx86-64")
+    runtimeOnly("edu.wpi.first.ntcore:ntcore-jni:${wpiVersion}:osxx86-64")
+
+    implementation("org.apache.logging.log4j:log4j-api:2.11.0")
+    implementation("org.apache.logging.log4j:log4j-core:2.11.0")
+    implementation ("com.lmax:disruptor:3.3.4")
+
+}
+
+run {
+    classpath += files('build/resources/main')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+  manifest {
+    attributes(
+      'Main-Class': 'org.tahomarobotics.dashboard.Main',
+    )
+  }
+}
+
+task uberJar(type: Jar) {
+    archiveClassifier = 'uber'
+    duplicatesStrategy = 'include'
+    from sourceSets.main.output
+    manifest {
+        attributes(
+            'Main-Class': 'org.tahomarobotics.dashboard.Main',
+        )
+    }
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+}
+
+task buildDist(type: Zip, dependsOn: uberJar) {
+  archiveFileName = "Dashboard.zip"
+  destinationDirectory = file("$buildDir/dist")
+  from 'build/libs'
+  include 'dashboard-1.0-uber.jar'
+  from 'src/main/scripts'
+  include 'dashboard.*'
+  from 'javafx/'
+  include 'javafx-jmods-17.0.2-osx/*.jmod'
+  include 'javafx-jmods-17.0.2-win/*.jmod'
+  dependsOn uberJar
+}

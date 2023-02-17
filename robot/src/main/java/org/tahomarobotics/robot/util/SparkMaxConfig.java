@@ -38,7 +38,7 @@ public class SparkMaxConfig {
     public double encoderOffset = 0;
 
     // PID controller
-    public double kP = 0.0;
+    public double kP = 1.0;
     public double kI = 0.0;
     public double kD = 0.0;
     public double kFF = 0.0;

@@ -19,12 +19,15 @@
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.arm.Arm;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.util.ChartData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.List;
 public class Robot extends TimedRobot {
 
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
+
 
     static {
         // Initialize use of async loggers. Only to be done statically in the main class.
@@ -47,8 +51,14 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
+        initializeSerializeWorkaround();
+
+        DriverStation.silenceJoystickConnectionWarning(true);
+
+        //Below code is fine.
         subsystems.add(Chassis.getInstance().initialize());
-        subsystems.add(OI.getInstance());
+        subsystems.add(Arm.getInstance().initialize());
+        subsystems.add(OI.getInstance().initialize());
 
         logger.info("Robot Initialized.");
     }
@@ -96,6 +106,18 @@ public class Robot extends TimedRobot {
     
     @Override
     public void testPeriodic() {}
+
+    private void initializeSerializeWorkaround() {
+        ChartData chartData = new ChartData(
+                "Workaround", " Time ( Sec", "Velocity (mps)",
+                new String[]{"expected-vel", "actual-vel", "voltage", "expected-pos", "actual-pos"});
+
+        for (double time = 0; time < 2.0; time += 0.02) {
+            chartData.addData(new double[] { time, time, time, time, time, time});
+        }
+
+        byte raw[] = chartData.serialize();
+    }
 
     public static void main(String... args) {
         RobotBase.startRobot(Robot::new);

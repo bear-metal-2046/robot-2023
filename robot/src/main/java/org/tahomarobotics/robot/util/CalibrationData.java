@@ -19,6 +19,7 @@
  */
 package org.tahomarobotics.robot.util;
 
+import edu.wpi.first.wpilibj.Filesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ public class CalibrationData<T extends Serializable> {
 
     private final static Logger logger = LoggerFactory.getLogger(CalibrationData.class);
 
-    private static final String DIRECTORY = "/home/lvuser/";
+    private static final File HOME_DIR = Filesystem.getOperatingDirectory();
 
     private final File file;
     private T data;
@@ -40,7 +41,7 @@ public class CalibrationData<T extends Serializable> {
      */
     public CalibrationData(String filename, T defaultData) {
         this.data = defaultData;
-        this.file = new File(DIRECTORY + filename);
+        this.file = new File(HOME_DIR, filename);
         readCalibrationFile();
     }
 
@@ -50,7 +51,7 @@ public class CalibrationData<T extends Serializable> {
             data = (T)inputStream.readObject();
             logger.info("Successfully read calibration data <" + file.getAbsolutePath() + "> -> " + data);
         } catch (Exception e) {
-            logger.error("Failed to read calibration data <" + file.getAbsolutePath() + ">", e);
+            logger.error("Failed to read calibration data <" + file.getAbsolutePath() + ">");
         }
     }
 
@@ -73,8 +74,9 @@ public class CalibrationData<T extends Serializable> {
     /**
      * Applies a new set of data to the configuration file
      */
-    public void set(T data) {
+    public T set(T data) {
         this.data = data;
         writeCalibrationFile(data);
+        return data;
     }
 }

@@ -2,7 +2,7 @@ import edu.wpi.first.gradlerio.deploy.roborio.RoboRIO
 
 plugins {
     id "java"
-    id "edu.wpi.first.GradleRIO" version "2023.2.1"
+    id "edu.wpi.first.GradleRIO" version "2023.3.2"
 }
 
 def javaVersion = JavaVersion.VERSION_17
@@ -77,6 +77,8 @@ dependencies {
     nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
     simulationRelease wpi.sim.enableRelease()
 
+    //Bear Essentials
+    implementation 'org.tahomarobotics:bear-essentials:2020.1.0-SNAPSHOT'
 
     implementation platform("org.junit:junit-bom:5.8.2")
 

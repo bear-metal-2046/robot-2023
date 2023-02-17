@@ -29,13 +29,18 @@ public final class RobotMap {
     /*
     Swerve Modules
      */
-    public static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);;
+    public static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);
     public static SwerveModulePorts FRONT_RIGHT_MOD = new SwerveModulePorts(2, 12, 22);
-    public static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);;
-    public static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);;
+    public static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);
+    public static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);
+    public static final int SHOULDER_CANCODER = 8;
+    public static final int SHOULDER_MOTOR_TOP = 6;
+    public static final int SHOULDER_MOTOR_BOTTOM = 5;
+    public static final int ELBOW_MOTOR = 7;
+    public static final int ELBOW_CANCODER = 9;
 
     /*
-    Peripherals
-     */
+Peripherals
+ */
     public static int PIGEON = 0;
 }

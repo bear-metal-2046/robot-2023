@@ -1,0 +1,1 @@
+"%JAVA_HOME%\bin\java" -Djava.library.path=C:\Users\tahom\javafx-sdk-17.0.2\bin --module-path C:\Users\tahom\javafx-sdk-17.0.2\lib;javafx-jmods-17.0.2-win --add-modules ALL-MODULE-PATH -jar dashboard-1.0-uber.jar

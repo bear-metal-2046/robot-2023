@@ -21,26 +21,11 @@ package org.tahomarobotics.robot.util;
 
 import com.revrobotics.*;
 import org.slf4j.Logger;
+import org.tahomarobotics.robot.arm.ArmConstants;
 
 import java.util.function.Supplier;
 
-public class SparkMaxHelper {
-
-    private static final double EPSILON = 0.000001d;
-
-    /**
-     * Helper to compare floating point
-     */
-    private static boolean isEqual(double a, double b, double eps) {
-        return Math.abs(a-b) < eps;
-    }
-
-    /**
-     * Helper to compare floating point
-     */
-    private static boolean isEqual(double a, double b) {
-        return isEqual(a, b, EPSILON);
-    }
+public class SparkMaxHelper extends BaseHelper{
 
     /**
      * Compares the current configuration of the motor controller with the provided configuration.
@@ -82,6 +67,7 @@ public class SparkMaxHelper {
 
         return (
              isDifferent(logger, "idleBrake", motor::getIdleMode, cfg.idleBrake) ||
+             isDifferent(logger, "Inverted", motor::getInverted, cfg.motorInverted) ||
              isDifferent(logger, "compensationNominal", motor::getVoltageCompensationNominalVoltage, cfg.compensationNominal) ||
              needsConfiguring(logger, cfg, feedbackSensor) ||
              needsConfiguring(logger, cfg, pidController)
@@ -135,25 +121,13 @@ public class SparkMaxHelper {
         }
         return (
              isDifferent(logger, "kP", pidController::getP, cfg.kP) ||
-             isDifferent(logger, "kI", pidController::getP, cfg.kI) ||
-             isDifferent(logger, "kD", pidController::getP, cfg.kD) ||
-             isDifferent(logger, "kFF", pidController::getP, cfg.kFF) ||
+             isDifferent(logger, "kI", pidController::getI, cfg.kI) ||
+             isDifferent(logger, "kD", pidController::getD, cfg.kD) ||
+             isDifferent(logger, "kFF", pidController::getFF, cfg.kFF) ||
              isDifferent(logger, "wrapMin", pidController::getPositionPIDWrappingMinInput, cfg.wrapMin) ||
              isDifferent(logger, "wrapMax", pidController::getPositionPIDWrappingMaxInput, cfg.wrapMax) ||
              isDifferent(logger, "wrapEnabled", pidController::getPositionPIDWrappingEnabled, cfg.wrapEnabled )
         );
-    }
-
-    /**
-     * Compares and logs if appropriate
-     */
-    private static <T> boolean isDifferent(Logger logger, String name, Supplier<T> getter, T expected) {
-        var value = getter.get();
-        boolean different = expected instanceof Number ? ! isEqual((Double)value, (Double)expected) : value != expected;
-        if (different) {
-            logger.warn("Parameter " + name + " was " + value + " when " + expected + " was expected.");
-        }
-        return different;
     }
 
     /**
@@ -212,10 +186,11 @@ public class SparkMaxHelper {
          */
     public static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController, CANSparkMax follower) {
 
-        checkRevError(logger, "restoreFactoryDefaults", () -> motor.restoreFactoryDefaults());
+        checkRevError(logger, "restoreFactoryDefaults", motor::restoreFactoryDefaults);
 
         motor.setInverted(cfg.motorInverted);
         checkRevError(logger,"setIdleMode", () -> motor.setIdleMode(cfg.idleBrake));
+        checkRevError(logger,"enableVoltageCompensation", () -> motor.enableVoltageCompensation(cfg.compensationNominal));
 
         if (feedbackSensor!= null) {
             if (pidController != null) {
@@ -234,12 +209,12 @@ public class SparkMaxHelper {
         }
 
         if (follower != null) {
-            checkRevError(logger, "follower: restoreFactoryDefaults", () -> follower.restoreFactoryDefaults());
+            checkRevError(logger, "follower: restoreFactoryDefaults", follower::restoreFactoryDefaults);
             checkRevError(logger, "follower: follow", () ->follower.follow(motor));
-            checkRevError(logger,"follower: burnFlash", () -> follower.burnFlash());
+            checkRevError(logger,"follower: burnFlash", follower::burnFlash);
         }
 
-        checkRevError(logger,"burnFlash", () -> motor.burnFlash());
+        checkRevError(logger,"burnFlash", motor::burnFlash);
     }
 
     /**
@@ -298,4 +273,16 @@ public class SparkMaxHelper {
             logger.error("Failed calling " + functionName + " " + error);
         }
     }
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
+        checkThenConfigure(name, logger, cfg, motor, null);
+    }
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, CANSparkMax follower) {
+        if (needsConfiguring(logger, cfg, motor)) {
+            logger.warn("Configuring " + name);
+            configure(logger, cfg, motor, null, null, follower);
+        }
+    }
+
 }

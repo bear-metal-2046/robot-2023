@@ -19,6 +19,10 @@
  */
 package org.tahomarobotics.robot;
 
-public interface SubsystemIF {
+import edu.wpi.first.wpilibj2.command.Subsystem;
+
+public interface SubsystemIF extends Subsystem {
     default void disable() {}
+
+    default SubsystemIF initialize() { return this; }
 }
