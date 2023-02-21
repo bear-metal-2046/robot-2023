@@ -111,6 +111,9 @@ public class SparkMaxHelper extends BaseHelper{
         );
     }
 
+    private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder, SparkMaxPIDController pidController) {
+        return needsConfiguring(logger, cfg, motor, encoder) || needsConfiguring(logger, cfg, pidController);
+    }
     /**
      * Checks the pid controller
      */

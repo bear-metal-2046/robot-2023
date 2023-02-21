@@ -85,6 +85,8 @@ public class Dashboard extends Application {
         final TabPane tabPane = new TabPane();
         ObservableList<Tab> tabs = tabPane.getTabs();
         tabs.add(new Tab("Operator", operator));
+        tabs.add(new Tab("Paw Position", new PawPosition()));
+        tabs.add(new Tab("Paw Velocity", new PawVelocity()));
         tabs.add(new Tab("Arm", new Arm()));
         tabs.add(new Tab("Arm Angles", new ArmAngles()));
 

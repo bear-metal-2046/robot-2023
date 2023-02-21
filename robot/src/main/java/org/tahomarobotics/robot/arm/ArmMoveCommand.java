@@ -20,7 +20,6 @@
 package org.tahomarobotics.robot.arm;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
@@ -49,25 +48,6 @@ public class ArmMoveCommand extends CommandBase {
             new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
 
     private final ArmSubsystemIF arm = Arm.getInstance();
-
-    private static final TrajectoryConfig TRAJ_CFG = new TrajectoryConfig(2.0, 4.0);
-    private static final List<Translation2d> NONE = List.of();
-
-    private static final Rotation2d UP = new Rotation2d(Units.degreesToRadians(90));
-    private static final Rotation2d DOWN = new Rotation2d(Units.degreesToRadians(-90));
-    private static final Rotation2d FWD = new Rotation2d(Units.degreesToRadians(0));
-    private static final Rotation2d REV = new Rotation2d(Units.degreesToRadians(180));
-
-    private static final Translation2d START = new Translation2d(Units.inchesToMeters(20.9), Units.inchesToMeters(0));
-
-    private static final Translation2d STOW = new Translation2d(Units.inchesToMeters(12.3), Units.inchesToMeters(0.8));
-    private static final Translation2d HIGH = new Translation2d(Units.inchesToMeters(48), Units.inchesToMeters(24));
-
-    public static final ArmMoveCommand START_TO_STOW_ARM_COMMAND = new ArmMoveCommand(new Pose2d(START, UP), NONE, new Pose2d(STOW, UP), TRAJ_CFG);
-
-    public static final ArmMoveCommand STOW_TO_HIGH_ARM_COMMAND = new ArmMoveCommand(new Pose2d(STOW, FWD), NONE, new Pose2d(HIGH, FWD), TRAJ_CFG);
-
-    public static final ArmMoveCommand HIGH_TO_STOW_ARM_COMMAND = new ArmMoveCommand(new Pose2d(HIGH, REV), NONE, new Pose2d(STOW, REV), TRAJ_CFG);
 
     private double timeout;
 

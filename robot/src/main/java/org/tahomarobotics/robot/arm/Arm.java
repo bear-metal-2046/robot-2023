@@ -25,6 +25,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -141,11 +142,12 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     @Override
     public ArmSubsystemIF initialize() {
-        SmartDashboard.putData("Arm to Stow", ArmMoveCommand.START_TO_STOW_ARM_COMMAND);
-        SmartDashboard.putData("Stow->High", ArmMoveCommand.STOW_TO_HIGH_ARM_COMMAND);
-        SmartDashboard.putData("High->Stow", ArmMoveCommand.HIGH_TO_STOW_ARM_COMMAND);
+        SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW_ARM_COMMAND);
+        SmartDashboard.putData("Stow->High", ArmMovements.STOW_TO_HIGH_ARM_COMMAND);
+        SmartDashboard.putData("High->Stow", ArmMovements.HIGH_TO_STOW_ARM_COMMAND);
+        SmartDashboard.putData("Test Arm Climb Path Part 1", ArmMovements.CLIMB_SWING_COMMAND_OUT);
+        SmartDashboard.putData("Test Arm Climb Path Part 2", ArmMovements.CLIMB_SWING_COMMAND_IN);
 
-        //SmartDashboard.putData("Move in Trajectory", ArmCommand.TEST_ARM_COMMAND);
         SmartDashboard.putData("Calibrate Arm", new ArmCalibrationCommand());
         return this;
     }
@@ -218,9 +220,10 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         SmartDashboard.putNumber("Shoulder Voltage", shoulderVoltage);
         SmartDashboard.putNumber("Elbow Voltage", elbowVoltage);
 
-        //Pose2d position = kinematics.forwardKinematics(getCurrentArmState());
-        //SmartDashboard.putNumber("Arm X", Units.metersToInches(position.getX()));
-        //SmartDashboard.putNumber("Arm Y", Units.metersToInches(position.getY()));
+        Pose2d position = kinematics.forwardKinematics(getCurrentArmState());
+        SmartDashboard.putNumber("Arm X", Units.metersToInches(position.getX()));
+        SmartDashboard.putNumber("Arm Y", Units.metersToInches(position.getY()));
+
 
         armMechanism.upperArm.setAngle(Units.radiansToDegrees(currentState.shoulder.position()));
         armMechanism.foreArm.setAngle(Units.radiansToDegrees(currentState.elbow.position()));

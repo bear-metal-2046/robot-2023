@@ -204,7 +204,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public void drive(ChassisSpeeds velocity) { drive(velocity, isFieldOriented); }
 
-    private void drive(ChassisSpeeds velocity, boolean fieldRelative) {
+    public void drive(ChassisSpeeds velocity, boolean fieldRelative) {
 
         if (fieldRelative) {
             velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());

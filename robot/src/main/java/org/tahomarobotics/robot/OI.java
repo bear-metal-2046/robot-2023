@@ -24,6 +24,11 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
+import org.tahomarobotics.robot.climb.ClimbSequence;
+import org.tahomarobotics.robot.climb.ResetCommand;
+
+import static edu.wpi.first.wpilibj.XboxController.Button.kBack;
+import static edu.wpi.first.wpilibj.XboxController.Button.kStart;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 
@@ -39,6 +44,9 @@ public final class OI implements SubsystemIF {
 
     private final XboxController manipController = new XboxController(1);
 
+    private final ClimbSequence climbSequence = new ClimbSequence();
+
+    private final ResetCommand resetCommand = new ResetCommand();
     private OI() {
 
         Chassis chassis = Chassis.getInstance();
@@ -64,6 +72,20 @@ public final class OI implements SubsystemIF {
 
         JoystickButton BButton = new JoystickButton(driveController, 2);
         BButton.onTrue(new InstantCommand(chassis::toggleOrientation));
+
+        JoystickButton climb = new JoystickButton(driveController, kStart.value);
+        climb.onTrue(new InstantCommand(this::initiateClimb));
+
+        JoystickButton reset = new JoystickButton(driveController, kBack.value);
+        reset.onTrue(new InstantCommand(this::resetClimb));
+    }
+
+    private void resetClimb() {
+        resetCommand.schedule();
+    }
+
+    private void initiateClimb() {
+        climbSequence.schedule();
     }
 
     private static final double DEAD_ZONE = 0.09;

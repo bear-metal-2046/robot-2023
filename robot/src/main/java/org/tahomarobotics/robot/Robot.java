@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.Arm;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.climb.Beacher;
+import org.tahomarobotics.robot.climb.Paw;
 import org.tahomarobotics.robot.grabber.Grabber;
 import org.tahomarobotics.robot.util.ChartData;
 
@@ -61,7 +63,9 @@ public class Robot extends TimedRobot {
         subsystems.add(Arm.getInstance().initialize());
         subsystems.add(Grabber.getInstance().initialize());
         subsystems.add(OI.getInstance().initialize());
-
+        subsystems.add(Paw.getLeftInstance().initialize());
+        subsystems.add(Paw.getRightInstance().initialize());
+        subsystems.add(Beacher.getBeacherInstance().initialize());
 
         logger.info("Robot Initialized.");
     }
@@ -97,8 +101,7 @@ public class Robot extends TimedRobot {
     
     
     @Override
-    public void teleopPeriodic() {
-    }
+    public void teleopPeriodic() {}
     
     
     @Override

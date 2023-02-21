@@ -17,39 +17,30 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot;
+package org.tahomarobotics.robot.climb;
 
-/**
- * Contains Port Mappings All Robots.
- */
-public final class RobotMap {
-    public record SwerveModulePorts(int drive, int steer, int encoder) {}
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import org.tahomarobotics.robot.chassis.DriveForwardCommand;
 
+public class ResetCommand extends SequentialCommandGroup {
 
-    /*
-    Swerve Modules
-     */
-    public static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);
-    public static SwerveModulePorts FRONT_RIGHT_MOD = new SwerveModulePorts(2, 12, 22);
-    public static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);
-    public static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);
-
-    public static final int SHOULDER_CANCODER = 8;
-    public static final int SHOULDER_MOTOR_TOP = 6;
-    public static final int SHOULDER_MOTOR_BOTTOM = 5;
-    public static final int ELBOW_MOTOR = 7;
-    public static final int ELBOW_CANCODER = 9;
-
-    /*
-    Climb Motors
-     */
-    public static int LEFT_PAW = 31;
-    public static int RIGHT_PAW = 32;
-    public static int BEACHER = 25;
-
-    public static final int GRABBER_MOTOR = 10;
-    /*
-Peripherals
- */
-    public static int PIGEON = 0;
+    public ResetCommand() {
+        Paw leftPaw = Paw.getLeftInstance();
+        Paw rightPaw = Paw.getRightInstance();
+        addCommands(
+            new ParallelCommandGroup(
+                new DriveForwardCommand(0.5, 0.75),
+                new SequentialCommandGroup(
+                    new WaitCommand(0.15),
+                    new ParallelCommandGroup(
+                        new PawCommand(rightPaw, Units.degreesToRadians(20), 1),
+                        new PawCommand(leftPaw, Units.degreesToRadians(20), 1)
+                    )
+                )
+            )
+        );
+    }
 }
