@@ -21,7 +21,6 @@ package org.tahomarobotics.robot.util;
 
 import com.revrobotics.*;
 import org.slf4j.Logger;
-import org.tahomarobotics.robot.arm.ArmConstants;
 
 import java.util.function.Supplier;
 
@@ -275,7 +274,10 @@ public class SparkMaxHelper extends BaseHelper{
     }
 
     public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
-        checkThenConfigure(name, logger, cfg, motor, null);
+        if (needsConfiguring(logger, cfg, motor)) {
+            logger.warn("Configuring " + name);
+            configure(logger, cfg, motor);
+        }
     }
 
     public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, CANSparkMax follower) {
@@ -284,5 +286,10 @@ public class SparkMaxHelper extends BaseHelper{
             configure(logger, cfg, motor, null, null, follower);
         }
     }
-
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder) {
+        if (needsConfiguring(logger, cfg, motor, encoder)) {
+            logger.warn("Configuring " + name);
+            configure(logger, cfg, motor, encoder, null, null);
+        }
+    }
 }

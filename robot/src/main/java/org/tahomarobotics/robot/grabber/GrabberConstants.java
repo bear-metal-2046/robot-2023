@@ -17,32 +17,25 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot;
+package org.tahomarobotics.robot.grabber;
 
-/**
- * Contains Port Mappings All Robots.
- */
-public final class RobotMap {
-    public record SwerveModulePorts(int drive, int steer, int encoder) {}
+import org.tahomarobotics.robot.RobotMap;
+import org.tahomarobotics.robot.util.SparkMaxConfig;
 
+public class GrabberConstants {
+    public static final double INTAKE_TIMOUT = 1.0;
+    public static final double RETAIN_SPEED = 0.1;
+    public static final double EJECT_SPEED = -0.8;
 
-    /*
-    Swerve Modules
-     */
-    public static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);
-    public static SwerveModulePorts FRONT_RIGHT_MOD = new SwerveModulePorts(2, 12, 22);
-    public static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);
-    public static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);
-    public static final int SHOULDER_CANCODER = 8;
-    public static final int SHOULDER_MOTOR_TOP = 6;
-    public static final int SHOULDER_MOTOR_BOTTOM = 5;
-    public static final int ELBOW_MOTOR = 7;
-    public static final int ELBOW_CANCODER = 9;
+    public static final double MAX_SPEED = 0.8;
 
-    public static final int GRABBER_MOTOR = 10;
+    public static final double TRIGGER_DEAD_ZONE = 0.05;
 
-    /*
-Peripherals
- */
-    public static int PIGEON = 0;
+    public static SparkMaxConfig createMotorConfig() {
+        SparkMaxConfig cfg = new SparkMaxConfig();
+        cfg.canId = RobotMap.GRABBER_MOTOR;
+        cfg.currentLimit = 30;
+        cfg.motorInverted = true;
+        return cfg;
+    }
 }

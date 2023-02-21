@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.Arm;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.grabber.Grabber;
 import org.tahomarobotics.robot.util.ChartData;
 
 import java.util.ArrayList;
@@ -58,7 +59,9 @@ public class Robot extends TimedRobot {
         //Below code is fine.
         subsystems.add(Chassis.getInstance().initialize());
         subsystems.add(Arm.getInstance().initialize());
+        subsystems.add(Grabber.getInstance().initialize());
         subsystems.add(OI.getInstance().initialize());
+
 
         logger.info("Robot Initialized.");
     }

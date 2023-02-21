@@ -3,7 +3,6 @@ package org.tahomarobotics.robot.util;
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
-import com.revrobotics.REVLibError;
 import org.slf4j.Logger;
 
 import java.util.function.Supplier;

@@ -24,15 +24,20 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
+import org.tahomarobotics.robot.grabber.CollectCommand;
+import org.tahomarobotics.robot.grabber.Grabber;
 
 public final class OI implements SubsystemIF {
     private static final OI INSTANCE = new OI();
     public static OI getInstance() {return INSTANCE;}
+    private final Grabber grabber = Grabber.getInstance();
 
     private static final double ROTATIONAL_SENSITIVITY = 3;
     private static final double FORWARD_SENSITIVITY = 3;
 
     private final XboxController driveController = new XboxController(0);
+
+    private final XboxController manipController = new XboxController(1);
 
     private OI() {
 
@@ -43,6 +48,14 @@ public final class OI implements SubsystemIF {
                         () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY),
                         () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY),
                         () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
+                )
+        );
+
+        grabber.setDefaultCommand(
+                new CollectCommand(
+                        driveController::getLeftTriggerAxis,
+                        manipController::getLeftTriggerAxis,
+                        driveController::getPOV
                 )
         );
 
