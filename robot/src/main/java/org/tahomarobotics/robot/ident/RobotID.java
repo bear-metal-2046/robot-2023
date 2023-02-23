@@ -22,7 +22,7 @@ public enum RobotID {
     PROTOTYPE {
         @Override
         public byte[] getMAC() {
-            return new byte[]{0x00, (byte) 0x80, 0x2F, 0x32, (byte) 0xFD, 0x29};
+            return new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         }
     },
 
@@ -32,7 +32,7 @@ public enum RobotID {
     COMPETITION {
         @Override
         public byte[] getMAC() {
-            return new byte[]{0x00, (byte) 0x80, 0x2F, 0x32, (byte) 0xFC, (byte) 0xD7};
+            return new byte[]{0x00, (byte) 0x80, 0x2F, 0x32, (byte) 0xFD, 0x29};
         }
     },
 

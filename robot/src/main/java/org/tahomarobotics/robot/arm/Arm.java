@@ -247,18 +247,18 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
             // reset arm angles, so that the angle readings will indicate the unadjusted values
             case Initiate -> {
                 angleDisplayEnabled = true;
-                setAngularOffsets(
-                        new EncoderOffsets(Math.PI / 2 * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d), 0));
+                setAngularOffsets(new EncoderOffsets(Math.PI / 2 * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d), 0),
+                        CANSparkMax.IdleMode.kCoast);
             }
             // reinstate old calibration offsets
-            case Cancel -> setAngularOffsets(calibrationData.get());
+            case Cancel -> setAngularOffsets(calibrationData.get(),
+                    CANSparkMax.IdleMode.kBrake);
 
             // set and save the offsets to the negated reading from this calibration
-            case Finalize -> setAngularOffsets(calibrationData.set(
-                    new EncoderOffsets(
+            case Finalize -> setAngularOffsets(calibrationData.set(new EncoderOffsets(
                             shoulderEncoder.getAbsolutePosition() * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
-                            elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))
-            ));
+                            elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))),
+                    CANSparkMax.IdleMode.kBrake);
         }
     }
 
@@ -268,7 +268,10 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     }
 
 
-    private void setAngularOffsets(EncoderOffsets encoderOffsets) {
+    private void setAngularOffsets(EncoderOffsets encoderOffsets, CANSparkMax.IdleMode mode) {
+        shoulderMotor.setIdleMode(mode);
+        elbowMotor.setIdleMode(mode);
+
         shoulderEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.shoulder));
         elbowEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.elbow));
     }
