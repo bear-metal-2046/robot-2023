@@ -30,7 +30,7 @@ import static org.tahomarobotics.robot.grabber.GrabberConstants.*;
 
 public class CollectCommand extends CommandBase {
 
-    private enum MovementState {  OFF, INJEST, RETAIN, EJECT, SCORE  }
+    protected enum MovementState {  OFF, INJEST, RETAIN, EJECT, SCORE  }
 
     private final DoubleSupplier driveLeftTriger;
     private final DoubleSupplier manipLeftTriger;
@@ -48,6 +48,9 @@ public class CollectCommand extends CommandBase {
     @Override
     public void initialize() {
         timer.start();
+    }
+    public MovementState movementState() {
+        return state;
     }
 
     @Override

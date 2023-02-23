@@ -33,13 +33,23 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Grabber.class);
     private static final Grabber INSTANCE = new Grabber();
 
-    private final CANSparkMax grabberMotor = new CANSparkMax(RobotMap.GRABBER_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
+    private final CANSparkMax grabberMotor;
     private final RelativeEncoder encoder;
     private Grabber() {
-
+        grabberMotor = new CANSparkMax(RobotMap.GRABBER_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
         encoder = grabberMotor.getEncoder();
         SparkMaxHelper.checkThenConfigure("Grabber Motor", logger, GrabberConstants.createMotorConfig(), grabberMotor, encoder);
     }
+
+    /**
+     * THIS CONSTRUCTOR FOR TEST PURPOSES ONLY!
+     * @param testOnly - not used
+     */
+    protected Grabber(boolean testOnly) {
+        grabberMotor = null;
+        encoder = null;
+    }
+
     public static Grabber getInstance() {
         return INSTANCE;
     }
