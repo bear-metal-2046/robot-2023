@@ -1,22 +1,35 @@
+/**
+ * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
 package org.tahomarobotics.robot.grabber;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tahomarobotics.robot.grabber.GrabberConstants.TRIGGER_DEAD_ZONE;
-import static org.mockito.Mockito.mockStatic;
 class CollectCommandTest {
-    private static final Logger logger = LoggerFactory.getLogger(CollectCommandTest.class);
-    class TestDriveLeftTrigerSupplier implements DoubleSupplier {
+    static class TestDriveLeftTrigerSupplier implements DoubleSupplier {
         private double position;
 
         public void greaterThanDeadZone() {
@@ -33,7 +46,7 @@ class CollectCommandTest {
         }
     }
 
-    class TestManipLeftTrigerSupplier implements DoubleSupplier {
+    static class TestManipLeftTrigerSupplier implements DoubleSupplier {
         private double position;
 
         public void greaterThanDeadZone() {
@@ -50,43 +63,30 @@ class CollectCommandTest {
         }
     }
 
-    class TestPovDirSupplier implements IntSupplier {
+    static class TestPovDirSupplier implements IntSupplier {
         private int direction;
 
-        public void set0() {
-            direction = 0;
-        }
-        public void set90() {
-            direction = 90;
-        }
-        public void set180() {
-            direction = 180;
-        }
-        public void set270() {
-            direction = 270;
-        }
+        public void setDirection(int direction) { this.direction = direction; }
         @Override
         public int getAsInt() {
             return direction;
         }
     }
 
-    private double value = 0.0;
-    class TestGrabber extends Grabber {
+    static class TestGrabber extends Grabber {
+        private double speed = 0.0;
         double velocity = 20;
         public TestGrabber() {
             super(true);
         }
-        public void setGrabberSpeed(double percentage) {
-            value = percentage;
-            logger.info("Grabber speed: " + percentage);
-        }
+
+        public double getGrabberSpeed() { return speed; }
+        public void setGrabberSpeed(double percentage) { speed = percentage; }
 
         public double getVelocity() {
             return velocity;
         }
         public void setVelocity(double v) { velocity =  v; }
-
     }
 
     TestDriveLeftTrigerSupplier driveLeftTriger = new TestDriveLeftTrigerSupplier();
@@ -127,11 +127,11 @@ class CollectCommandTest {
             testCollectCommand.execute();
             assertEquals(CollectCommand.MovementState.INJEST, testCollectCommand.movementState());
 
-            povDir.set180();
+            povDir.setDirection(180);
             testCollectCommand.execute();
             assertEquals(CollectCommand.MovementState.EJECT, testCollectCommand.movementState());
 
-            povDir.set0();
+            povDir.setDirection(0);
             testCollectCommand.execute();
             assertEquals(CollectCommand.MovementState.OFF, testCollectCommand.movementState());
 

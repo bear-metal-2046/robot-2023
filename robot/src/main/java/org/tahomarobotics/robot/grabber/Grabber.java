@@ -45,7 +45,7 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
      * THIS CONSTRUCTOR FOR TEST PURPOSES ONLY!
      * @param testOnly - not used
      */
-    protected Grabber(boolean testOnly) {
+    protected Grabber(@SuppressWarnings("unused") boolean testOnly) {
         grabberMotor = null;
         encoder = null;
     }

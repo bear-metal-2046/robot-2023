@@ -55,8 +55,6 @@ public class CollectCommand extends CommandBase {
 
     @Override
     public void execute() {
-        MovementState oldState = state;
-
         double leftDriverTrigger = driveLeftTriger.getAsDouble();
         double injestSpeed = Math.max(leftDriverTrigger * MAX_SPEED, RETAIN_SPEED);
         double leftManipTrigger = manipLeftTriger.getAsDouble();
