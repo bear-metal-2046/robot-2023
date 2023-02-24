@@ -63,26 +63,26 @@ public class ArmConstants {
 
                 case COMPETITION, PRACTICE -> new ArmPhysicalProperties(
                         new ArmLinkPhysicalProperties(
-                                Units.inchesToMeters(33.5),
-                                Units.lbsToKilograms(6.026),
-                                lbsInchSqTokgsMeterSq(879.721),
-                                Units.inchesToMeters(11.621),
-                                10d / 64d * 30d / 84d * 12d / 60d, true, true),
+                                Units.inchesToMeters(33.7),
+                                Units.lbsToKilograms(5.490),
+                                lbsInchSqTokgsMeterSq(826.435),
+                                Units.inchesToMeters(13.006),
+                                11d / 62d * 30d / 84d * 12d / 60d, true, true),
 
                         new ArmLinkPhysicalProperties(
-                                Units.inchesToMeters(33.7),
-                                Units.lbsToKilograms(6.904),
-                                lbsInchSqTokgsMeterSq(1061.351),
-                                Units.inchesToMeters(28.0294881),
-                                10d / 72d * 24d / 72d * 22d / 50d * 32d / 62d, false, false));
+                                Units.inchesToMeters(31.7),
+                                Units.lbsToKilograms(11.144),
+                                lbsInchSqTokgsMeterSq(2004.379),
+                                Units.inchesToMeters(27.381),
+                                11d / 72d * 24d / 72d * 22d / 50d * 32d / 62d, false, false));
             };
 
-    public static final double MAX_PID_VOLTAGE = 2.0;
+    public static final double MAX_PID_VOLTAGE = 4.0;
 
     public record PIDGains(double kP, double kI, double kD){}
 
-    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(6, 0, 0.4);
-    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(8, 0, 0.4);
+    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(16, 0, 0);
+    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(16, 0, 0);
 
     private static SparkMaxConfig createArmMotorConfig(boolean inverted, PIDGains pidGains) {
         SparkMaxConfig cfg = new SparkMaxConfig();

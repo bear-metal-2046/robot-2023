@@ -53,7 +53,7 @@ public class ArmTrajectory {
     private Trajectory generateTrajectory(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config) {
         Trajectory trajectory = null;
         try {
-            double directionSample = end.getTranslation().getDistance(start.getTranslation()) * 0.1;
+            double directionSample = end.getTranslation().getDistance(start.getTranslation()) * 0.001;
 
             Pose2d convertedStart = convertToAngles(start, directionSample);
 

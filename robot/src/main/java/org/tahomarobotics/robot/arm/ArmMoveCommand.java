@@ -40,7 +40,7 @@ public class ArmMoveCommand extends CommandBase {
     Timer timer = new Timer();
 
     ChartData chartData = new ChartData("Voltage", "Time", "Voltage",
-            new String[] { "Shoulder", "Elbow"});
+            new String[] { "Shoulder", "Elbow", "FF Shoulder", "FF Elbow"});
     ChartData angleChart = new ChartData("Angles", "Time", "Degrees",
             new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
 
@@ -59,8 +59,9 @@ public class ArmMoveCommand extends CommandBase {
         if (!trajectory.isValid()) {
             timeout = 0;
             canceled = true;
+        } else {
+            timeout = trajectory.getTotalTimeSeconds() + 0.5;
         }
-        timeout = trajectory.getTotalTimeSeconds() + 0.5;
         addRequirements(arm);
     }
 
@@ -87,7 +88,7 @@ public class ArmMoveCommand extends CommandBase {
         var armState = arm.getCurrentArmState();
         double[] voltages = arm.getVoltages();
 
-        double[] data = {timer.get(), voltages[0], voltages[1]};
+        double[] data = {timer.get(), voltages[0], voltages[1], voltages[2], voltages[3]};
         chartData.addData(data);
 
         double[] speedData = {timer.get(),

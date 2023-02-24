@@ -57,8 +57,8 @@ public class ArmFeedForward {
 
     public FeedForwardVoltages calculate(ArmState desiredArmState, ArmState currentArmState) {
 
-        double t1 = desiredArmState.shoulder.position();
-        double t2 = desiredArmState.elbow.position();
+        double t1 = currentArmState.shoulder.position();
+        double t2 = currentArmState.elbow.position();
         double cos_t1 = Math.cos(t1);
         double cos_t2 = Math.cos(t2);
         double cos_t1_t2 = Math.cos(t1 + t2);

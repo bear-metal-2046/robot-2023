@@ -85,7 +85,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     private ArmState desiredState = null;
 
-    private double voltages[] = new double[2];
+    private final double voltages[] = new double[4];
 
     private final static ArmState initialState = new ArmState(0,
             new ArmState.JointState(Units.degreesToRadians(36.3), 0, 0),
@@ -94,11 +94,14 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private Arm() {
 
         // Shoulder Motor
+
         shoulderMotor = new CANSparkMax(RobotMap.SHOULDER_MOTOR_TOP, CANSparkMaxLowLevel.MotorType.kBrushless);
         SparkMaxHelper.checkThenConfigure("Shoulder Leader Motor", logger, ArmConstants.CONFIG_SHOULDER_MOTOR, shoulderMotor);
 
         shoulderFollower = new CANSparkMax(RobotMap.SHOULDER_MOTOR_BOTTOM, CANSparkMaxLowLevel.MotorType.kBrushless);
         SparkMaxHelper.checkThenConfigure("Shoulder Follower Motor", logger, ArmConstants.CONFIG_SHOULDER_MOTOR, shoulderFollower);
+        //shoulderFollower.follow(shoulderMotor);
+
 
         // Elbow Motor
         elbowMotor = new CANSparkMax(RobotMap.ELBOW_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -126,7 +129,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         // Elbow PID Controller
         elbowPIDController = new PIDController(ArmConstants.CONFIG_ELBOW_MOTOR.kP,ArmConstants.CONFIG_ELBOW_MOTOR.kI,ArmConstants.CONFIG_ELBOW_MOTOR.kD);
 
-        shoulderFollower.follow(shoulderMotor);
 
         Mechanism2d mech = new Mechanism2d(HORIZONTAL_EXTENSION_FRONT_LIMIT + 2 * FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT ,
                 VERTICAL_EXTENSION_UPPER_LIMIT);
@@ -142,11 +144,24 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     @Override
     public ArmSubsystemIF initialize() {
-        SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW_ARM_COMMAND);
-        SmartDashboard.putData("Stow->High", ArmMovements.STOW_TO_HIGH_ARM_COMMAND);
-        SmartDashboard.putData("High->Stow", ArmMovements.HIGH_TO_STOW_ARM_COMMAND);
-        SmartDashboard.putData("Test Arm Climb Path Part 1", ArmMovements.CLIMB_SWING_COMMAND_OUT);
-        SmartDashboard.putData("Test Arm Climb Path Part 2", ArmMovements.CLIMB_SWING_COMMAND_IN);
+
+        SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW);
+
+        SmartDashboard.putData("Stow to ground", ArmMovements.STOW_TO_GROUND);
+        SmartDashboard.putData("Ground to stow", ArmMovements.GROUND_TO_STOW);
+
+        SmartDashboard.putData("Stow to Mid Box", ArmMovements.STOW_TO_MID_BOX);
+        SmartDashboard.putData("Mid Box to Stow", ArmMovements.MID_BOX_TO_STOW);
+
+        SmartDashboard.putData("Stow to High Box", ArmMovements.STOW_TO_HIGH_BOX);
+        SmartDashboard.putData("High Box to Stow", ArmMovements.HIGH_BOX_TO_STOW);
+
+        SmartDashboard.putData("Stow to Mid Pole", ArmMovements.STOW_TO_MID_POLE);
+        SmartDashboard.putData("Mid Pole to Stow", ArmMovements.MID_POLE_TO_STOW);
+
+        SmartDashboard.putData("Stow to High Pole", ArmMovements.STOW_TO_HIGH_POLE);
+        SmartDashboard.putData("High Pole to Stow", ArmMovements.HIGH_POLE_TO_STOW);
+
 
         SmartDashboard.putData("Calibrate Arm", new ArmCalibrationCommand());
         return this;
@@ -191,9 +206,14 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         // arm movement is initiated by setting the desired state
         if (desiredState != null) {
 
-            ArmFeedForward.FeedForwardVoltages voltages = feedForward.calculate(desiredState, currentState);
-            double shoulderFeedforwardVoltage = voltages.shoulder();
-            double elbowFeedforwardVoltage = voltages.elbow();
+            ArmFeedForward.FeedForwardVoltages ffVoltages = feedForward.calculate(desiredState, currentState);
+            double shoulderFeedforwardVoltage = ffVoltages.shoulder();
+            double elbowFeedforwardVoltage = ffVoltages.elbow();
+            voltages[2] = shoulderFeedforwardVoltage;
+            voltages[3] = elbowFeedforwardVoltage;
+
+            SmartDashboard.putNumber("Shoulder FF Voltage", shoulderFeedforwardVoltage);
+            SmartDashboard.putNumber("Elbow FF Voltage", elbowFeedforwardVoltage);
 
             double shoulderFeedbackVoltage = shoulderPIDController.calculate(shoulderEncoder.getPosition(), desiredState.shoulder.position());
             double elbowFeedbackVoltage = elbowPIDController.calculate(elbowEncoder.getPosition(), desiredState.elbow.position());
@@ -213,6 +233,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
         // power the motors
         shoulderMotor.setVoltage(shoulderVoltage);
+        shoulderFollower.setVoltage(shoulderVoltage);
         elbowMotor.setVoltage(elbowVoltage);
         voltages[0] = shoulderVoltage;
         voltages[1] = elbowVoltage;
