@@ -89,6 +89,8 @@ public class Dashboard extends Application {
         tabs.add(new Tab("Paw Velocity", new PawVelocity()));
         tabs.add(new Tab("Arm", new Arm()));
         tabs.add(new Tab("Arm Angles", new ArmAngles()));
+        tabs.add(new Tab("Autonomouse", new Autonomous()));
+        tabs.add(new Tab("Autonomouse Hdg", new HdgAutonomous()));
 
         // combine and show
         VBox vBox = new VBox();

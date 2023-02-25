@@ -30,7 +30,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.Topic;
+import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -75,7 +79,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
 
-    private final SwerveDriveKinematics swerveDriveKinematics;
+    public final SwerveDriveKinematics swerveDriveKinematics;
 
     private final CalibrationData<Double[]> swerveCalibration;
 
@@ -156,7 +160,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         return Rotation2d.fromDegrees(pigeon2.getPitch());
     }
 
-
     private void zeroGyro(){pigeon2.setYaw(0.0);}
 
     private Rotation2d getGyroRotation(){
@@ -172,9 +175,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
         zeroGyro();
 
-        poseEstimator.resetPosition(getGyroRotation(),
-                getSwerveModulePositions()
-                ,new Pose2d(0.0,0.0, new Rotation2d(0.0)));
+        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0,0.0, new Rotation2d(0.0)));
 
         SmartDashboard.putData(fieldPose);
 
@@ -198,7 +199,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         return swerveModules.stream().map(SwerveModuleIF::getPosition).toArray(SwerveModulePosition[]::new);
     }
 
-    private void setSwerveStates(SwerveModuleState[] states) {
+    public void setSwerveStates(SwerveModuleState[] states) {
         for(int i = 0; i < states.length; i++) swerveModules.get(i).setDesiredState(states[i]);
     }
 
@@ -228,6 +229,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public ChassisConstantsIF getSwerveConstants() { return swerveConstants; }
 
+    public SwerveDriveKinematics getSwerveDriveKinematics() {
+        return swerveDriveKinematics;
+    }
+
     @Override
     public void simulationPeriodic() {
         final double dT = 0.02;
@@ -235,11 +240,37 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(swerveModules.stream()
                 .map(SwerveModuleIF::getState)
                 .toArray(SwerveModuleState[]::new));
-
+        logger.debug("ChassisSpeeds: " + speeds.toString());
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
 
     public void displayAbsolutePositions() { swerveModules.forEach(SwerveModuleIF::displayPosition); }
+
+    public void updateTrajectory(List<Trajectory> trajectories) {
+        String name = SendableRegistry.getName(fieldPose);
+        var inst = NetworkTableInstance.getDefault();
+        var sd = inst.getTable("SmartDashboard").getSubTable(name);
+        for (String key : sd.getKeys()) {
+            if (key.startsWith("traj")) {
+                fieldPose.getObject(key).setPoses(List.of());
+            }
+        }
+        actualPath.clear();
+        SmartDashboard.getEntry(name + "/Robot").unpublish();
+
+
+        fieldPose.setRobotPose(trajectories == null ? getPose() : trajectories.get(0).getInitialPose());
+        if (trajectories != null) {
+            for (int i = 0; i < trajectories.size(); i++) {
+                fieldPose.getObject("traj" + i).setTrajectory(trajectories.get(i));
+            }
+        }
+    }
+
+    public void updateActualTrajectory(List<Pose2d> actualTrajectory) {
+        actualPath.addAll(actualTrajectory);
+        fieldPose.getRobotObject().setPoses(actualPath);
+    }
 
     @Override
     public void disable() {

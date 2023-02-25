@@ -22,11 +22,14 @@ package org.tahomarobotics.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.arm.Arm;
 import org.tahomarobotics.robot.wrist.Wrist;
+import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.climb.Beacher;
 import org.tahomarobotics.robot.climb.Paw;
@@ -50,6 +53,8 @@ public class Robot extends TimedRobot {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final List<SubsystemIF> subsystems = new ArrayList<>();
 
+    private Command autonomousCommand;
+
     /**
      * Ran on Code startup by RoboRIO Java Runtime
      */
@@ -67,6 +72,7 @@ public class Robot extends TimedRobot {
         subsystems.add(Paw.getLeftInstance().initialize());
         subsystems.add(Paw.getRightInstance().initialize());
         subsystems.add(Beacher.getBeacherInstance().initialize());
+        subsystems.add(Autonomous.getInstance().initialize());
         subsystems.add(OI.getInstance().initialize());
 
 
@@ -91,11 +97,18 @@ public class Robot extends TimedRobot {
     public void autonomousInit()
     {
         logger.info("-=-=-=- AUTONOMOUS ENABLED -=-=-=-");
+
+        autonomousCommand = Autonomous.getInstance().getSelectedCommand();
+        logger.info("Running " + autonomousCommand.getName() + " from " + Chassis.getInstance().getPose());
+        autonomousCommand.schedule();
     }
 
     @Override
     public void autonomousPeriodic() {}
-    
+
+    @Override
+    public void simulationPeriodic() {}
+
     
     @Override
     public void teleopInit()
@@ -105,7 +118,10 @@ public class Robot extends TimedRobot {
     
     
     @Override
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+        if (autonomousCommand != null)
+            autonomousCommand.cancel();
+    }
     
     
     @Override

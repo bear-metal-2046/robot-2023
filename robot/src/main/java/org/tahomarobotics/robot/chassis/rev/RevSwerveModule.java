@@ -25,6 +25,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,9 @@ public class RevSwerveModule implements SwerveModuleIF {
     private SparkMaxPIDController steerPIDController;
     private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, RevChassisConstants.kV_DRIVE);
     private SwerveModuleState state = new SwerveModuleState();
+    private SwerveModulePosition position = new SwerveModulePosition();
+
+    private double lastTime = RobotController.getFPGATime() * 1e-6;
 
     private final Translation2d positionOffset;
 
@@ -114,7 +119,7 @@ public class RevSwerveModule implements SwerveModuleIF {
      */
     @Override
     public SwerveModuleState getState() {
-        return new SwerveModuleState(getVelocity(), new Rotation2d(getAbsoluteAngle()));
+        return RobotBase.isReal() ? new SwerveModuleState(getVelocity(), new Rotation2d(getAbsoluteAngle())) : state;
     }
 
     /**
@@ -124,7 +129,7 @@ public class RevSwerveModule implements SwerveModuleIF {
     @Override
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
-        return new SwerveModulePosition(getDrivePos(), new Rotation2d(getAbsoluteAngle()));
+        return RobotBase.isReal() ? new SwerveModulePosition(getDrivePos(), new Rotation2d(getAbsoluteAngle())) : position;
     }
 
     /**
@@ -136,6 +141,11 @@ public class RevSwerveModule implements SwerveModuleIF {
         double steerAngle = getAbsoluteAngle();
 
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
+
+        double time = RobotController.getFPGATime() * 1e-6;
+        position.angle = state.angle;
+        position.distanceMeters += state.speedMetersPerSecond * (time - lastTime);
+        lastTime = time;
 
         // Calculate the drive output from the drive PID controller.
         double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);

@@ -31,6 +31,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -321,7 +322,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
      */
     @Override
     public SwerveModuleState getState() {
-        return new SwerveModuleState(getVelocity(), new Rotation2d(getSteerAngle()));
+        return RobotBase.isReal() ? new SwerveModuleState(getVelocity(), new Rotation2d(getSteerAngle())) : state;
     }
 
     /**

@@ -33,14 +33,18 @@ public class RobotIdentity {
             for(RobotID ident : RobotID.values()) {
                 if(Arrays.equals(ident.getMAC(), actual)) {
                     robotID = ident;
+                    break;
                 }
             }
-            if (robotID == null) {
-                robotID = RobotID.COMPETITION;
-                log.error("Failed to find a valid RobotID for the current robot, reverting to default.");
-            }
-            log.info("Robot Identity Determined as, " + robotID);
+            if (robotID != null) break;
         }
+
+        if (robotID == null) {
+            robotID = RobotID.COMPETITION;
+            log.error("Failed to find a valid RobotID for the current robot, reverting to default.");
+        }
+        log.info("Robot Identity Determined as, " + robotID);
+
     }
 
     private List<byte[]> getRobotAddresses() {

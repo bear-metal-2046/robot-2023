@@ -29,17 +29,20 @@ public enum RobotID {
     /**
      * Competition Robot, all configuration values should be competition ready.
      */
+    PRACTICE {
+        @Override
+        public byte[] getMAC() {
+            return new byte[]{0x00, (byte) 0x80, 0x2F, 0x33, (byte) 0x04, (byte) 0xF9};
+        }
+    },
+
+    /**
+     * Competition Robot, all configuration values should be competition ready.
+     */
     COMPETITION {
         @Override
         public byte[] getMAC() {
             return new byte[]{0x00, (byte) 0x80, 0x2F, 0x32, (byte) 0xFD, 0x29};
-        }
-    },
-
-    PRACTICE {
-        @Override
-        public byte[] getMAC() {
-            return new byte[] {0x00, (byte) 0x80, 0x2F, 0x33, (byte) 0x04, (byte) 0xF9};
         }
     };
 
