@@ -39,6 +39,8 @@ public final class RobotMap {
     public static final int SHOULDER_MOTOR_BOTTOM = 5;
     public static final int ELBOW_MOTOR = 7;
     public static final int ELBOW_CANCODER = 9;
+    public static final int WRIST_MOTOR = 15;
+    public static final int WRIST_CANCODER = 16;
 
     /*
     Climb Motors

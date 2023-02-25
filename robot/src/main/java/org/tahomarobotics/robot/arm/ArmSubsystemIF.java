@@ -20,10 +20,9 @@
 package org.tahomarobotics.robot.arm;
 
 import org.tahomarobotics.robot.SubsystemIF;
+import org.tahomarobotics.robot.util.CalibrationAction;
 
 public interface ArmSubsystemIF extends SubsystemIF {
-
-    enum CalibrationAction {Initiate, Cancel, Finalize}
 
     default ArmState getCurrentArmState() { return new ArmState(); }
 
@@ -31,5 +30,5 @@ public interface ArmSubsystemIF extends SubsystemIF {
 
     default void calibration(CalibrationAction calibrationAction) {}
 
-    default double[] getVoltages() { return new double[2]; }
+    default double[] getVoltages() { return new double[4]; }
 }

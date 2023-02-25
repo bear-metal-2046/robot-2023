@@ -22,14 +22,19 @@ package org.tahomarobotics.robot.arm;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryParameterizer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.wrist.Wrist;
+import org.tahomarobotics.robot.wrist.WristMoveCommand;
 
+import java.awt.font.TransformAttribute;
 import java.util.List;
 
 public class ArmMoveCommand extends CommandBase {
@@ -49,12 +54,15 @@ public class ArmMoveCommand extends CommandBase {
 
     private final ArmSubsystemIF arm = Arm.getInstance();
 
-    private double timeout;
+    private final double timeout;
 
     private final ArmTrajectory trajectory;
+    private WristMoveCommand wristMovement;
+    private double wristPosition;
 
-    public ArmMoveCommand(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config) {
 
+    public ArmMoveCommand(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, double wristPosition) {
+        this.wristPosition = wristPosition;
         trajectory = new ArmTrajectory(start, interiorWaypoints, end, config);
         if (!trajectory.isValid()) {
             timeout = 0;
@@ -65,6 +73,10 @@ public class ArmMoveCommand extends CommandBase {
         addRequirements(arm);
     }
 
+    public ArmMoveCommand(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, WristMoveCommand.WristPositions wristPosition) {
+        this (start, interiorWaypoints, end, config, wristPosition.angle);
+    }
+
 
     @Override
     public void initialize() {
@@ -73,6 +85,12 @@ public class ArmMoveCommand extends CommandBase {
         chartData.clear();
         angleChart.clear();
         angluarVelocityChart.clear();
+        try {
+            wristMovement = new WristMoveCommand(wristPosition, timeout / 2);
+        } catch (TrajectoryParameterizer.TrajectoryGenerationException e) {
+            logger.error("Failed to create wrist trajectory");
+            wristMovement = new WristMoveCommand();
+        }
     }
 
     @Override
@@ -107,6 +125,10 @@ public class ArmMoveCommand extends CommandBase {
                 Units.radiansToDegrees(armState.elbow.position())};
 
         angleChart.addData(angleData);
+
+        if ((time > timeout / 2) && !(CommandScheduler.getInstance().isScheduled(wristMovement))) {
+            CommandScheduler.getInstance().schedule(wristMovement);
+        }
     }
 
     @Override

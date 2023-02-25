@@ -295,4 +295,11 @@ public class SparkMaxHelper extends BaseHelper{
             configure(logger, cfg, motor, encoder, null, null);
         }
     }
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder, SparkMaxPIDController pidController) {
+        if (needsConfiguring(logger, cfg, motor, encoder, pidController)) {
+            logger.warn("Configuring " + name);
+            configure(logger, cfg, motor, encoder, pidController, null);
+        }
+    }
 }

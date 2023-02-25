@@ -25,7 +25,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.ident.RobotIdentity;
 import org.tahomarobotics.robot.util.CTREPheonixHelper;
+import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
 
@@ -146,6 +147,13 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     public ArmSubsystemIF initialize() {
 
         SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW);
+        //SmartDashboard.putData("Position to Stow", ArmMovements.POSITION_TO_STOW_COMMAND);
+
+        SmartDashboard.putData("Stow to Up Collect", ArmMovements.STOW_TO_UP_COLLECT);
+        SmartDashboard.putData("Up Collect to Stow", ArmMovements.UP_COLLECT_TO_STOW);
+
+        SmartDashboard.putData("Stow to Down Collect", ArmMovements.STOW_TO_DOWN_COLLECT);
+        SmartDashboard.putData("Down Collect to Stow", ArmMovements.DOWN_COLLECT_TO_STOW);
 
         SmartDashboard.putData("Stow to ground", ArmMovements.STOW_TO_GROUND);
         SmartDashboard.putData("Ground to stow", ArmMovements.GROUND_TO_STOW);
@@ -241,7 +249,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         SmartDashboard.putNumber("Shoulder Voltage", shoulderVoltage);
         SmartDashboard.putNumber("Elbow Voltage", elbowVoltage);
 
-        Pose2d position = kinematics.forwardKinematics(getCurrentArmState());
+        Translation2d position = kinematics.forwardKinematics(getCurrentArmState());
         SmartDashboard.putNumber("Arm X", Units.metersToInches(position.getX()));
         SmartDashboard.putNumber("Arm Y", Units.metersToInches(position.getY()));
 

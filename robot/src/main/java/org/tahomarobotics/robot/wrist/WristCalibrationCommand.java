@@ -1,17 +1,16 @@
-package org.tahomarobotics.robot.arm;
+package org.tahomarobotics.robot.wrist;
 
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.tahomarobotics.robot.util.CalibrationAction;
 
-public class ArmCalibrationCommand extends CommandBase {
-    ArmSubsystemIF arm = Arm.getInstance();
+public class WristCalibrationCommand extends CommandBase {
+    Wrist wrist = Wrist.getInstance();
     private boolean finalized = false;
-    public ArmCalibrationCommand() {
-        addRequirements(arm);
+    public WristCalibrationCommand() {
+        addRequirements(wrist);
     }
 
     private static final String FINALIZE_KEY = "Finalize";
@@ -21,12 +20,12 @@ public class ArmCalibrationCommand extends CommandBase {
             cancel();
         }
         SmartDashboard.putBoolean(FINALIZE_KEY, false);
-        arm.calibration(CalibrationAction.Initiate);
+        wrist.calibration(CalibrationAction.Initiate);
     }
 
     @Override
     public void execute() {
-        if (!RobotState.isDisabled()) {
+        if (RobotState.isEnabled()) {
             cancel();
         }
         finalized = SmartDashboard.getBoolean(FINALIZE_KEY, false);
@@ -35,9 +34,9 @@ public class ArmCalibrationCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         if (interrupted) {
-            arm.calibration(CalibrationAction.Cancel);
+            wrist.calibration(CalibrationAction.Cancel);
         } else {
-            arm.calibration(CalibrationAction.Finalize);
+            wrist.calibration(CalibrationAction.Finalize);
         }
     }
 

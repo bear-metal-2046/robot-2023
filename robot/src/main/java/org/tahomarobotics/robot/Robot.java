@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.Arm;
+import org.tahomarobotics.robot.wrist.Wrist;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.climb.Beacher;
 import org.tahomarobotics.robot.climb.Paw;
@@ -62,10 +63,12 @@ public class Robot extends TimedRobot {
         subsystems.add(Chassis.getInstance().initialize());
         subsystems.add(Arm.getInstance().initialize());
         subsystems.add(Grabber.getInstance().initialize());
-        subsystems.add(OI.getInstance().initialize());
+        subsystems.add(Wrist.getInstance().initialize());
         subsystems.add(Paw.getLeftInstance().initialize());
         subsystems.add(Paw.getRightInstance().initialize());
         subsystems.add(Beacher.getBeacherInstance().initialize());
+        subsystems.add(OI.getInstance().initialize());
+
 
         logger.info("Robot Initialized.");
     }
@@ -74,6 +77,7 @@ public class Robot extends TimedRobot {
     public void robotPeriodic()
     {
         CommandScheduler.getInstance().run();
+        OI.getInstance().periodic();
     }
     
     @Override

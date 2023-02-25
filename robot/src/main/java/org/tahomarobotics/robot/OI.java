@@ -20,19 +20,27 @@
 package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.arm.ArmMoveCommand;
+import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.climb.ResetCommand;
-
-import static edu.wpi.first.wpilibj.XboxController.Button.kBack;
-import static edu.wpi.first.wpilibj.XboxController.Button.kStart;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 
+import java.util.function.IntSupplier;
+
+import static edu.wpi.first.wpilibj.XboxController.Button.*;
+
 public final class OI implements SubsystemIF {
+    private static final Logger logger = LoggerFactory.getLogger(OI.class);
+
     private static final OI INSTANCE = new OI();
     public static OI getInstance() {return INSTANCE;}
     private final Grabber grabber = Grabber.getInstance();
@@ -41,12 +49,34 @@ public final class OI implements SubsystemIF {
     private static final double FORWARD_SENSITIVITY = 3;
 
     private final XboxController driveController = new XboxController(0);
-
     private final XboxController manipController = new XboxController(1);
 
     private final ClimbSequence climbSequence = new ClimbSequence();
-
     private final ResetCommand resetCommand = new ResetCommand();
+    private ArmMoveCommand scoreCommand;
+    private ArmMoveCommand collectUpCommand;
+    private ArmMoveCommand collectDownCommand;
+
+    private static boolean ifCone = false;
+    private boolean ifReversed = false;
+    private boolean ifUpCollectReversed = false;
+    private boolean ifDownCollectReversed = false;
+    private String scoreCommandName;
+    private String upName;
+    private String downName;
+    private IntSupplier manipPOV;
+    private enum ConeOrCube {
+        CONE,
+        CUBE;
+    }
+    private enum ScoringLevel {
+        HIGH,
+        MID,
+        LOW;
+    }
+    private ScoringLevel level = ScoringLevel.LOW;
+    private static ConeOrCube mode = ConeOrCube.CUBE;
+
     private OI() {
 
         Chassis chassis = Chassis.getInstance();
@@ -66,18 +96,101 @@ public final class OI implements SubsystemIF {
                         driveController::getPOV
                 )
         );
-
+        //Robot Orientation
         JoystickButton AButton = new JoystickButton(driveController, 1);
         AButton.onTrue(new InstantCommand(chassis::orientToZeroHeading));
 
         JoystickButton BButton = new JoystickButton(driveController, 2);
         BButton.onTrue(new InstantCommand(chassis::toggleOrientation));
 
+        //Climb
         JoystickButton climb = new JoystickButton(driveController, kStart.value);
         climb.onTrue(new InstantCommand(this::initiateClimb));
 
         JoystickButton reset = new JoystickButton(driveController, kBack.value);
         reset.onTrue(new InstantCommand(this::resetClimb));
+
+        //Collecting
+        JoystickButton XButton = new JoystickButton(driveController, kX.value);
+        XButton.onTrue(new InstantCommand(() -> ifCone = !ifCone));
+
+        JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);
+        driveRB.onTrue(new InstantCommand(() -> scheduleCollectCommand(collectUpCommand))
+                .andThen(new InstantCommand(() -> ifUpCollectReversed = !ifUpCollectReversed)));
+
+        JoystickButton driveLB = new JoystickButton(driveController, kLeftBumper.value);
+        driveLB.onTrue(new InstantCommand(() -> scheduleCollectCommand(collectDownCommand))
+                .andThen(new InstantCommand(() -> ifDownCollectReversed = !ifDownCollectReversed)));
+
+        //Scoring
+        JoystickButton manipLB = new JoystickButton(manipController, kRightBumper.value);
+        manipLB.onTrue(new InstantCommand(() -> scheduleArmCommand(scoreCommand))
+                .andThen(new InstantCommand(() -> ifReversed = !ifReversed)));
+
+        manipPOV = manipController::getPOV;
+    }
+
+
+    public void periodic() {
+        switch (manipPOV.getAsInt()) {
+            case 0 -> level = ScoringLevel.HIGH;
+            case 90 -> level = ScoringLevel.MID;
+            case 180 -> level = ScoringLevel.LOW;
+        }
+        switch (mode) {
+            case CONE -> {
+                if(!ifCone) mode = ConeOrCube.CUBE;
+                switch (level) {
+                    case HIGH -> {
+                        scoreCommand = ifReversed ? ArmMovements.HIGH_POLE_TO_STOW : ArmMovements.STOW_TO_HIGH_POLE;
+                        scoreCommandName = ifReversed ? "ArmMovements.HIGH_POLE_TO_STOW" : "ArmMovements.STOW_TO_HIGH_POLE";
+                    }
+                    case MID -> {
+                        scoreCommand = ifReversed ? ArmMovements.MID_POLE_TO_STOW : ArmMovements.STOW_TO_MID_POLE;
+                        scoreCommandName = ifReversed ? "ArmMovements.MID_POLE_TO_STOW" : "ArmMovements.STOW_TO_MID_POLE";
+                    }
+                    case LOW -> {
+                        scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
+                        scoreCommandName = ifReversed ? "ArmMovements.GROUND_TO_STOW" : "ArmMovements.STOW_TO_GROUND";
+                    }
+                }
+            }
+            case CUBE -> {
+                if (ifCone) mode = ConeOrCube.CONE;
+                switch (level) {
+                    case HIGH -> {
+                        scoreCommand = ifReversed ? ArmMovements.HIGH_BOX_TO_STOW : ArmMovements.STOW_TO_HIGH_BOX;
+                        scoreCommandName = ifReversed ? "ArmMovements.HIGH_BOX_TO_STOW" : "ArmMovements.STOW_TO_HIGH_BOX";
+                    }
+                    case MID -> {
+                        scoreCommand = ifReversed ? ArmMovements.MID_BOX_TO_STOW : ArmMovements.STOW_TO_MID_BOX;
+                        scoreCommandName = ifReversed ? "ArmMovements.MID_BOX_TO_STOW" : "ArmMovements.STOW_TO_MID_BOX";
+                    }
+                    case LOW -> {
+                        scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
+                        scoreCommandName = ifReversed ? "ArmMovements.GROUND_TO_STOW" : "ArmMovements.STOW_TO_GROUND";
+                    }
+                }
+            }
+        }
+        collectUpCommand = ifUpCollectReversed ? ArmMovements.UP_COLLECT_TO_STOW : ArmMovements.STOW_TO_UP_COLLECT;
+        upName = ifUpCollectReversed ? "ArmMovements.UP_COLLECT_TO_STOW" : "ArmMovements.STOW_TO_UP_COLLECT";
+        collectDownCommand = ifDownCollectReversed ? ArmMovements.DOWN_COLLECT_TO_STOW : ArmMovements.STOW_TO_DOWN_COLLECT;
+        downName = ifDownCollectReversed ? "ArmMovements.DOWN_COLLECT_TO_STOW" : "ArmMovements.STOW_TO_DOWN_COLLECT";
+        SmartDashboard.putString("CONE OR CUBE", mode.toString());
+        SmartDashboard.putString("LEVEL SELECT", level.toString());
+        SmartDashboard.putString("SCORE COMMAND", scoreCommandName);
+        SmartDashboard.putString("UP COMMAND", upName);
+        SmartDashboard.putString("DOWN COMMAND", downName);
+        SmartDashboard.putBoolean("CONE?", ifCone);
+        SmartDashboard.putBoolean("REVERSED?", ifReversed);
+    }
+
+    private void scheduleArmCommand(ArmMoveCommand armCommand) {
+        armCommand.schedule();
+    }
+    private void scheduleCollectCommand(ArmMoveCommand collectCommand) {
+        collectCommand.schedule();
     }
 
     private void resetClimb() {

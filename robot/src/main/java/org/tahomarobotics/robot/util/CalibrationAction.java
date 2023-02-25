@@ -1,4 +1,3 @@
 package org.tahomarobotics.robot.util;
 
-public enum CalibrationAction { Initiate, Cancel,
-}
+public enum CalibrationAction { Initiate, Cancel, Finalize }

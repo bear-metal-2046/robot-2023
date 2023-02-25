@@ -151,14 +151,14 @@ public class ArmKinematics {
      * @param armState - joint angles
      * @return Pose2d of end-effector
      */
-    public Pose2d forwardKinematics(ArmState armState) {
+    public Translation2d forwardKinematics(ArmState armState) {
         double q1 = armState.shoulder.position();
         double q2 = armState.elbow.position();
 
         double x = l1 * Math.cos(q1) + l2 * Math.cos(q1 + q2);
         double y = l1 * Math.sin(q1) + l2 * Math.sin(q1 + q2);
 
-        return new Pose2d(new Translation2d(x, y), new Rotation2d());
+        return new Translation2d(x, y);
     }
 
     boolean inRange(double value , ArmConstants.Range range) {

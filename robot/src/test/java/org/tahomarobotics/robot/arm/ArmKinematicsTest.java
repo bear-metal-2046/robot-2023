@@ -90,7 +90,7 @@ public class ArmKinematicsTest {
     @Test
     void testForwardKinematics() {
         for(PositionCondition c : POSITIONS) {
-            Pose2d p = kinematics.forwardKinematics(c.armState);
+            Translation2d p = kinematics.forwardKinematics(c.armState);
 
             assertEquals(c.position.getX(), p.getX(), TOLERANCE_DISTANCE,
                     c.name + " X " +
@@ -128,7 +128,7 @@ public class ArmKinematicsTest {
                 try {
                     ArmState state = kinematics.inverseKinematics(time, position);
 
-                    Pose2d result = kinematics.forwardKinematics(state);
+                    Translation2d result = kinematics.forwardKinematics(state);
 
                     assertEquals(x, result.getX(), EPSILON);
                     assertEquals(y, result.getY(), EPSILON);
