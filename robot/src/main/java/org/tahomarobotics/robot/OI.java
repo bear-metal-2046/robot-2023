@@ -150,7 +150,7 @@ public final class OI implements SubsystemIF {
                         scoreCommandName = ifReversed ? "ArmMovements.MID_POLE_TO_STOW" : "ArmMovements.STOW_TO_MID_POLE";
                     }
                     case LOW -> {
-                        scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
+                        //scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
                         scoreCommandName = ifReversed ? "ArmMovements.GROUND_TO_STOW" : "ArmMovements.STOW_TO_GROUND";
                     }
                 }
@@ -167,7 +167,7 @@ public final class OI implements SubsystemIF {
                         scoreCommandName = ifReversed ? "ArmMovements.MID_BOX_TO_STOW" : "ArmMovements.STOW_TO_MID_BOX";
                     }
                     case LOW -> {
-                        scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
+                        //scoreCommand = ifReversed ? ArmMovements.GROUND_TO_STOW : ArmMovements.STOW_TO_GROUND;
                         scoreCommandName = ifReversed ? "ArmMovements.GROUND_TO_STOW" : "ArmMovements.STOW_TO_GROUND";
                     }
                 }

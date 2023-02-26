@@ -20,21 +20,21 @@
 package org.tahomarobotics.robot.arm;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryParameterizer;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.util.ChartData;
-import org.tahomarobotics.robot.wrist.Wrist;
 import org.tahomarobotics.robot.wrist.WristMoveCommand;
+import org.tahomarobotics.robot.wrist.WristPosition;
 
-import java.awt.font.TransformAttribute;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ArmMoveCommand extends CommandBase {
@@ -53,30 +53,26 @@ public class ArmMoveCommand extends CommandBase {
             new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
 
     private final ArmSubsystemIF arm = Arm.getInstance();
-
-    private final double timeout;
-
     private final ArmTrajectory trajectory;
-    private WristMoveCommand wristMovement;
-    private double wristPosition;
+    private final WristPosition wristPosition;
 
+    public ArmMoveCommand(String name, Translation2d start, Translation2d end, TrajectoryConfig config, WristPosition wristPosition) {
+        this(name, start, end, end.minus(start).getAngle(), config, wristPosition);
+    }
 
-    public ArmMoveCommand(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, double wristPosition) {
+    private ArmMoveCommand(String name, Translation2d start, Translation2d end, Rotation2d dir, TrajectoryConfig config, WristPosition wristPosition) {
+        this(name, new Pose2d(start, dir), new ArrayList<>(), new Pose2d(end, dir), config, wristPosition);
+    }
+
+    public ArmMoveCommand(String name, Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, WristPosition wristPosition) {
+        setName(name);
         this.wristPosition = wristPosition;
         trajectory = new ArmTrajectory(start, interiorWaypoints, end, config);
         if (!trajectory.isValid()) {
-            timeout = 0;
             canceled = true;
-        } else {
-            timeout = trajectory.getTotalTimeSeconds() + 0.5;
         }
         addRequirements(arm);
     }
-
-    public ArmMoveCommand(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, WristMoveCommand.WristPositions wristPosition) {
-        this (start, interiorWaypoints, end, config, wristPosition.angle);
-    }
-
 
     @Override
     public void initialize() {
@@ -85,11 +81,10 @@ public class ArmMoveCommand extends CommandBase {
         chartData.clear();
         angleChart.clear();
         angluarVelocityChart.clear();
-        try {
-            wristMovement = new WristMoveCommand(wristPosition, timeout / 2);
-        } catch (TrajectoryParameterizer.TrajectoryGenerationException e) {
-            logger.error("Failed to create wrist trajectory");
-            wristMovement = new WristMoveCommand();
+        if (trajectory.isValid()) {
+            double waitTime = 0.25 * trajectory.getTotalTimeSeconds();
+            double wristTime = 0.5 * trajectory.getTotalTimeSeconds();
+            Commands.waitSeconds(waitTime).andThen(new WristMoveCommand(wristPosition, wristTime)).schedule();
         }
     }
 
@@ -125,22 +120,20 @@ public class ArmMoveCommand extends CommandBase {
                 Units.radiansToDegrees(armState.elbow.position())};
 
         angleChart.addData(angleData);
-
-        if ((time > timeout / 2) && !(CommandScheduler.getInstance().isScheduled(wristMovement))) {
-            CommandScheduler.getInstance().schedule(wristMovement);
-        }
     }
 
     @Override
     public void end(boolean interrupted) {
+        arm.setArmState(trajectory.getFinalState());
         timer.stop();
         SmartDashboard.putRaw("Arm Chart", chartData.serialize());
         SmartDashboard.putRaw("Velocity Chart", angluarVelocityChart.serialize());
         SmartDashboard.putRaw("Angle Chart", angleChart.serialize());
+        logger.info("ArmMove [" + getName() + "] complete");
     }
 
     @Override
     public boolean isFinished() {
-        return timer.get() >= timeout || canceled;
+        return timer.hasElapsed(trajectory.getTotalTimeSeconds()) || canceled;
     }
 }

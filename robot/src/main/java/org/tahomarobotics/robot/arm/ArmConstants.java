@@ -81,8 +81,8 @@ public class ArmConstants {
 
     public record PIDGains(double kP, double kI, double kD){}
 
-    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(16, 0, 0);
-    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(16, 0, 0);
+    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(16, 3, 0.75);
+    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(16, 3, 0.75);
 
     private static SparkMaxConfig createArmMotorConfig(boolean inverted, PIDGains pidGains) {
         SparkMaxConfig cfg = new SparkMaxConfig();

@@ -112,4 +112,12 @@ public class ArmTrajectory {
     public double getTotalTimeSeconds() {
         return trajectory.getTotalTimeSeconds();
     }
+
+    public ArmState getFinalState() {
+        var states = trajectory.getStates();
+        var sample = states.get(states.size()-1);
+        return new ArmState(sample.timeSeconds,
+                new ArmState.JointState(sample.poseMeters.getX(), 0, 0),
+                new ArmState.JointState(sample.poseMeters.getY(), 0, 0));
+    }
 }

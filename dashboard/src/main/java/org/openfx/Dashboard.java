@@ -91,6 +91,8 @@ public class Dashboard extends Application {
         tabs.add(new Tab("Arm Angles", new ArmAngles()));
         tabs.add(new Tab("Autonomouse", new Autonomous()));
         tabs.add(new Tab("Autonomouse Hdg", new HdgAutonomous()));
+        tabs.add(new Tab("Wrist Velocity", new WristVelocity()));
+        tabs.add(new Tab("Wrist Position", new WristPosition()));
 
         // combine and show
         VBox vBox = new VBox();

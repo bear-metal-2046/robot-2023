@@ -17,21 +17,25 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-package org.tahomarobotics.robot.arm;
+package org.tahomarobotics.robot.wrist;
 
-import edu.wpi.first.math.geometry.Translation2d;
-import org.tahomarobotics.robot.SubsystemIF;
-import org.tahomarobotics.robot.util.CalibrationAction;
+import edu.wpi.first.math.util.Units;
 
-public interface ArmSubsystemIF extends SubsystemIF {
+public enum WristPosition {
 
-    default ArmState getCurrentArmState() { return new ArmState(); }
+    //TODO measure these
 
-    default Translation2d getCurrentPosition() { return new Translation2d(0,0); }
+    STOW(Units.degreesToRadians(100d)),
+    DOWN_COLLECT(Units.degreesToRadians(93.8d)),
+    UP_COLLECT(Units.degreesToRadians(79.5)),
+    FEEDER_COLLECT(Units.degreesToRadians(123.2)),
+    MIDBOXPLACE(Units.degreesToRadians(-19d)),
+    HIGHBOXPLACE(Units.degreesToRadians(-33d)),
+    MIDPOLEPLACE(Units.degreesToRadians(-45)),
+    HIGHPOLEPLACE(Units.degreesToRadians(-40));
 
-    default void setArmState(ArmState desiredState) {}
-
-    default void calibration(CalibrationAction calibrationAction) {}
-
-    default double[] getVoltages() { return new double[4]; }
+    public final double angle;
+    WristPosition(double angle) {
+        this.angle = angle;
+    }
 }

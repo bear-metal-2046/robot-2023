@@ -80,7 +80,6 @@ public class PawCommand extends CommandBase {
             logger.error("Failed setting up motion profile", e);
             failedSetup = true;
         }
-
     }
 
     @Override

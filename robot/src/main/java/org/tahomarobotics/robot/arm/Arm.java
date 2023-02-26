@@ -130,6 +130,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         // Elbow PID Controller
         elbowPIDController = new PIDController(ArmConstants.CONFIG_ELBOW_MOTOR.kP,ArmConstants.CONFIG_ELBOW_MOTOR.kI,ArmConstants.CONFIG_ELBOW_MOTOR.kD);
 
+        shoulderPIDController.setIntegratorRange(-2.0, 2.0);
+        elbowPIDController.setIntegratorRange(-2.0, 2.0);
 
         Mechanism2d mech = new Mechanism2d(HORIZONTAL_EXTENSION_FRONT_LIMIT + 2 * FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT ,
                 VERTICAL_EXTENSION_UPPER_LIMIT);
@@ -147,7 +149,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     public ArmSubsystemIF initialize() {
 
         SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW);
-        //SmartDashboard.putData("Position to Stow", ArmMovements.POSITION_TO_STOW_COMMAND);
+        SmartDashboard.putData("Position to Stow", ArmMovements.POSITION_TO_STOW_COMMAND);
 
         SmartDashboard.putData("Stow to Up Collect", ArmMovements.STOW_TO_UP_COLLECT);
         SmartDashboard.putData("Up Collect to Stow", ArmMovements.UP_COLLECT_TO_STOW);
@@ -155,8 +157,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         SmartDashboard.putData("Stow to Down Collect", ArmMovements.STOW_TO_DOWN_COLLECT);
         SmartDashboard.putData("Down Collect to Stow", ArmMovements.DOWN_COLLECT_TO_STOW);
 
-        SmartDashboard.putData("Stow to ground", ArmMovements.STOW_TO_GROUND);
-        SmartDashboard.putData("Ground to stow", ArmMovements.GROUND_TO_STOW);
+        SmartDashboard.putData("Stow to Feeder Collect", ArmMovements.STOW_TO_FEEDER_COLLECT);
+        SmartDashboard.putData("Feeder Collect to Stow", ArmMovements.FEEDER_COLLECT_TO_STOW);
 
         SmartDashboard.putData("Stow to Mid Box", ArmMovements.STOW_TO_MID_BOX);
         SmartDashboard.putData("Mid Box to Stow", ArmMovements.MID_BOX_TO_STOW);
@@ -180,6 +182,11 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         return new ArmState(0d,
                 new ArmState.JointState(shoulderEncoder.getAbsolutePosition(), shoulderEncoder.getVelocity(), 0),
                 new ArmState.JointState(elbowEncoder.getAbsolutePosition(), elbowEncoder.getVelocity(), 0));
+    }
+
+    @Override
+    public Translation2d getCurrentPosition() {
+        return new ArmKinematics().forwardKinematics(getCurrentArmState());
     }
 
     @Override
@@ -225,6 +232,9 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
             double shoulderFeedbackVoltage = shoulderPIDController.calculate(shoulderEncoder.getPosition(), desiredState.shoulder.position());
             double elbowFeedbackVoltage = elbowPIDController.calculate(elbowEncoder.getPosition(), desiredState.elbow.position());
+
+            SmartDashboard.putNumber("Shoulder Diff", shoulderEncoder.getPosition() - desiredState.shoulder.position());
+            SmartDashboard.putNumber("Elbow Diff", elbowEncoder.getPosition() - desiredState.elbow.position());
 
             // limit feed-back voltages
             // BUT DO NOT ALLOW FULL VOLTAGE to be applied to motor if there are large errors
