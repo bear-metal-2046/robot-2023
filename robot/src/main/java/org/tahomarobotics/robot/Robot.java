@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.arm.Arm;
 import org.tahomarobotics.robot.wrist.Wrist;
-import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.climb.Beacher;
 import org.tahomarobotics.robot.climb.Paw;

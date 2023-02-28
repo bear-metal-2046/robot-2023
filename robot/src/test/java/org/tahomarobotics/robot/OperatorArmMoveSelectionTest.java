@@ -1,0 +1,95 @@
+/**
+ * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+ * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ */
+package org.tahomarobotics.robot;
+
+import edu.wpi.first.hal.HAL;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
+import edu.wpi.first.wpilibj2.command.Command;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Random;
+import java.util.concurrent.Callable;
+
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class OperatorArmMoveSelectionTest {
+    private static final OperatorArmMoveSelection selector = new OperatorArmMoveSelection();
+    private enum Button {
+        DriverLB(() -> selector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.FEEDER)),
+        DriverRB(() -> selector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW)),
+        ManipRB(() -> selector.toggleScoring()),
+        ManipNorth(() -> selector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.HIGH)),
+        ManipEast(() -> selector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID)),
+        //ManipSouth(() -> selector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.LOW)),
+        X(() -> selector.toggleGamePieceMode());
+
+        private final Callable<Command> func;
+
+        Button(Callable<Command> func) {
+            this.func = func;
+        }
+
+        public Command process() throws Exception {
+            return func.call();
+        }
+    }
+
+    @BeforeEach
+        // this method will run before each test
+    void setup() {
+        assert HAL.initialize(500, 0); // initialize the HAL, crash if failed
+        DriverStationSim.setEnabled(true);
+    }
+
+    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
+    @AfterEach
+        // this method will run after each test
+    void shutdown() throws Exception {
+        DriverStationSim.setEnabled(false);
+    }
+
+
+    @Test
+    void testAllCombination() {
+        Random r = new Random();
+
+
+        DriverStationSim.setEnabled(true);
+
+        for (int i = 0; i < 1000; i++) {
+            Button button = Button.values()[r.nextInt(Button.values().length)];
+
+            try {
+                Command cmd = button.process();
+                cmd.ignoringDisable(true).schedule();
+                while(cmd.isScheduled()) {
+                    Thread.currentThread().wait(20);
+                }
+
+
+            } catch (Exception e) {
+                fail("OperatorArmMoveSelection threw exception: ", e);
+            }
+        }
+
+    }
+}

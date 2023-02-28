@@ -160,17 +160,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         SmartDashboard.putData("Stow to Feeder Collect", ArmMovements.STOW_TO_FEEDER_COLLECT);
         SmartDashboard.putData("Feeder Collect to Stow", ArmMovements.FEEDER_COLLECT_TO_STOW);
 
-        SmartDashboard.putData("Stow to Mid Box", ArmMovements.STOW_TO_MID_BOX);
-        SmartDashboard.putData("Mid Box to Stow", ArmMovements.MID_BOX_TO_STOW);
-
-        SmartDashboard.putData("Stow to High Box", ArmMovements.STOW_TO_HIGH_BOX);
-        SmartDashboard.putData("High Box to Stow", ArmMovements.HIGH_BOX_TO_STOW);
-
-        SmartDashboard.putData("Stow to Mid Pole", ArmMovements.STOW_TO_MID_POLE);
-        SmartDashboard.putData("Mid Pole to Stow", ArmMovements.MID_POLE_TO_STOW);
-
-        SmartDashboard.putData("Stow to High Pole", ArmMovements.STOW_TO_HIGH_POLE);
-        SmartDashboard.putData("High Pole to Stow", ArmMovements.HIGH_POLE_TO_STOW);
 
 
         SmartDashboard.putData("Calibrate Arm", new ArmCalibrationCommand());
