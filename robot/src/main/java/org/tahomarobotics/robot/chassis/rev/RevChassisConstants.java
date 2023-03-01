@@ -43,7 +43,7 @@ public final class RevChassisConstants implements ChassisConstantsIF {
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
     // This changes the drive speed of the module (a pinion gear with more teeth will result in a
     // robot that drives faster).
-    public static final int DRIVING_MOTOR_PINION_TEETH = 14;
+    public static final double DRIVING_MOTOR_PINION_TEETH = 14;
     public static final double WHEEL_DIAMETER = 0.0762;
     public static final double WHEEL_RADIUS = WHEEL_DIAMETER / 2;
 

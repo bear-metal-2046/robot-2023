@@ -71,10 +71,9 @@ public class RevSwerveModule implements SwerveModuleIF {
         driveMotor = new CANSparkMax(ports.drive(), CANSparkMaxLowLevel.MotorType.kBrushless);
         SparkMaxConfig driveConfig = RevChassisConstants.createDriveConfig(ports.drive());
 
-        if (SparkMaxHelper.needsConfiguring(logger, driveConfig, driveMotor)) {
-            logger.error("Configured DRIVE motors");
-            SparkMaxHelper.configure(logger, driveConfig, driveMotor);
-        }
+        SparkMaxHelper.checkThenConfigure(name, logger, driveConfig, driveMotor, driveMotor.getEncoder());
+
+        driveMotor.getEncoder().setPosition(0.0);
 
         // configure steer motor
         steerMotor = new CANSparkMax(ports.steer(), CANSparkMaxLowLevel.MotorType.kBrushless);
