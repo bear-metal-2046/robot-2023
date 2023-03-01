@@ -41,7 +41,7 @@ public class ArmMovements {
 
     //Collecting
     private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(26.4), Units.inchesToMeters(-7));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(27.9), Units.inchesToMeters(-14.4));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(28.9), Units.inchesToMeters(-12.8));
     private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(17.4), Units.inchesToMeters(6.5));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(13.3), Units.inchesToMeters(13.8));
 
