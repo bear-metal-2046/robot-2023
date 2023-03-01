@@ -38,6 +38,12 @@ public class SwerveRateLimiter {
 
     public ChassisSpeeds calculate(ChassisSpeeds input) {
 
+        if (Math.hypot(input.vxMetersPerSecond, input.vyMetersPerSecond) == 0.0) {
+            output.vxMetersPerSecond = input.vxMetersPerSecond;
+            output.vyMetersPerSecond = input.vyMetersPerSecond;
+            output.omegaRadiansPerSecond = input.omegaRadiansPerSecond;
+            return output;
+        }
         // calculate elapsed time
         double currentTime = WPIUtilJNI.now() * 1e-6;
         double elapsedTime = currentTime - previousTime;
