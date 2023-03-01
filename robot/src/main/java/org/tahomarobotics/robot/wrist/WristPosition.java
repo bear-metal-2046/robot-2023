@@ -22,17 +22,15 @@ package org.tahomarobotics.robot.wrist;
 import edu.wpi.first.math.util.Units;
 
 public enum WristPosition {
-
-    //TODO measure these
-
-    STOW(Units.degreesToRadians(100d)),
-    DOWN_COLLECT(Units.degreesToRadians(93.8d)),
-    UP_COLLECT(Units.degreesToRadians(79.5)),
-    FEEDER_COLLECT(Units.degreesToRadians(123.2)),
-    MIDBOXPLACE(Units.degreesToRadians(-19d)),
-    HIGHBOXPLACE(Units.degreesToRadians(-33d)),
-    MIDPOLEPLACE(Units.degreesToRadians(-45)),
-    HIGHPOLEPLACE(Units.degreesToRadians(-40));
+    STOW(Units.degreesToRadians(128d)),
+    CUBE_COLLECT(Units.degreesToRadians(89.5)),
+    CONE_COLLECT(Units.degreesToRadians(100.5)),
+    CUBE_FEEDER_COLLECT(Units.degreesToRadians(83d)),
+    CONE_FEEDER_COLLECT(Units.degreesToRadians(130d)),
+    MID_BOX_PLACE(Units.degreesToRadians(29d)),
+    HIGH_BOX_PLACE(Units.degreesToRadians(-35d)),
+    MID_POLE_PLACE(Units.degreesToRadians(-58d)),
+    HIGH_POLE_PLACE(Units.degreesToRadians(-52d));
 
     public final double angle;
     WristPosition(double angle) {

@@ -56,18 +56,14 @@ public class ArmMoveCommand extends CommandBase {
     private final ArmTrajectory trajectory;
     private final WristPosition wristPosition;
 
-    public ArmMoveCommand(String name, Translation2d start, Translation2d end, TrajectoryConfig config, WristPosition wristPosition) {
-        this(name, start, end, end.minus(start).getAngle(), config, wristPosition);
+    public ArmMoveCommand(ArmMovements.ArmMove armMove) {
+        this(armMove.name(), armMove.trajectory(), armMove.wristPosition());
     }
 
-    private ArmMoveCommand(String name, Translation2d start, Translation2d end, Rotation2d dir, TrajectoryConfig config, WristPosition wristPosition) {
-        this(name, new Pose2d(start, dir), new ArrayList<>(), new Pose2d(end, dir), config, wristPosition);
-    }
-
-    public ArmMoveCommand(String name, Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config, WristPosition wristPosition) {
+    public ArmMoveCommand(String name, ArmTrajectory trajectory, WristPosition wristPosition) {
         setName(name);
+        this.trajectory = trajectory;
         this.wristPosition = wristPosition;
-        trajectory = new ArmTrajectory(start, interiorWaypoints, end, config);
         if (!trajectory.isValid()) {
             canceled = true;
         }

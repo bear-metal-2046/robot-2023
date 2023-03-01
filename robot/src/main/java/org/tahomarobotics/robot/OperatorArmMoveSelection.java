@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.arm.ArmMoveCommand;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +44,9 @@ public class OperatorArmMoveSelection {
     public enum ArmPosition { SCORE, STOW, COLLECT }
     private static final Command NULL_ARM_MOVE = new InstantCommand();
     private record ScoreCommandKey(ScoringLevel level, ConeOrCube mode, ArmPosition armPosition) {}
-    private record CollectCommandKey(CollectLevel level, ArmPosition armPosition) {}
-    private final Map<ScoreCommandKey, Command> scoreCommands = new HashMap<>();
-    private final Map<CollectCommandKey, Command> collectCommands = new HashMap<>();
+    private record CollectCommandKey(CollectLevel level, ConeOrCube mode, ArmPosition armPosition) {}
+    private final Map<ScoreCommandKey, ArmMove> scoreCommands = new HashMap<>();
+    private final Map<CollectCommandKey, ArmMove> collectCommands = new HashMap<>();
 
     public OperatorArmMoveSelection() {
         scoreCommands.put(new ScoreCommandKey(ScoringLevel.HIGH, ConeOrCube.CUBE, ArmPosition.SCORE), STOW_TO_HIGH_BOX);
@@ -58,16 +59,23 @@ public class OperatorArmMoveSelection {
         scoreCommands.put(new ScoreCommandKey(ScoringLevel.MID, ConeOrCube.CONE, ArmPosition.SCORE), STOW_TO_MID_POLE);
         scoreCommands.put(new ScoreCommandKey(ScoringLevel.MID, ConeOrCube.CONE, ArmPosition.STOW), MID_POLE_TO_STOW);
 
-        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ArmPosition.COLLECT), STOW_TO_FEEDER_COLLECT);
-        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ArmPosition.STOW), FEEDER_COLLECT_TO_STOW);
-        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ArmPosition.COLLECT), STOW_TO_DOWN_COLLECT);
-        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ArmPosition.STOW), DOWN_COLLECT_TO_STOW);
+        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ConeOrCube.CONE, ArmPosition.COLLECT), STOW_TO_CONE_FEEDER_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ConeOrCube.CONE, ArmPosition.STOW), CONE_FEEDER_COLLECT_TO_STOW);
+        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ConeOrCube.CUBE, ArmPosition.COLLECT), STOW_TO_CUBE_FEEDER_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.FEEDER, ConeOrCube.CUBE, ArmPosition.STOW), CUBE_FEEDER_COLLECT_TO_STOW);
+
+        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CONE, ArmPosition.COLLECT), STOW_TO_CONE_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CONE, ArmPosition.STOW), CONE_COLLECT_TO_STOW);
+        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CUBE, ArmPosition.COLLECT), STOW_TO_CUBE_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CUBE, ArmPosition.STOW), CUBE_COLLECT_TO_STOW);
     }
 
     private ScoringLevel scoreLevel = ScoringLevel.HIGH;
     private ConeOrCube mode = ConeOrCube.CUBE;
     private ArmPosition armPosition = ArmPosition.STOW;
     private Command stowCommand = NULL_ARM_MOVE;
+    private Command scoreCommand = NULL_ARM_MOVE;
+    private Command collectCommand = NULL_ARM_MOVE;
 
     public Command setScoringLevel(ScoringLevel level) {
         return new InstantCommand(() -> {
@@ -94,18 +102,19 @@ public class OperatorArmMoveSelection {
 
                 // Stowed position, so move to score
                 case STOW -> {
-                    scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)).schedule();
+                    scoreCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)));
+                    scoreCommand.schedule();
+                    logger.info("Scoring " + mode + " at " + scoreLevel + " with " + scoreCommand.getName());
                     armPosition = ArmPosition.SCORE;
-                    stowCommand = scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW)); // set stow command for next stow
-                    logger.info("Scoring at " + scoreLevel + " with " + mode);
+                    stowCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW))); // set stow command for next stow
                 }
 
                 // Collect position, stow first then move to score
                 case COLLECT, SCORE -> {
                     stowCommand.schedule();
+                    logger.info("Stowing Arm with " + stowCommand.getName());
                     armPosition = ArmPosition.STOW;
                     stowCommand = NULL_ARM_MOVE;
-                    logger.info("Scoring Stowing");
                 }
             }
         });
@@ -118,18 +127,19 @@ public class OperatorArmMoveSelection {
 
                 // Stowed position, so move to score
                 case STOW -> {
-                    collectCommands.get(new CollectCommandKey(collectLevel, ArmPosition.COLLECT)).schedule();
+                    collectCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.COLLECT)));
+                    collectCommand.schedule();
+                    logger.info("Collecting " + mode + " with " + collectCommand.getName());
                     armPosition = ArmPosition.COLLECT;
-                    stowCommand = collectCommands.get(new CollectCommandKey(collectLevel, ArmPosition.STOW)); // set stow command for next stow
-                    logger.info("Collecting at level: " + collectLevel);
+                    stowCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.STOW))); // set stow command for next stow
                 }
 
                 // Collect position, stow first then move to score
                 case SCORE, COLLECT -> {
                     stowCommand.schedule();
+                    logger.info("Stowing Arm with " + stowCommand.getName());
                     armPosition = ArmPosition.STOW;
                     stowCommand = NULL_ARM_MOVE;
-                    logger.info("Collection Stowing");
                 }
             }
         });

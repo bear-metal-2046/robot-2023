@@ -41,6 +41,13 @@ public class ArmTrajectory {
 
     private final boolean valid;
 
+    public ArmTrajectory(Translation2d start, Translation2d end, TrajectoryConfig config) {
+        this(start, end, end.minus(start).getAngle(), config);
+    }
+
+    private ArmTrajectory(Translation2d start, Translation2d end, Rotation2d angle, TrajectoryConfig config) {
+        this(new Pose2d(start, angle), List.of(), new Pose2d(end, angle), config);
+    }
     public ArmTrajectory(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config)  {
         trajectory = generateTrajectory(start, interiorWaypoints, end, config);
         valid = trajectory != null;

@@ -86,7 +86,8 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
     public void periodic() {
         SmartDashboard.putNumber("Wrist CANCoder Position", Units.radiansToDegrees(canCoder.getAbsolutePosition()));
         SmartDashboard.putNumber("Wrist Relative Encoder Position", Units.radiansToDegrees(relEncoder.getPosition()));
-        if (updateEncoders) {
+        if (updateEncoders || Math.abs(canCoder.getAbsolutePosition() - relEncoder.getPosition()) > 10) {
+            logger.info("Reset reletive wrist encoder");
             updateEncoders = false;
             relEncoder.setPosition(canCoder.getAbsolutePosition());
         }

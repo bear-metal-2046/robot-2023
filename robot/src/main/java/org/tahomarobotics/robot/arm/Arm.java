@@ -148,17 +148,30 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     @Override
     public ArmSubsystemIF initialize() {
 
-        SmartDashboard.putData("Arm to Stow", ArmMovements.START_TO_STOW);
-        SmartDashboard.putData("Position to Stow", ArmMovements.POSITION_TO_STOW_COMMAND);
 
-        SmartDashboard.putData("Stow to Up Collect", ArmMovements.STOW_TO_UP_COLLECT);
-        SmartDashboard.putData("Up Collect to Stow", ArmMovements.UP_COLLECT_TO_STOW);
+        SmartDashboard.putData("Arm to Stow",
+                new ArmMoveCommand(ArmMovements.START_TO_STOW));
 
-        SmartDashboard.putData("Stow to Down Collect", ArmMovements.STOW_TO_DOWN_COLLECT);
-        SmartDashboard.putData("Down Collect to Stow", ArmMovements.DOWN_COLLECT_TO_STOW);
+        SmartDashboard.putData("Position to Stow",
+                ArmMovements.createPositionToStowCommand());
 
-        SmartDashboard.putData("Stow to Feeder Collect", ArmMovements.STOW_TO_FEEDER_COLLECT);
-        SmartDashboard.putData("Feeder Collect to Stow", ArmMovements.FEEDER_COLLECT_TO_STOW);
+        SmartDashboard.putData("Stow to Up Collect",
+                new ArmMoveCommand(ArmMovements.STOW_TO_CONE_COLLECT));
+
+        SmartDashboard.putData("Up Collect to Stow",
+                new ArmMoveCommand(ArmMovements.CONE_COLLECT_TO_STOW));
+
+        SmartDashboard.putData("Stow to Down Collect",
+                new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT));
+
+        SmartDashboard.putData("Down Collect to Stow",
+                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW));
+
+        SmartDashboard.putData("Stow to Feeder Collect",
+                new ArmMoveCommand(ArmMovements.STOW_TO_CONE_FEEDER_COLLECT));
+
+        SmartDashboard.putData("Feeder Collect to Stow",
+                new ArmMoveCommand(ArmMovements.CONE_FEEDER_COLLECT_TO_STOW));
 
 
 

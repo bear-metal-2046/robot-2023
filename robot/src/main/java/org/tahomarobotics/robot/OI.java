@@ -20,7 +20,6 @@
 package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -96,40 +95,29 @@ public final class OI implements SubsystemIF {
 
         // Move to arm to collecting
         JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);
-        driveRB.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.FEEDER);
-         cmd.schedule();}));
+        driveRB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.FEEDER));
 
         JoystickButton driveLB = new JoystickButton(driveController, kLeftBumper.value);
-        driveLB.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW);
-         cmd.schedule();}));
+        driveLB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW));
 
         // Move to arm to scoring
         JoystickButton manipRB = new JoystickButton(manipController, kRightBumper.value);
-        manipRB.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.toggleScoring();
-         cmd.schedule();}));
+        manipRB.onTrue(armMoveSelector.toggleScoring());
+
 
         // Select Scoring Levels
         POVButton manipUp = new POVButton(manipController, OperatorArmMoveSelection.ScoringLevel.HIGH.pov);
-        manipUp.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.HIGH);
-         cmd.schedule();}));
+        manipUp.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.HIGH));
 
         POVButton manipMid = new POVButton(manipController, OperatorArmMoveSelection.ScoringLevel.MID.pov);
-        manipMid.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID);
-         cmd.schedule();}));
+        manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
 
         // Select Game Piece Mode
         JoystickButton XButton = new JoystickButton(driveController, kX.value);
-        XButton.onTrue(new InstantCommand(() ->
-        {Command cmd = armMoveSelector.toggleGamePieceMode();
-         cmd.schedule();}));
+        XButton.onTrue(armMoveSelector.toggleGamePieceMode());
 
         JoystickButton YButton = new JoystickButton(driveController, kY.value);
-        YButton.onTrue(ArmMovements.POSITION_TO_STOW_COMMAND);
+        YButton.onTrue(ArmMovements.createPositionToStowCommand());
     }
 
     private void resetClimb() {
