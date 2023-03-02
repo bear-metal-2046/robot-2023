@@ -310,6 +310,7 @@ public class Path {
 
 
             trajectories.add(trajectory);
+            // TODO: adding in arbitrary heading changes
             segments.add(new TrajectoryCommand(trajectory));
         }
 

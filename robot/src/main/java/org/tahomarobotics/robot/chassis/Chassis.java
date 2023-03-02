@@ -33,7 +33,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -79,7 +78,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
 
-    public final SwerveDriveKinematics swerveDriveKinematics;
+    private final SwerveDriveKinematics swerveDriveKinematics;
 
     private final CalibrationData<Double[]> swerveCalibration;
 

@@ -1,8 +1,10 @@
 package org.tahomarobotics.robot.auto;
 
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Timer;
@@ -33,28 +35,60 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
     private final Chassis chassis = Chassis.getInstance();
 
-    private static class ThetaController extends ProfiledPIDController {
-
-        public ThetaController(double Kp, double Ki, double Kd, TrapezoidProfile.Constraints constraints) {
-            super(Kp, Ki, Kd, constraints);
-            enableContinuousInput(-Math.PI, Math.PI);
-        }
-    }
+    private final HolonomicDriveController controller;
+    private final Rotation2d heading;
 
     public TrajectoryCommand(Trajectory trajectory) {
-        super(
-                trajectory,
+        this(trajectory, getFinalTrajectoryHeading(trajectory), createController());
+    }
+
+    public TrajectoryCommand(Trajectory trajectory, Rotation2d heading) {
+        this(trajectory, heading, createController());
+    }
+
+    private TrajectoryCommand(Trajectory trajectory, Rotation2d heading, HolonomicDriveController controller) {
+        super(trajectory,
                 Chassis.getInstance()::getPose,
-                Chassis.getInstance().swerveDriveKinematics,
-                new PIDController(0,0,0),
-                new PIDController(0,0,0),
-                new ThetaController(2.05, 0, 0, new TrapezoidProfile.Constraints(Math.PI, Math.PI)),
+                Chassis.getInstance().getSwerveDriveKinematics(),
+                controller,
+                () -> heading,
                 Chassis.getInstance()::setSwerveStates,
                 Chassis.getInstance()
         );
-
         this.trajectory = trajectory;
+        this.controller = controller;
+        this.heading = heading;
         timer = new Timer();
+    }
+
+    private static Rotation2d getFinalTrajectoryHeading(Trajectory trajectory) {
+        var states = trajectory.getStates();
+        var finalPose = states.get(states.size()-1).poseMeters;
+        return finalPose.getRotation();
+    }
+
+    private static HolonomicDriveController createController() {
+        PIDController xController = new PIDController(0,0,0);
+        PIDController yController = new PIDController(0,0,0);
+        ProfiledPIDController headingController = new ProfiledPIDController(2.05, 0, 0, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
+        HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
+
+        // TODO: HolonomicDriveController sets this to 0 to 2PI
+        headingController.enableContinuousInput(-Math.PI, Math.PI);
+
+        return controller;
+    }
+
+    /**
+     * Calculates the velocity and acceleration such that the heading change completes in 90% of the trajectory move.
+     */
+    private static TrapezoidProfile.Constraints createHeadingChangeConstraints(Trajectory trajectory, Rotation2d heading) {
+        Rotation2d currentHeading = Chassis.getInstance().getPose().getRotation();
+        double tv = 0.5 * trajectory.getTotalTimeSeconds();
+        double ta = 0.2 * trajectory.getTotalTimeSeconds();
+        double maxVelocity = (heading.minus(currentHeading)).getRadians()/(tv+ta);
+        double maxAcceleration = maxVelocity / ta;
+        return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
     }
 
     @Override
@@ -68,6 +102,9 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         hdgData.clear();
         actualTrajectory.clear();
         actualTrajectory.add(chassis.getPose());
+
+        // set the speed of the heading change
+        controller.getThetaController().setConstraints(createHeadingChangeConstraints(trajectory, heading));
     }
 
     @Override
