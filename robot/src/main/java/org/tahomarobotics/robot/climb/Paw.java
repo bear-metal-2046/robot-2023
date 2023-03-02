@@ -61,10 +61,7 @@ public class Paw extends SubsystemBase implements SubsystemIF {
         pidController = motor.getPIDController();
         encoder = motor.getEncoder();
 
-        if (SparkMaxHelper.needsConfiguring(logger, motorConfig, motor, encoder, pidController)) {
-            logger.warn("Configuring " + name + " motor");
-            SparkMaxHelper.configure(logger, motorConfig, motor, encoder, pidController);
-        }
+        SparkMaxHelper.checkThenConfigure(name, logger, motorConfig, motor, encoder, pidController);
     }
 
     @Override

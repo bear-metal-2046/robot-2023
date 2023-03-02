@@ -81,10 +81,7 @@ public class RevSwerveModule implements SwerveModuleIF {
         steerPIDController = steerMotor.getPIDController();
         SparkMaxConfig steerConfig = RevChassisConstants.createSteerConfig(ports.steer(), angularOffset);
 
-        if (SparkMaxHelper.needsConfiguring(logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController)) {
-            logger.error("Configured STEER motors");
-            SparkMaxHelper.configure(logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController);
-        }
+        SparkMaxHelper.checkThenConfigure(name + " Steer", logger, steerConfig, steerMotor, steerABSEncoder, steerPIDController);
     }
 
     @Override

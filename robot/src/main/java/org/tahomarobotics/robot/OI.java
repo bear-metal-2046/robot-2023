@@ -25,6 +25,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
@@ -117,7 +118,8 @@ public final class OI implements SubsystemIF {
         XButton.onTrue(armMoveSelector.toggleGamePieceMode());
 
         JoystickButton YButton = new JoystickButton(driveController, kY.value);
-        YButton.onTrue(ArmMovements.createPositionToStowCommand());
+        //YButton.onTrue(new InstantCommand(() -> ArmMovements.createPositionToStowCommand().schedule()));
+        YButton.onTrue(new ArmMoveCommand(ArmMovements.START_TO_STOW));
     }
 
     private void resetClimb() {

@@ -46,5 +46,24 @@ public class SparkMaxConfig {
     public double wrapMin = 0.0;
     public double wrapMax = Math.PI * 2;
 
+    public final int framePeriods[] = {
+            // Periodic Status 0 - used for follower - default is 10ms
+            // could be reduced for non-follower setups
+            -1,
+            // Periodic Status 1 = Velocity, Temp, Voltage, Current - default is 20ms
+            // could be reduced for SparkMax PID control
+            -1,
+            // Periodic Status 2 - Position - default is 20ms
+            -1,
+            // Periodic Status 3 - Analog Sensor - default is 50ms
+            -1,
+            // Periodic Status 4 - Alternate Encoder - default is 20ms
+            -1,
+            // Periodic Status 5 - Duty Cycle Absolute Position - default is 200ms
+            -1,
+            // Periodic Status 6 - Duty Cycle Velocity - default is 200ms
+            -1};
+
+
 }
 

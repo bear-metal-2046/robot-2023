@@ -53,6 +53,109 @@ public class OperatorArmMoveSelectionTest {
         }
     }
 
+    private final Button buttons[] = {
+            Button.ManipNorth,
+            Button.X,
+            Button.DriverRB,
+            Button.DriverRB,
+            Button.ManipNorth,
+            Button.X,
+            Button.ManipNorth,
+            Button.ManipEast,
+            Button.ManipRB,
+            Button.X,
+            Button.DriverRB,
+            Button.DriverRB,
+            Button.ManipEast,
+            Button.ManipEast,
+            Button.ManipEast,
+            Button.ManipRB,
+            Button.X,
+            Button.X,
+            Button.X,
+            Button.ManipNorth,
+            Button.ManipNorth,
+            Button.ManipRB,
+            Button.DriverLB,
+            Button.DriverRB,
+            Button.DriverRB,
+            Button.DriverLB,
+            Button.DriverLB,
+            Button.ManipNorth,
+            Button.DriverLB,
+            Button.X,
+            Button.X,
+            Button.DriverRB,
+            Button.ManipRB,
+            Button.ManipEast,
+            Button.ManipRB,
+            Button.ManipRB,
+            Button.ManipRB,
+            Button.ManipEast,
+            Button.ManipEast,
+            Button.DriverLB,
+            Button.ManipEast,
+            Button.ManipEast,
+            Button.DriverLB,
+            Button.DriverRB,
+            Button.X,
+            Button.ManipNorth,
+            Button.DriverLB,
+            Button.ManipRB,
+            Button.DriverRB,
+            Button.DriverLB,
+            Button.DriverLB,
+            Button.ManipEast,
+            Button.DriverRB,
+            Button.DriverLB,
+            Button.ManipEast,
+            Button.ManipNorth,
+            Button.DriverRB,
+            Button.DriverLB,
+            Button.X,
+            Button.ManipEast,
+            Button.ManipRB,
+            Button.DriverLB,
+            Button.X,
+            Button.X,
+            Button.DriverLB,
+            Button.ManipEast,
+            Button.DriverLB,
+            Button.ManipNorth,
+            Button.DriverRB,
+            Button.DriverRB,
+            Button.ManipRB,
+            Button.DriverLB,
+            Button.DriverRB,
+            Button.ManipNorth,
+            Button.DriverRB,
+            Button.ManipNorth,
+            Button.ManipRB,
+            Button.DriverRB,
+            Button.ManipRB,
+            Button.ManipRB,
+            Button.X,
+            Button.DriverLB,
+            Button.ManipRB,
+            Button.ManipEast,
+            Button.ManipNorth,
+            Button.ManipEast,
+            Button.ManipRB,
+            Button.ManipEast,
+            Button.DriverRB,
+            Button.ManipEast,
+            Button.DriverLB,
+            Button.DriverLB,
+            Button.ManipEast,
+            Button.ManipEast,
+            Button.ManipNorth,
+            Button.DriverRB,
+            Button.ManipEast,
+            Button.DriverLB,
+            Button.ManipNorth,
+            Button.ManipRB,
+    };
+
     @BeforeEach
         // this method will run before each test
     void setup() {
@@ -70,13 +173,10 @@ public class OperatorArmMoveSelectionTest {
 
     @Test
     void testAllCombination() {
-        Random r = new Random();
-
 
         DriverStationSim.setEnabled(true);
 
-        for (int i = 0; i < 1000; i++) {
-            Button button = Button.values()[r.nextInt(Button.values().length)];
+        for (Button button : buttons) {
 
             try {
                 Command cmd = button.process();

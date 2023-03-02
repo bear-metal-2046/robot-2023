@@ -33,6 +33,8 @@ public class Autonomous implements SubsystemIF {
     private Path defaultPath;
     private AutoCommand selectedPathCommand;
 
+    private Command autonomousCommand;
+
     private static final TrajectoryConfig SWERVE_CONFIG = new TrajectoryConfig(2, 5)
             .setKinematics(Chassis.getInstance().swerveDriveKinematics);
 
@@ -77,5 +79,17 @@ public class Autonomous implements SubsystemIF {
 
     public Command getSelectedCommand() {
         return selectedPathCommand;
+    }
+
+    public void initiate() {
+        autonomousCommand = getSelectedCommand();
+        logger.info("Running " + autonomousCommand.getName() + " from " + Chassis.getInstance().getPose());
+        autonomousCommand.schedule();
+    }
+
+    public void cancel() {
+        if (autonomousCommand != null) {
+            autonomousCommand.cancel();
+        }
     }
 }

@@ -20,11 +20,8 @@ public class Beacher extends SubsystemBase implements SubsystemIF {
     }
 
     public Beacher(SparkMaxConfig config) {
-        this.beacherMotor = new CANSparkMax(config.canId, CANSparkMaxLowLevel.MotorType.kBrushed);
-        if (SparkMaxHelper.needsConfiguring(logger, config, beacherMotor)) {
-            logger.warn("Configuring Beacher Motor");
-            SparkMaxHelper.configure(logger, config, beacherMotor);
-        }
+        beacherMotor = new CANSparkMax(config.canId, CANSparkMaxLowLevel.MotorType.kBrushed);
+        SparkMaxHelper.checkThenConfigure("Beacher", logger, config, beacherMotor);
     }
 
     @Override

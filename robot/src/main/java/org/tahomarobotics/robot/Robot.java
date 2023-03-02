@@ -22,26 +22,26 @@ package org.tahomarobotics.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.arm.Arm;
-import org.tahomarobotics.robot.wrist.Wrist;
+import org.tahomarobotics.robot.auto.Autonomous;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.climb.Beacher;
 import org.tahomarobotics.robot.climb.Paw;
 import org.tahomarobotics.robot.grabber.Grabber;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.SparkMaxHelper;
+import org.tahomarobotics.robot.wrist.Wrist;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Robot extends TimedRobot {
-
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
-
+    private static final String FORCE_CONFIGURE = "Force Configure";
 
     static {
         // Initialize use of async loggers. Only to be done statically in the main class.
@@ -52,18 +52,18 @@ public class Robot extends TimedRobot {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final List<SubsystemIF> subsystems = new ArrayList<>();
 
-    private Command autonomousCommand;
-
-    /**
-     * Ran on Code startup by RoboRIO Java Runtime
-     */
     @Override
     public void robotInit() {
+
+        // use to force configure the SparkMax
+        if (SmartDashboard.getBoolean(FORCE_CONFIGURE, false)) {
+            SparkMaxHelper.forceConfigure();
+        }
+
         initializeSerializeWorkaround();
 
         DriverStation.silenceJoystickConnectionWarning(true);
 
-        //Below code is fine.
         subsystems.add(Chassis.getInstance().initialize());
         subsystems.add(Arm.getInstance().initialize());
         subsystems.add(Grabber.getInstance().initialize());
@@ -75,60 +75,46 @@ public class Robot extends TimedRobot {
         subsystems.add(OI.getInstance().initialize());
 
 
+        SmartDashboard.putBoolean(FORCE_CONFIGURE, false);
+
         logger.info("Robot Initialized.");
     }
-
     @Override
-    public void robotPeriodic()
-    {
+    public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        OI.getInstance().periodic();
     }
-    
-    @Override
-    public void disabledInit() {   }
-    
-    
-    @Override
-    public void disabledPeriodic() {}
-    
-    @Override
-    public void autonomousInit()
-    {
-        logger.info("-=-=-=- AUTONOMOUS ENABLED -=-=-=-");
 
-        autonomousCommand = Autonomous.getInstance().getSelectedCommand();
-        logger.info("Running " + autonomousCommand.getName() + " from " + Chassis.getInstance().getPose());
-        autonomousCommand.schedule();
+    @Override
+    public void autonomousInit() {
+        logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
+        Autonomous.getInstance().initiate();
+    }
+
+    @Override
+    public void autonomousExit() {
+        Autonomous.getInstance().cancel();
+    }
+
+    @Override
+    public void teleopInit() {
+        logger.warn("-=-=-=- TELEOP initiated -=-=-=-");
+    }
+
+    @Override
+    public void disabledInit() {
+        logger.info("-=-=-=- DISABLE initiated -=-=-=-");
+    }
+    @Override
+    public void testInit() {
+        logger.info("-=-=-=- TEST initiated -=-=-=-");
     }
 
     @Override
     public void autonomousPeriodic() {}
-
     @Override
     public void simulationPeriodic() {}
-
-    
     @Override
-    public void teleopInit()
-    {
-        logger.warn("-=-=-=- TELEOP ENABLED -=-=-=-");
-    }
-    
-    
-    @Override
-    public void teleopPeriodic() {
-        if (autonomousCommand != null)
-            autonomousCommand.cancel();
-    }
-    
-    
-    @Override
-    public void testInit()
-    {
-        CommandScheduler.getInstance().cancelAll();
-    }
-    
+    public void teleopPeriodic() {}
     @Override
     public void testPeriodic() {}
 

@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,8 +71,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
             return String.format("EncoderOffsets{ shoulder=%7.4f° elbow=%7.4f° }", Units.radiansToDegrees(shoulder), Units.radiansToDegrees(elbow));
         }
     }
-    private final CalibrationData<EncoderOffsets> calibrationData;    private final CANSparkMax shoulderMotor;
-    private final CANSparkMax shoulderFollower;
+    private final CalibrationData<EncoderOffsets> calibrationData;
+    private final CANSparkMax shoulderMotor;
     private final CANSparkMax elbowMotor;
     private final CANCoder shoulderEncoder;
     private final CANCoder elbowEncoder;
@@ -95,14 +96,10 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private Arm() {
 
         // Shoulder Motor
-
         shoulderMotor = new CANSparkMax(RobotMap.SHOULDER_MOTOR_TOP, CANSparkMaxLowLevel.MotorType.kBrushless);
-        SparkMaxHelper.checkThenConfigure("Shoulder Leader Motor", logger, ArmConstants.CONFIG_SHOULDER_MOTOR, shoulderMotor);
-
-        shoulderFollower = new CANSparkMax(RobotMap.SHOULDER_MOTOR_BOTTOM, CANSparkMaxLowLevel.MotorType.kBrushless);
-        SparkMaxHelper.checkThenConfigure("Shoulder Follower Motor", logger, ArmConstants.CONFIG_SHOULDER_MOTOR, shoulderFollower);
-        //shoulderFollower.follow(shoulderMotor);
-
+        SparkMaxHelper.checkThenConfigure("Shoulder Motor", logger, ArmConstants.CONFIG_SHOULDER_MOTOR,
+                shoulderMotor, shoulderMotor.getEncoder(), shoulderMotor.getPIDController(),
+                new CANSparkMax(RobotMap.SHOULDER_MOTOR_BOTTOM, CANSparkMaxLowLevel.MotorType.kBrushless));
 
         // Elbow Motor
         elbowMotor = new CANSparkMax(RobotMap.ELBOW_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -153,7 +150,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
                 new ArmMoveCommand(ArmMovements.START_TO_STOW));
 
         SmartDashboard.putData("Position to Stow",
-                ArmMovements.createPositionToStowCommand());
+                new InstantCommand(() -> ArmMovements.createPositionToStowCommand().schedule()));
 
         SmartDashboard.putData("Stow to Up Collect",
                 new ArmMoveCommand(ArmMovements.STOW_TO_CONE_COLLECT));
@@ -253,7 +250,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
         // power the motors
         shoulderMotor.setVoltage(shoulderVoltage);
-        shoulderFollower.setVoltage(shoulderVoltage);
         elbowMotor.setVoltage(elbowVoltage);
         voltages[0] = shoulderVoltage;
         voltages[1] = elbowVoltage;
@@ -328,6 +324,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         var sim = encoder.getSimCollection();
 
         sim.setRawPosition((int)(state.position() / encoder.configGetFeedbackCoefficient() * (encoder.configGetSensorDirection() ? -1d : 1d)));
+
+        // TODO: causes loop overruns
         sim.setVelocity((int)(state.position() * 10 / encoder.configGetFeedbackCoefficient() * (encoder.configGetSensorDirection() ? -1d : 1d)));
     }
 }

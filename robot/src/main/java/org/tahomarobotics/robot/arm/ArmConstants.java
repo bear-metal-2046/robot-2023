@@ -72,8 +72,8 @@ public class ArmConstants {
                         new ArmLinkPhysicalProperties(
                                 Units.inchesToMeters(31.7),
                                 Units.lbsToKilograms(11.144),
-                                lbsInchSqTokgsMeterSq(2004.379),
-                                Units.inchesToMeters(27.381),
+                                lbsInchSqTokgsMeterSq(1477.162),
+                                Units.inchesToMeters(24.302),
                                 11d / 72d * 24d / 72d * 22d / 50d * 32d / 62d, false, false));
             };
 

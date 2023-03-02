@@ -120,6 +120,7 @@ public class ArmMoveCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
+        if (canceled) return;
         arm.setArmState(trajectory.getFinalState());
         timer.stop();
         SmartDashboard.putRaw("Arm Chart", chartData.serialize());
@@ -130,6 +131,6 @@ public class ArmMoveCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(trajectory.getTotalTimeSeconds()) || canceled;
+        return canceled || timer.hasElapsed(trajectory.getTotalTimeSeconds());
     }
 }

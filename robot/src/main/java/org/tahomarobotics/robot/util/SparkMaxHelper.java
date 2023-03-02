@@ -20,56 +20,89 @@
 package org.tahomarobotics.robot.util;
 
 import com.revrobotics.*;
+import com.revrobotics.jni.CANSparkMaxJNI;
+import edu.wpi.first.wpilibj.CAN;
+import edu.wpi.first.wpilibj.DriverStation;
 import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
-public class SparkMaxHelper extends BaseHelper{
+public class SparkMaxHelper extends BaseHelper {
 
     /**
      * Compares the current configuration of the motor controller with the provided configuration.
      *
      * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param cfg    - motor config file
+     * @param motor  - SparkMax controller
      * @return true if different
      */
-    public static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
+    private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
         return needsConfiguring(logger, cfg, motor, null, null);
     }
 
     /**
      * Compares the current configuration of the motor controller and feedback sensor with the provided configuration.
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param logger         - logger provided by subsystem
+     * @param cfg            - motor config file
+     * @param motor          - SparkMax controller
      * @param feedbackSensor - either absolute or relative encoder
      * @return true if different
      */
-    public static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor) {
+    private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor) {
         return needsConfiguring(logger, cfg, motor, feedbackSensor, null);
+    }
+
+    private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController, CANSparkMax follower) {
+
+        return (
+                isFollower(logger, motor) ||
+                isDifferent(logger, "idleBrake", motor::getIdleMode, cfg.idleBrake) ||
+                isDifferent(logger, "Inverted", motor::getInverted, cfg.motorInverted) ||
+                isDifferent(logger, "compensationNominal", motor::getVoltageCompensationNominalVoltage, cfg.compensationNominal) ||
+                needsConfiguring(logger, cfg, feedbackSensor) ||
+                needsConfiguring(logger, cfg, pidController) ||
+                needsFollowerConfiguring(logger, follower)
+        );
+    }
+
+    private static boolean isFollower(Logger logger, CANSparkMax motor) {
+        if ( motor.isFollower() ) {
+            logger.error("Motor controller is a follower");
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean needsFollowerConfiguring(Logger logger, CANSparkMax follower) {
+
+        if (follower != null && !follower.isFollower()) {
+            logger.error("follower is not setup");
+            return true;
+        }
+        return false;
     }
 
     /**
      * Compares the current configuration of the motor controller, feedback sensor, and pid controller with the provided
      * configuration.
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param logger         - logger provided by subsystem
+     * @param cfg            - motor config file
+     * @param motor          - SparkMax controller
      * @param feedbackSensor - either absolute or relative encoder
-     * @param pidController - pid controller
+     * @param pidController  - pid controller
      * @return true if different
      */
-    public static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController) {
+    private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController) {
 
         return (
-             isDifferent(logger, "idleBrake", motor::getIdleMode, cfg.idleBrake) ||
-             isDifferent(logger, "Inverted", motor::getInverted, cfg.motorInverted) ||
-             isDifferent(logger, "compensationNominal", motor::getVoltageCompensationNominalVoltage, cfg.compensationNominal) ||
-             needsConfiguring(logger, cfg, feedbackSensor) ||
-             needsConfiguring(logger, cfg, pidController)
+                isDifferent(logger, "idleBrake", motor::getIdleMode, cfg.idleBrake) ||
+                        isDifferent(logger, "Inverted", motor::getInverted, cfg.motorInverted) ||
+                        isDifferent(logger, "compensationNominal", motor::getVoltageCompensationNominalVoltage, cfg.compensationNominal) ||
+                needsConfiguring(logger, cfg, feedbackSensor) ||
+                needsConfiguring(logger, cfg, pidController)
         );
     }
 
@@ -79,10 +112,10 @@ public class SparkMaxHelper extends BaseHelper{
     private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, MotorFeedbackSensor feedbackSensor) {
         if (feedbackSensor != null) {
             if (feedbackSensor instanceof AbsoluteEncoder) {
-                return needsConfiguring(logger, cfg, (AbsoluteEncoder)feedbackSensor);
+                return needsConfiguring(logger, cfg, (AbsoluteEncoder) feedbackSensor);
 
             } else if (feedbackSensor instanceof RelativeEncoder) {
-                return needsConfiguring(logger, cfg, (RelativeEncoder)feedbackSensor);
+                return needsConfiguring(logger, cfg, (RelativeEncoder) feedbackSensor);
             }
         }
         return false;
@@ -93,11 +126,11 @@ public class SparkMaxHelper extends BaseHelper{
      */
     private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, AbsoluteEncoder encoder) {
         return (
-             isDifferent(logger, "encoderInverted", encoder::getInverted, cfg.encoderInverted) ||
-             isDifferent(logger, "positionConversionFactor", encoder::getPositionConversionFactor, cfg.positionConversionFactor) ||
-             isDifferent(logger, "velocityConversionFactor", encoder::getVelocityConversionFactor, cfg.velocityConversionFactor) ||
-             isDifferent(logger, "encoderOffset", encoder::getZeroOffset, cfg.encoderOffset)
-          );
+                isDifferent(logger, "encoderInverted", encoder::getInverted, cfg.encoderInverted) ||
+                        isDifferent(logger, "positionConversionFactor", encoder::getPositionConversionFactor, cfg.positionConversionFactor) ||
+                        isDifferent(logger, "velocityConversionFactor", encoder::getVelocityConversionFactor, cfg.velocityConversionFactor) ||
+                        isDifferent(logger, "encoderOffset", encoder::getZeroOffset, cfg.encoderOffset)
+        );
     }
 
     /**
@@ -105,15 +138,16 @@ public class SparkMaxHelper extends BaseHelper{
      */
     private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, RelativeEncoder encoder) {
         return (
-             isDifferent(logger, "encoderInverted", encoder::getInverted, cfg.encoderInverted) ||
-             isDifferent(logger, "positionConversionFactor", encoder::getPositionConversionFactor, cfg.positionConversionFactor) ||
-             isDifferent(logger, "velocityConversionFactor", encoder::getVelocityConversionFactor, cfg.velocityConversionFactor)
+                isDifferent(logger, "encoderInverted", encoder::getInverted, cfg.encoderInverted) ||
+                        isDifferent(logger, "positionConversionFactor", encoder::getPositionConversionFactor, cfg.positionConversionFactor) ||
+                        isDifferent(logger, "velocityConversionFactor", encoder::getVelocityConversionFactor, cfg.velocityConversionFactor)
         );
     }
 
     private static boolean needsConfiguring(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder, SparkMaxPIDController pidController) {
         return needsConfiguring(logger, cfg, motor, encoder) || needsConfiguring(logger, cfg, pidController);
     }
+
     /**
      * Checks the pid controller
      */
@@ -122,13 +156,13 @@ public class SparkMaxHelper extends BaseHelper{
             return false;
         }
         return (
-             isDifferent(logger, "kP", pidController::getP, cfg.kP) ||
-             isDifferent(logger, "kI", pidController::getI, cfg.kI) ||
-             isDifferent(logger, "kD", pidController::getD, cfg.kD) ||
-             isDifferent(logger, "kFF", pidController::getFF, cfg.kFF) ||
-             isDifferent(logger, "wrapMin", pidController::getPositionPIDWrappingMinInput, cfg.wrapMin) ||
-             isDifferent(logger, "wrapMax", pidController::getPositionPIDWrappingMaxInput, cfg.wrapMax) ||
-             isDifferent(logger, "wrapEnabled", pidController::getPositionPIDWrappingEnabled, cfg.wrapEnabled )
+                isDifferent(logger, "kP", pidController::getP, cfg.kP) ||
+                        isDifferent(logger, "kI", pidController::getI, cfg.kI) ||
+                        isDifferent(logger, "kD", pidController::getD, cfg.kD) ||
+                        isDifferent(logger, "kFF", pidController::getFF, cfg.kFF) ||
+                        isDifferent(logger, "wrapMin", pidController::getPositionPIDWrappingMinInput, cfg.wrapMin) ||
+                        isDifferent(logger, "wrapMax", pidController::getPositionPIDWrappingMaxInput, cfg.wrapMax) ||
+                        isDifferent(logger, "wrapEnabled", pidController::getPositionPIDWrappingEnabled, cfg.wrapEnabled)
         );
     }
 
@@ -138,10 +172,10 @@ public class SparkMaxHelper extends BaseHelper{
      * This checks for errors reported by the SparkMaxController.
      *
      * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param cfg    - motor config file
+     * @param motor  - SparkMax controller
      */
-    public static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
+    private static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
         configure(logger, cfg, motor, null, null);
     }
 
@@ -150,12 +184,12 @@ public class SparkMaxHelper extends BaseHelper{
      * It finishes with burning to flash to ensure it starts with that configuration the next time.
      * This checks for errors reported by the SparkMaxController.
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param logger         - logger provided by subsystem
+     * @param cfg            - motor config file
+     * @param motor          - SparkMax controller
      * @param feedbackSensor - either absolute or relative encoder
      */
-    public static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor) {
+    private static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor) {
         configure(logger, cfg, motor, feedbackSensor, null);
     }
 
@@ -164,45 +198,46 @@ public class SparkMaxHelper extends BaseHelper{
      * It finishes with burning to flash to ensure it starts with that configuration the next time.
      * This checks for errors reported by the SparkMaxController.
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
-     * @param motor - SparkMax controller
+     * @param logger         - logger provided by subsystem
+     * @param cfg            - motor config file
+     * @param motor          - SparkMax controller
      * @param feedbackSensor - either absolute or relative encoder
-     * @param pidController - pid controller
+     * @param pidController  - pid controller
      */
-    public static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController) {
+    private static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController) {
         configure(logger, cfg, motor, feedbackSensor, pidController, null);
     }
 
-        /**
-         * Configures the provided SparkMax controller, encoder and pid controller with the provided configuration after resetting defaults.
-         * It finishes with burning to flash to ensure it starts with that configuration the next time.
-         * This checks for errors reported by the SparkMaxController.
-         *
-         * @param logger - logger provided by subsystem
-         * @param cfg - motor config file
-         * @param motor - SparkMax controller
-         * @param feedbackSensor - either absolute or relative encoder
-         * @param pidController - pid controller
-         * @param follower - motor that will follow
-         */
-    public static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController, CANSparkMax follower) {
+    /**
+     * Configures the provided SparkMax controller, encoder and pid controller with the provided configuration after resetting defaults.
+     * It finishes with burning to flash to ensure it starts with that configuration the next time.
+     * This checks for errors reported by the SparkMaxController.
+     *
+     * @param logger         - logger provided by subsystem
+     * @param cfg            - motor config file
+     * @param motor          - SparkMax controller
+     * @param feedbackSensor - either absolute or relative encoder
+     * @param pidController  - pid controller
+     * @param follower       - motor that will follow
+     */
+    private static void configure(Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor feedbackSensor, SparkMaxPIDController pidController, CANSparkMax follower) {
 
         checkRevError(logger, "restoreFactoryDefaults", motor::restoreFactoryDefaults);
 
         motor.setInverted(cfg.motorInverted);
-        checkRevError(logger,"setIdleMode", () -> motor.setIdleMode(cfg.idleBrake));
-        checkRevError(logger,"enableVoltageCompensation", () -> motor.enableVoltageCompensation(cfg.compensationNominal));
+        checkRevError(logger, "setIdleMode", () -> motor.setIdleMode(cfg.idleBrake));
+        checkRevError(logger, "enableVoltageCompensation", () -> motor.enableVoltageCompensation(cfg.compensationNominal));
+        checkRevError(logger, "setSmartCurrentLimit", () -> motor.setSmartCurrentLimit(cfg.currentLimit));
 
-        if (feedbackSensor!= null) {
+        if (feedbackSensor != null) {
             if (pidController != null) {
-                checkRevError(logger,"setFeedbackSesnor", () -> pidController.setFeedbackDevice(feedbackSensor));
+                checkRevError(logger, "setFeedbackSesnor", () -> pidController.setFeedbackDevice(feedbackSensor));
             }
             if (feedbackSensor instanceof AbsoluteEncoder) {
-                configure(logger, cfg, (AbsoluteEncoder)feedbackSensor);
+                configure(logger, cfg, (AbsoluteEncoder) feedbackSensor);
 
             } else if (feedbackSensor instanceof RelativeEncoder) {
-                configure(logger, cfg, (RelativeEncoder)feedbackSensor);
+                configure(logger, cfg, (RelativeEncoder) feedbackSensor);
             }
         }
 
@@ -212,64 +247,64 @@ public class SparkMaxHelper extends BaseHelper{
 
         if (follower != null) {
             checkRevError(logger, "follower: restoreFactoryDefaults", follower::restoreFactoryDefaults);
-            checkRevError(logger, "follower: follow", () ->follower.follow(motor));
-            checkRevError(logger,"follower: burnFlash", follower::burnFlash);
+            checkRevError(logger, "follower: follow", () -> follower.follow(motor));
+            checkRevError(logger, "follower: burnFlash", follower::burnFlash);
         }
 
-        checkRevError(logger,"burnFlash", motor::burnFlash);
+        checkRevError(logger, "burnFlash", motor::burnFlash);
     }
 
     /**
      * Configures an AbsoluteEncoder
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
+     * @param logger  - logger provided by subsystem
+     * @param cfg     - motor config file
      * @param encoder - absolute encoder
      */
     private static void configure(Logger logger, SparkMaxConfig cfg, AbsoluteEncoder encoder) {
-        checkRevError(logger,"posConv", () -> encoder.setPositionConversionFactor(cfg.positionConversionFactor));
-        checkRevError(logger,"velConv", () -> encoder.setVelocityConversionFactor(cfg.velocityConversionFactor));
-        checkRevError(logger,"encInv", () -> encoder.setInverted(cfg.encoderInverted));
-        checkRevError(logger,"offset->"+cfg.encoderOffset, () -> encoder.setZeroOffset(cfg.encoderOffset));
+        checkRevError(logger, "posConv", () -> encoder.setPositionConversionFactor(cfg.positionConversionFactor));
+        checkRevError(logger, "velConv", () -> encoder.setVelocityConversionFactor(cfg.velocityConversionFactor));
+        checkRevError(logger, "encInv", () -> encoder.setInverted(cfg.encoderInverted));
+        checkRevError(logger, "offset->" + cfg.encoderOffset, () -> encoder.setZeroOffset(cfg.encoderOffset));
     }
 
     /**
      * Configures a RelativeEncoder
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
+     * @param logger  - logger provided by subsystem
+     * @param cfg     - motor config file
      * @param encoder - relative encoder
      */
     private static void configure(Logger logger, SparkMaxConfig cfg, RelativeEncoder encoder) {
-        checkRevError(logger,"posConv", () -> encoder.setPositionConversionFactor(cfg.positionConversionFactor));
-        checkRevError(logger,"velConv", () -> encoder.setVelocityConversionFactor(cfg.velocityConversionFactor));
+        checkRevError(logger, "posConv", () -> encoder.setPositionConversionFactor(cfg.positionConversionFactor));
+        checkRevError(logger, "velConv", () -> encoder.setVelocityConversionFactor(cfg.velocityConversionFactor));
     }
 
     /**
      * Configure a pid controller
      *
-     * @param logger - logger provided by subsystem
-     * @param cfg - motor config file
+     * @param logger        - logger provided by subsystem
+     * @param cfg           - motor config file
      * @param pidController - pid controller
      */
     private static void configure(Logger logger, SparkMaxConfig cfg, SparkMaxPIDController pidController) {
-        checkRevError(logger,"setPositionPIDWrappingEnabled", () -> pidController.setPositionPIDWrappingEnabled(cfg.wrapEnabled));
-        checkRevError(logger,"setPositionPIDWrappingMinInput", () -> pidController.setPositionPIDWrappingMinInput(cfg.wrapMin));
-        checkRevError(logger,"setPositionPIDWrappingMaxInput", () -> pidController.setPositionPIDWrappingMaxInput(cfg.wrapMax));
-        checkRevError(logger,"setP", () -> pidController.setP(cfg.kP));
-        checkRevError(logger,"setI", () -> pidController.setI(cfg.kI));
-        checkRevError(logger,"setD", () -> pidController.setD(cfg.kD));
-        checkRevError(logger,"setFF", () -> pidController.setFF(cfg.kFF));
+        checkRevError(logger, "setPositionPIDWrappingEnabled", () -> pidController.setPositionPIDWrappingEnabled(cfg.wrapEnabled));
+        checkRevError(logger, "setPositionPIDWrappingMinInput", () -> pidController.setPositionPIDWrappingMinInput(cfg.wrapMin));
+        checkRevError(logger, "setPositionPIDWrappingMaxInput", () -> pidController.setPositionPIDWrappingMaxInput(cfg.wrapMax));
+        checkRevError(logger, "setP", () -> pidController.setP(cfg.kP));
+        checkRevError(logger, "setI", () -> pidController.setI(cfg.kI));
+        checkRevError(logger, "setD", () -> pidController.setD(cfg.kD));
+        checkRevError(logger, "setFF", () -> pidController.setFF(cfg.kFF));
     }
 
     /**
      * Check the return code of the function and logs and error if applicable
      *
-     * @param logger - logger provided by subsystem
+     * @param logger       - logger provided by subsystem
      * @param functionName - function being called
-     * @param func - function to be called
+     * @param func         - function to be called
      */
-    private static void checkRevError(Logger logger, String functionName, Supplier<REVLibError> func)  {
+    private static void checkRevError(Logger logger, String functionName, Supplier<REVLibError> func) {
         REVLibError error = func.get();
         if (error != REVLibError.kOk) {
             logger.error("Failed calling " + functionName + " " + error);
@@ -277,29 +312,42 @@ public class SparkMaxHelper extends BaseHelper{
     }
 
     public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor) {
-        if (needsConfiguring(logger, cfg, motor)) {
-            logger.warn("Configuring " + name);
-            configure(logger, cfg, motor);
-        }
+        checkThenConfigure(name, logger, cfg, motor, null, null, null);
     }
 
     public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, CANSparkMax follower) {
-        if (needsConfiguring(logger, cfg, motor)) {
-            logger.warn("Configuring " + name);
-            configure(logger, cfg, motor, null, null, follower);
-        }
+        checkThenConfigure(name, logger, cfg, motor, null, null, follower);
     }
-    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder) {
-        if (needsConfiguring(logger, cfg, motor, encoder)) {
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor encoder) {
+        checkThenConfigure(name, logger, cfg, motor, encoder, null,null);
+    }
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor encoder, SparkMaxPIDController pidController) {
+       checkThenConfigure(name, logger, cfg, motor, encoder, pidController,null);
+    }
+
+    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, MotorFeedbackSensor encoder, SparkMaxPIDController pidController, CANSparkMax follower) {
+
+        // if in competition use flashed configuration unless wrong
+        if ( needsConfiguring(logger, cfg, motor, encoder, pidController, follower) || forceConfigure ) {
             logger.warn("Configuring " + name);
-            configure(logger, cfg, motor, encoder, null, null);
+            configure(logger, cfg, motor, encoder, pidController, follower);
+        }
+
+        for(int i = 0; i < cfg.framePeriods.length; i++) {
+            int period = cfg.framePeriods[i];
+            if ( period > 0) {
+                var periodName = CANSparkMaxLowLevel.PeriodicFrame.fromId(i);
+                checkRevError(logger, "setPeriodicFramePeriod(" + periodName + ")", () -> motor.setPeriodicFramePeriod(periodName, period));
+            }
         }
     }
 
-    public static void checkThenConfigure(String name, Logger logger, SparkMaxConfig cfg, CANSparkMax motor, RelativeEncoder encoder, SparkMaxPIDController pidController) {
-        if (needsConfiguring(logger, cfg, motor, encoder, pidController)) {
-            logger.warn("Configuring " + name);
-            configure(logger, cfg, motor, encoder, pidController, null);
-        }
+    private static boolean forceConfigure = false;
+
+    public static void forceConfigure() {
+        forceConfigure = true;
     }
+
 }
