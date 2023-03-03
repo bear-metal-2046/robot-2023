@@ -71,8 +71,6 @@ public class ArmTrajectory {
 
             Pose2d convertedEnd = convertToAngles(end, directionSample);
 
-System.out.printf("%s%n %s%n %s%n %s%n ", convertedStart, convertedWaypoints, convertedEnd, config);
-
             trajectory = TrajectoryGenerator.generateTrajectory(convertedStart, convertedWaypoints, convertedEnd, config);
 
         } catch (ArmKinematics.KinematicsException|RuntimeException e) {
