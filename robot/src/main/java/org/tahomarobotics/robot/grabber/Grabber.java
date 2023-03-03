@@ -22,6 +22,7 @@ package org.tahomarobotics.robot.grabber;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.RelativeEncoder;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,20 +30,33 @@ import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
 
+import static org.tahomarobotics.robot.grabber.GrabberConstants.*;
+
 public class Grabber extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Grabber.class);
     private static final Grabber INSTANCE = new Grabber();
 
     private final CANSparkMax grabberMotor;
     private final RelativeEncoder encoder;
+
+    protected enum MovementState {  OFF, INGEST, RETAIN, EJECT, SCORE  }
+
+    private MovementState state = MovementState.OFF;
+
+    private final Timer injectStallTimer = new Timer();
+
     private Grabber() {
         grabberMotor = new CANSparkMax(RobotMap.GRABBER_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
         encoder = grabberMotor.getEncoder();
         SparkMaxHelper.checkThenConfigure("Grabber Motor", logger, GrabberConstants.createMotorConfig(), grabberMotor, encoder);
     }
 
+    MovementState getState() {
+        return state;
+    }
     /**
      * THIS CONSTRUCTOR FOR TEST PURPOSES ONLY!
+     *
      * @param testOnly - not used
      */
     protected Grabber(@SuppressWarnings("unused") boolean testOnly) {
@@ -55,11 +69,51 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     }
 
 
-    public void setGrabberSpeed(double percentage) {
-       grabberMotor.set(percentage);
+    void setGrabberSpeed(double percentage) {
+        grabberMotor.set(percentage);
     }
 
-    public double getVelocity() {
+    double getVelocity() {
         return encoder.getVelocity();
+    }
+
+    void off() {
+        state = MovementState.OFF;
+        setGrabberSpeed(0);
+    }
+
+    public void ingest(double level) {
+
+        state = MovementState.INGEST;
+
+        // clear timer if not stalled
+        if (!isStalled()) {
+            injectStallTimer.reset();
+        }
+
+        if (injectStallTimer.hasElapsed(GrabberConstants.INTAKE_TIMOUT)) {
+            setGrabberSpeed(RETAIN_SPEED);
+        } else {
+            setGrabberSpeed(Math.max(RETAIN_SPEED, MAX_SPEED * level));
+        }
+    }
+
+    public void retain() {
+        state = MovementState.RETAIN;
+        setGrabberSpeed(RETAIN_SPEED);
+    }
+
+    public void score(double level) {
+        state = MovementState.SCORE;
+        setGrabberSpeed(-level * MAX_SPEED);
+    }
+
+    public void eject() {
+        state = MovementState.EJECT;
+        setGrabberSpeed(EJECT_SPEED);
+    }
+
+    private boolean isStalled() {
+        return Math.abs(getVelocity()) < 10;
     }
 }

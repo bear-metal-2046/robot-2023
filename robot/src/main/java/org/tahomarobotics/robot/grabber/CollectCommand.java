@@ -19,8 +19,6 @@
  */
 package org.tahomarobotics.robot.grabber;
 
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 import java.util.function.DoubleSupplier;
@@ -30,107 +28,56 @@ import static org.tahomarobotics.robot.grabber.GrabberConstants.*;
 
 public class CollectCommand extends CommandBase {
 
-    protected enum MovementState {  OFF, INJEST, RETAIN, EJECT, SCORE  }
-
-    private final DoubleSupplier driveLeftTriger;
-    private final DoubleSupplier manipLeftTriger;
+    private final DoubleSupplier driveLeftTrigger;
+    private final DoubleSupplier manipLeftTrigger;
     private final IntSupplier povDir;
-    private final Timer timer = new Timer();
-    private MovementState state = MovementState.OFF;
+
     Grabber grabber = Grabber.getInstance();
-    public CollectCommand(DoubleSupplier driveLeftTriger, DoubleSupplier manipLeftTriger, IntSupplier povDir) {
-        this.driveLeftTriger = driveLeftTriger;
-        this.manipLeftTriger = manipLeftTriger;
+    public CollectCommand(DoubleSupplier driveLeftTrigger, DoubleSupplier manipLeftTrigger, IntSupplier povDir) {
+        this.driveLeftTrigger = driveLeftTrigger;
+        this.manipLeftTrigger = manipLeftTrigger;
         this.povDir = povDir;
         addRequirements(grabber);
     }
 
     @Override
-    public void initialize() {
-        timer.start();
-    }
-    public MovementState movementState() {
-        return state;
-    }
-
-    @Override
     public void execute() {
-        double leftDriverTrigger = driveLeftTriger.getAsDouble();
-        double injestSpeed = Math.max(leftDriverTrigger * MAX_SPEED, RETAIN_SPEED);
-        double leftManipTrigger = manipLeftTriger.getAsDouble();
+        double ingest = driveLeftTrigger.getAsDouble();
+        double score = manipLeftTrigger.getAsDouble();
+        boolean isEject = povDir.getAsInt() == 180;
+        boolean isScore = score > TRIGGER_DEAD_ZONE;
+        boolean isIngest = ingest > TRIGGER_DEAD_ZONE;
 
-        switch (state) {
-            case OFF -> {
-                grabber.setGrabberSpeed(0);
+        switch (grabber.getState()) {
+            case OFF, RETAIN -> {
 
-                if (leftDriverTrigger > TRIGGER_DEAD_ZONE) {
-                    state = MovementState.INJEST;
-                    timer.reset();
+                if (isIngest)  grabber.ingest(ingest);
 
-                } else if (leftManipTrigger > TRIGGER_DEAD_ZONE) {
-                    state = MovementState.SCORE;
-                }
+                else if (isScore) grabber.score(score);
+
+                else if (isEject) grabber.eject();
             }
-            case INJEST -> {
 
-                if (isNotStalled()) {
-                    timer.reset();
-                }
+            case INGEST -> {
 
-                // stalled for too long
-                if (timer.get() > GrabberConstants.INTAKE_TIMOUT ) {
-                    injestSpeed = RETAIN_SPEED;
-                }
+                grabber.ingest(ingest);
 
-                if (leftDriverTrigger < TRIGGER_DEAD_ZONE) {
-                    state = MovementState.RETAIN;
-                }
+                if ( ! isIngest) grabber.retain();
 
-
-                if (povDir.getAsInt() == 180) {
-                    state = MovementState.EJECT;
-                }
-
-                grabber.setGrabberSpeed(injestSpeed);
+                else if (isEject) grabber.eject();
             }
-            case RETAIN -> {
 
-                grabber.setGrabberSpeed(RETAIN_SPEED);
-
-                if (leftDriverTrigger > TRIGGER_DEAD_ZONE) {
-                    state = MovementState.INJEST;
-                }
-
-                if (povDir.getAsInt() == 180) {
-                    state = MovementState.EJECT;
-                }
-
-                if (leftManipTrigger > TRIGGER_DEAD_ZONE) {
-                    state = MovementState.SCORE;
-                }
-
-            }
-            case EJECT -> {
-                grabber.setGrabberSpeed(GrabberConstants.EJECT_SPEED);
-
-                if (povDir.getAsInt() != 180) {
-                    state = MovementState.OFF;
-                }
-            }
             case SCORE -> {
-                grabber.setGrabberSpeed(-leftManipTrigger * MAX_SPEED);
-                if (leftManipTrigger < TRIGGER_DEAD_ZONE) {
-                    state = MovementState.OFF;
-                }
+
+                grabber.score(score);
+
+                if ( ! isScore) grabber.off();
+            }
+
+            case EJECT -> {
+
+                if ( ! isEject ) grabber.off();
             }
         }
-        SmartDashboard.putString("State", state.toString());
     }
-
-    private boolean isNotStalled() {
-        return Math.abs(grabber.getVelocity()) > 10;
-    }
-
-
-
 }

@@ -105,11 +105,11 @@ class CollectCommandTest {
 
             driveLeftTriger.greaterThanDeadZone();
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.INJEST, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.INGEST, testGrabber.getState());
 
             driveLeftTriger.lessThanDeadZone();
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.RETAIN, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.RETAIN, testGrabber.getState());
         }
     }
 
@@ -125,15 +125,15 @@ class CollectCommandTest {
 
             driveLeftTriger.greaterThanDeadZone();
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.INJEST, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.INGEST, testGrabber.getState());
 
             povDir.setDirection(180);
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.EJECT, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.EJECT, testGrabber.getState());
 
             povDir.setDirection(0);
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.OFF, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.OFF, testGrabber.getState());
 
         }
     }
@@ -150,11 +150,11 @@ class CollectCommandTest {
 
             manipLeftTriger.greaterThanDeadZone();
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.SCORE, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.SCORE, testGrabber.getState());
 
             manipLeftTriger.lessThanDeadZone();
             testCollectCommand.execute();
-            assertEquals(CollectCommand.MovementState.OFF, testCollectCommand.movementState());
+            assertEquals(Grabber.MovementState.OFF, testGrabber.getState());
         }
     }
 }

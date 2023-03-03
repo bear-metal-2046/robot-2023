@@ -36,7 +36,7 @@ public class Autonomous implements SubsystemIF {
     private Command autonomousCommand;
 
     private static final TrajectoryConfig SWERVE_CONFIG = new TrajectoryConfig(2, 5)
-            .setKinematics(Chassis.getInstance().swerveDriveKinematics);
+            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
     public Autonomous initialize(){
         defaultPath = NoOperation.NO_OP.get(SWERVE_CONFIG);
