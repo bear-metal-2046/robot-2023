@@ -20,11 +20,7 @@
 package org.tahomarobotics.robot.wrist;
 
 
-import com.ctre.phoenix.sensors.CANCoder;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -33,41 +29,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
-import org.tahomarobotics.robot.util.CTREPheonixHelper;
 import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
-
-import static org.tahomarobotics.robot.wrist.WristConstants.GEAR_RATIO_STAGE_2;
 
 public class Wrist extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Wrist.class);
     private static final Wrist INSTANCE = new Wrist();
     CANSparkMax motor;
     CalibrationData<Double> calibrationData;
-    RelativeEncoder relEncoder;
-    CANCoder canCoder;
+    AbsoluteEncoder absEncoder;
     SparkMaxPIDController pidController;
-    private boolean updateEncoders = false;
-
     public static Wrist getInstance() {
         return INSTANCE;
     }
 
     private Wrist() {
-
-        motor = new CANSparkMax(RobotMap.WRIST_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
-        relEncoder = motor.getEncoder();
-        pidController = motor.getPIDController();
-        SparkMaxHelper.checkThenConfigure("Wrist Motor", logger, WristConstants.MOTOR_CONFIG, motor, relEncoder, pidController);
-
         calibrationData = new CalibrationData<>("WristCalibration", 0d);
-        canCoder = new CANCoder(RobotMap.WRIST_CANCODER);
-        CTREPheonixHelper.checkThenConfigure("Wrist CANCoder", logger, canCoder, WristConstants.createWristEncoderConfig(calibrationData.get(), false));
-
-
-        relEncoder.setPosition(canCoder.getAbsolutePosition()); // Converts from radians to degrees and from the motor axle to the absolute encoder axle
-
+        motor = new CANSparkMax(RobotMap.WRIST_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
+        absEncoder = motor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
+        pidController = motor.getPIDController();
+        pidController.setFeedbackDevice(absEncoder);
+        SparkMaxHelper.checkThenConfigure("Wrist Motor", logger,
+                WristConstants.createWristMotorConfig(false, calibrationData.get()), motor, absEncoder, pidController);
     }
 
 
@@ -84,13 +68,7 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Wrist CANCoder Position", Units.radiansToDegrees(canCoder.getAbsolutePosition()));
-        SmartDashboard.putNumber("Wrist Relative Encoder Position", Units.radiansToDegrees(relEncoder.getPosition()));
-        if (updateEncoders || Math.abs(canCoder.getAbsolutePosition() - relEncoder.getPosition()) > 10) {
-            logger.info("Reset reletive wrist encoder");
-            updateEncoders = false;
-            relEncoder.setPosition(canCoder.getAbsolutePosition());
-        }
+        SmartDashboard.putNumber("Wrist Absolute Encoder Position", Units.radiansToDegrees(absEncoder.getPosition()));
         if (DriverStation.isDisabled()) {
             pidController.setReference(0, CANSparkMax.ControlType.kDutyCycle);
         }
@@ -101,27 +79,26 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
         switch (calibrationAction) {
 
             // reset arm angles, so that the angle readings will indicate the unadjusted values
-            case Initiate -> setAngularOffsets(0);
+            case Initiate -> setZeroOffsets(0);
 
             // reinstate old calibration offsets
-            case Cancel -> setAngularOffsets(calibrationData.get());
+            case Cancel -> setZeroOffsets(calibrationData.get());
 
             // set and save the offsets to the negated reading from this calibration
-            case Finalize -> setAngularOffsets(calibrationData.set(-canCoder.getAbsolutePosition()));
+            case Finalize -> setZeroOffsets(calibrationData.set(absEncoder.getPosition()));
 
         }
     }
 
-    private void setAngularOffsets(double encoderOffset) {
-        canCoder.configMagnetOffset(Units.radiansToDegrees(encoderOffset) / GEAR_RATIO_STAGE_2);
-        updateEncoders = true;
+    private void setZeroOffsets(double encoderOffset) {
+        absEncoder.setZeroOffset(encoderOffset);
     }
 
     public double getPosition() {
-        return relEncoder.getPosition();
+        return absEncoder.getPosition();
     }
     public double getVelocity() {
-        return relEncoder.getVelocity();
+        return absEncoder.getVelocity();
     }
 }
 
