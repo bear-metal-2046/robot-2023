@@ -41,6 +41,8 @@ public class ArmTrajectory {
 
     private final boolean valid;
 
+    static final List<ArmTrajectory> allTrajectories = new ArrayList<>();
+
     public ArmTrajectory(Translation2d start, Translation2d end, TrajectoryConfig config) {
         this(start, end, end.minus(start).getAngle(), config);
     }
@@ -51,6 +53,7 @@ public class ArmTrajectory {
     public ArmTrajectory(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config)  {
         trajectory = generateTrajectory(start, interiorWaypoints, end, config);
         valid = trajectory != null;
+        allTrajectories.add(this);
     }
 
     public boolean isValid() {
@@ -94,6 +97,9 @@ public class ArmTrajectory {
 
         Rotation2d convertedRotation = directionPosition.minus(convertedPosition).getAngle();
 
+        if (Double.isNaN(convertedPosition.getX()) || Double.isNaN(convertedPosition.getY()) || Double.isNaN(convertedRotation.getRadians())) {
+            logger.error("NaN");
+        }
         return new Pose2d(convertedPosition, convertedRotation);
     }
 

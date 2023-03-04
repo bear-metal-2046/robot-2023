@@ -94,12 +94,10 @@ public class ArmKinematics {
 
         /*
          * Angle phi is the angle between upper-arm and fore-arm.  This uses the
-         * law of cosine to determine the 3 known sides.
+         * law of cosine to determine the 3 known sides. Force to 0 to PI.
          */
-        double phi = Math.acos((l1SqPlusL2Sq - l3Sq) / twoL1L2);
-        if (Double.isNaN(phi)) {
-            throw new KinematicsException("position is outside of arm lengths: " + position);
-        }
+        double cosPhi = MathUtil.clamp((l1SqPlusL2Sq - l3Sq) / twoL1L2, -1.0, 1.0);
+        double phi = Math.acos(cosPhi);
 
         /*
          * Angle beta is the angle between the x-axis and the
@@ -114,7 +112,8 @@ public class ArmKinematics {
          * law of cosine only using arm distances and the hypothesis and provides a very
          * low tolerance.
          */
-        double alpha = Math.acos( ( l1SqMinusL2Sq + l3Sq ) / ( 2d * l1 * l3 ) );
+        double cosAlpha = MathUtil.clamp(( l1SqMinusL2Sq + l3Sq ) / ( 2d * l1 * l3 ), -1.0, 1.0);
+        double alpha = Math.acos( cosAlpha );
 
         /*
          * Shoulder joint or theta1 is calculated by simply adding beta and alpha getting
@@ -134,6 +133,10 @@ public class ArmKinematics {
          * from the previous arm state and the current time.
          */
         armState = new ArmState(time, shoulderPosition, elbowPosition, armState);
+
+        if (Double.isNaN(time) || Double.isNaN(shoulderPosition) || Double.isNaN(elbowPosition)) {
+            throw new KinematicsException("Something went wrong: " + armState);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("Inverse X:%7.3f Y:%7.3f phi:%7.3f beta:%7.3f alpha:%7.3f theta1:%7.3f theta2:%7.3f",

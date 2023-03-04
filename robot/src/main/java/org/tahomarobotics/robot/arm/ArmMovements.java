@@ -24,11 +24,17 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
 import java.util.List;
 
 public class ArmMovements {
+
+    private static final Logger logger = LoggerFactory.getLogger(ArmMovements.class);
+
+    private static final double MIN_DISTANCE = Units.inchesToMeters(3.8);
 
     //Trajectory Configurations
     private static final TrajectoryConfig NORMAL_SPEED =
@@ -38,7 +44,7 @@ public class ArmMovements {
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-4));
-    private static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-3.2));
+    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-3.2));
 
     //Collecting
     private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(28.4), Units.inchesToMeters(-12.0));
@@ -70,10 +76,24 @@ public class ArmMovements {
             WristPosition.STOW);
 
     public static ArmMoveCommand createPositionToStowCommand() {
-        return new ArmMoveCommand("Pos To Stow",
-                    new ArmTrajectory(Arm.getInstance().getCurrentPosition(), STOW, SLOW_SPEED),
-                    WristPosition.STOW);
+        return new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition()), WristPosition.STOW);
     }
+    static ArmTrajectory createPositionToStowTrajectory(Translation2d position) {
+        Translation2d delta = position.minus(STOW);
+        double norm = delta.getNorm();
+        if (norm < MIN_DISTANCE) {
+
+            double scalar = MIN_DISTANCE/norm;
+            delta = delta.times(scalar);
+            Translation2d moved = STOW.plus(delta);
+
+            logger.warn("Moving position from " + position + " to " + moved);
+            position = moved;
+        }
+
+        return new ArmTrajectory(position, STOW, SLOW_SPEED);
+    }
+
     public static final ArmMove STOW_TO_CUBE_COLLECT = new ArmMove("Cube Collect",
             new ArmTrajectory(new Pose2d(STOW, FWD), NONE, new Pose2d(CUBE_COLLECT, DOWN), NORMAL_SPEED),
             WristPosition.CUBE_COLLECT);
