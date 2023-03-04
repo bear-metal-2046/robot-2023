@@ -25,8 +25,6 @@ import org.tahomarobotics.robot.util.CalibrationAction;
 
 public interface ArmSubsystemIF extends SubsystemIF {
 
-    record ArmElectricalInfo(double shoulderVoltage, double elbowVoltage, double shoulderCurrent, double elbowCurrent) {}
-
     default ArmState getCurrentArmState() { return new ArmState(); }
 
     default Translation2d getCurrentPosition() { return new Translation2d(0,0); }
@@ -35,5 +33,5 @@ public interface ArmSubsystemIF extends SubsystemIF {
 
     default void calibration(CalibrationAction calibrationAction) {}
 
-    default ArmElectricalInfo getArmElectricalInfo() { return new ArmElectricalInfo(0,0,0,0);}
+    default double[] getVoltages() { return new double[4]; }
 }

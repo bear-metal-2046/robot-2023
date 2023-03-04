@@ -45,8 +45,6 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
 
     private final Timer injectStallTimer = new Timer();
 
-    public GrabberShuffleboard shuffleboard;
-
     private Grabber() {
         grabberMotor = new CANSparkMax(RobotMap.GRABBER_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
         encoder = grabberMotor.getEncoder();
@@ -68,12 +66,6 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
 
     public static Grabber getInstance() {
         return INSTANCE;
-    }
-
-    @Override
-    public Grabber initialize() {
-        shuffleboard = new GrabberShuffleboard();
-        return this;
     }
 
 

@@ -5,6 +5,7 @@ import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,16 +31,12 @@ public class Autonomous implements SubsystemIF {
 
     private Command defaultCommand; // TODO: SET THIS
     private Command autonomousCommand;
-    private AutoShuffleboard shuffleboard;
 
     private static final TrajectoryConfig SWERVE_CONFIG = new TrajectoryConfig(2, 5)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
     public Autonomous initialize(){
-        addAuto(defaultCommand);
-        shuffleboard = new AutoShuffleboard();
-        defaultPath = NoOperation.NO_OP.get(SWERVE_CONFIG);
-        addAuto(defaultPath);
+        //addAuto(defaultCommand);
 
         SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
         selectionAutoChange(autoCommandChooser.getSelected());
@@ -49,22 +46,12 @@ public class Autonomous implements SubsystemIF {
         netInstance.addListener(subscriber, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
             selectionAutoChange(autoCommands.get((String) e.valueData.value.getValue()));
         });
-        StringSubscriber shuffleSubscriber = netInstance.getTable("Shuffleboard").getSubTable("Main/Auto Chooser").getStringTopic("selected").subscribe("default");
-        netInstance.addListener(shuffleSubscriber, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
-            selectionAutoChange(autoCommands.get((String) e.valueData.value.getValue()));
-        });
 
         return this;
     }
 
     public void addAuto(Command command) {
         autoCommands.put(command.getName(), command);
-    public SendableChooser<Path> getAutoPathChooser() {
-        return autoPathChooser;
-    }
-
-    public void addAuto(Path path) {
-        autoCommands.put(path.getName(), path);
 
         if (command == defaultCommand) {
             autoCommandChooser.setDefaultOption(command.getName(), command);

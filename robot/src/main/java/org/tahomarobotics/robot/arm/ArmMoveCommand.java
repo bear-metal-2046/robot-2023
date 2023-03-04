@@ -19,6 +19,10 @@
  */
 package org.tahomarobotics.robot.arm;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,6 +34,9 @@ import org.tahomarobotics.robot.util.ChartData;
 import org.tahomarobotics.robot.wrist.WristMoveCommand;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ArmMoveCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(ArmMoveCommand.class);
@@ -37,8 +44,8 @@ public class ArmMoveCommand extends CommandBase {
 
     Timer timer = new Timer();
 
-    ChartData chartData = new ChartData("Electrical", "Time", "Voltage/Current",
-            new String[] { "Shoulder Voltage", "Elbow Voltage", "Shoulder Current", "Elbow Current"});
+    ChartData chartData = new ChartData("Voltage", "Time", "Voltage",
+            new String[] { "Shoulder", "Elbow", "FF Shoulder", "FF Elbow"});
     ChartData angleChart = new ChartData("Angles", "Time", "Degrees",
             new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
 
@@ -88,9 +95,9 @@ public class ArmMoveCommand extends CommandBase {
         arm.setArmState(desiredState);
 
         var armState = arm.getCurrentArmState();
-        var elec = arm.getArmElectricalInfo();
+        double[] voltages = arm.getVoltages();
 
-        double[] data = {timer.get(), elec.shoulderVoltage(), elec.elbowVoltage(), elec.shoulderCurrent(), elec.elbowCurrent()};
+        double[] data = {timer.get(), voltages[0], voltages[1], voltages[2], voltages[3]};
         chartData.addData(data);
 
         double[] speedData = {timer.get(),

@@ -83,7 +83,7 @@ public class WristMoveCommand extends CommandBase {
         velocityData.clear();
         angleData.clear();
         timer.restart();
-        motionProf = generateMotion(timer.get(), wrist.getRelPosition(), angle, time);
+        motionProf = generateMotion(timer.get(), wrist.getPosition(), angle, time);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class WristMoveCommand extends CommandBase {
 
         double[] posData = {currentTime,
             Units.radiansToDegrees(motionState.position),
-            Units.radiansToDegrees(wrist.getRelPosition())
+            Units.radiansToDegrees(wrist.getPosition())
         };
 
         angleData.addData(posData);
