@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.chassis.Chassis;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,26 +26,20 @@ public class Autonomous implements SubsystemIF {
         return INSTANCE;
     }
 
-    private final Map<String, Path> autoCommands = new HashMap<>();
-    private final SendableChooser<Path> autoPathChooser = new SendableChooser<>();
+    private final Map<String, Command> autoCommands = new HashMap<>();
+    private final SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
 
-    private Path defaultPath;
-    private AutoCommand selectedPathCommand;
-
+    private Command defaultCommand; // TODO: SET THIS
     private Command autonomousCommand;
 
     private static final TrajectoryConfig SWERVE_CONFIG = new TrajectoryConfig(2, 5)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
     public Autonomous initialize(){
-        defaultPath = NoOperation.NO_OP.get(SWERVE_CONFIG);
-        addAuto(defaultPath);
+        addAuto(defaultCommand);
 
-        Arrays.stream(RedSideAuto.values()).forEach((ac) -> addAuto(ac.get(SWERVE_CONFIG)));
-        Arrays.stream(BlueSideAuto.values()).forEach((ac) -> addAuto(ac.get(SWERVE_CONFIG)));
-
-        selectionAutoChange(autoPathChooser.getSelected());
-        SmartDashboard.putData("AutonomousChooser", autoPathChooser);
+        SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
+        selectionAutoChange(autoCommandChooser.getSelected());
 
         NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
         StringSubscriber subscriber = netInstance.getTable("SmartDashboard").getSubTable("AutonomousChooser").getStringTopic("selected").subscribe("defaultAutoCommand");
@@ -57,33 +50,32 @@ public class Autonomous implements SubsystemIF {
         return this;
     }
 
-    public void addAuto(Path path) {
-        autoCommands.put(path.getName(), path);
+    public void addAuto(Command command) {
+        autoCommands.put(command.getName(), command);
 
-        if (path == defaultPath) {
-            autoPathChooser.setDefaultOption(path.getName(), path);
-            //selectionAutoChange(auto);
+        if (command == defaultCommand) {
+            autoCommandChooser.setDefaultOption(command.getName(), command);
         } else {
-            autoPathChooser.addOption(path.getName(), path);
+            autoCommandChooser.addOption(command.getName(), command);
         }
     }
 
     /**
      * Listener for "AutonomousChooser/selected" change.
      */
-    private void selectionAutoChange(Path path) {
-        selectedPathCommand = path.build(Chassis.getInstance().getPose());
-//        logger.info(selectedPathCommand.toString());
-        selectedPathCommand.onSelection();
+    private void selectionAutoChange(Command command) {
+        if (command instanceof AutonomousCommandIF) {
+            ((AutonomousCommandIF) command).onSelection();
+        }
     }
 
     public Command getSelectedCommand() {
-        return selectedPathCommand;
+        return autoCommandChooser.getSelected();
     }
 
     public void initiate() {
         autonomousCommand = getSelectedCommand();
-        logger.info("Running " + autonomousCommand.getName() + " from " + Chassis.getInstance().getPose());
+        logger.info("Running " + autonomousCommand.getName() + "...");
         autonomousCommand.schedule();
     }
 
