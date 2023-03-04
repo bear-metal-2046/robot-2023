@@ -72,7 +72,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private final List<SwerveModuleIF> swerveModules;
     private final ChassisConstantsIF swerveConstants;
-
+    private ChassisShuffleboard shuffleboard;
     private final SwerveDrivePoseEstimator poseEstimator;
 
     private final Field2d fieldPose = new Field2d();
@@ -83,6 +83,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final CalibrationData<Double[]> swerveCalibration;
 
     private final Vision vision;
+    public Field2d getFieldPose() {
+        return fieldPose;
+    }
 
     private Chassis() {
         // Configures the Chassis according to the current RobotID.
@@ -170,6 +173,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     public Chassis initialize() {
+        shuffleboard = new ChassisShuffleboard();
         SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
 
         zeroGyro();

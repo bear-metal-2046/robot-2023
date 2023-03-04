@@ -38,8 +38,10 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.Robot;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.ident.RobotIdentity;
+import org.tahomarobotics.robot.util.Shufflebear;
 import org.tahomarobotics.robot.util.CTREPheonixHelper;
 import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
@@ -51,7 +53,6 @@ import static org.tahomarobotics.robot.arm.ArmConstants.*;
 
 public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Arm.class);
-    private boolean angleDisplayEnabled = true;
 
     // Configures the Arm according to the current RobotID.
     private static final ArmSubsystemIF INSTANCE = switch (RobotIdentity.getInstance().getRobotID()) {
@@ -87,7 +88,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     private ArmState desiredState = null;
 
-    private final double voltages[] = new double[4];
+    private final ArmShuffleboard shuffleboard;
 
     private final static ArmState initialState = new ArmState(0,
             new ArmState.JointState(Units.degreesToRadians(36.3), 0, 0),
@@ -140,11 +141,14 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         armMechanism = new ArmMechanism(mech, upperArm, foreArm);
 
         SmartDashboard.putData("Arm", mech);
+
+        shuffleboard = new ArmShuffleboard(this);
+
+
     }
 
     @Override
     public ArmSubsystemIF initialize() {
-
 
         SmartDashboard.putData("Arm to Stow",
                 new ArmMoveCommand(ArmMovements.START_TO_STOW));
@@ -178,6 +182,11 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     @Override
     public ArmState getCurrentArmState() {
+
+        if (Robot.isSimulation()) {
+            return desiredState == null ? initialState : desiredState;
+        }
+
         return new ArmState(0d,
                 new ArmState.JointState(shoulderEncoder.getAbsolutePosition(), shoulderEncoder.getVelocity(), 0),
                 new ArmState.JointState(elbowEncoder.getAbsolutePosition(), elbowEncoder.getVelocity(), 0));
@@ -198,14 +207,20 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     }
 
     @Override
+    public ArmElectricalInfo getArmElectricalInfo() {
+        return new ArmElectricalInfo(
+                shoulderMotor.getBusVoltage() * shoulderMotor.getAppliedOutput(),
+                elbowMotor.getBusVoltage() * elbowMotor.getAppliedOutput(),
+                shoulderMotor.getOutputCurrent(),
+                elbowMotor.getOutputCurrent());
+    }
+
+    @Override
     public void periodic() {
 
-        ArmState currentState = getCurrentArmState();
+        shuffleboard.update();
 
-        if (angleDisplayEnabled) {
-            SmartDashboard.putNumber("Shoulder Angle", Units.radiansToDegrees(currentState.shoulder.position()));
-            SmartDashboard.putNumber("Elbow Angle", Units.radiansToDegrees(currentState.elbow.position()));
-        }
+        ArmState currentState = getCurrentArmState();
 
         double shoulderVoltage = 0;
         double elbowVoltage = 0;
@@ -223,8 +238,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
             ArmFeedForward.FeedForwardVoltages ffVoltages = feedForward.calculate(desiredState, currentState);
             double shoulderFeedforwardVoltage = ffVoltages.shoulder();
             double elbowFeedforwardVoltage = ffVoltages.elbow();
-            voltages[2] = shoulderFeedforwardVoltage;
-            voltages[3] = elbowFeedforwardVoltage;
 
             SmartDashboard.putNumber("Shoulder FF Voltage", shoulderFeedforwardVoltage);
             SmartDashboard.putNumber("Elbow FF Voltage", elbowFeedforwardVoltage);
@@ -251,15 +264,14 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         // power the motors
         shoulderMotor.setVoltage(shoulderVoltage);
         elbowMotor.setVoltage(elbowVoltage);
-        voltages[0] = shoulderVoltage;
-        voltages[1] = elbowVoltage;
 
         SmartDashboard.putNumber("Shoulder Voltage", shoulderVoltage);
         SmartDashboard.putNumber("Elbow Voltage", elbowVoltage);
 
-        Translation2d position = kinematics.forwardKinematics(getCurrentArmState());
+        Translation2d position = getCurrentPosition();
         SmartDashboard.putNumber("Arm X", Units.metersToInches(position.getX()));
         SmartDashboard.putNumber("Arm Y", Units.metersToInches(position.getY()));
+
 
 
         armMechanism.upperArm.setAngle(Units.radiansToDegrees(currentState.shoulder.position()));
@@ -283,7 +295,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
             // reset arm angles, so that the angle readings will indicate the unadjusted values
             case Initiate -> {
-                angleDisplayEnabled = true;
                 setAngularOffsets(new EncoderOffsets(Math.PI / 2 * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d), 0),
                         CANSparkMax.IdleMode.kCoast);
             }
@@ -299,33 +310,11 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         }
     }
 
-    @Override
-    public double[] getVoltages() {
-        return voltages;
-    }
-
-
     private void setAngularOffsets(EncoderOffsets encoderOffsets, CANSparkMax.IdleMode mode) {
         shoulderMotor.setIdleMode(mode);
         elbowMotor.setIdleMode(mode);
 
         shoulderEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.shoulder));
         elbowEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.elbow));
-    }
-
-    @Override
-    public void simulationPeriodic() {
-        ArmState state = desiredState == null ? initialState : desiredState;
-        updateEncoder(shoulderEncoder, state.shoulder);
-        updateEncoder(elbowEncoder, state.elbow);
-    }
-
-    private void updateEncoder(CANCoder encoder, ArmState.JointState state) {
-        var sim = encoder.getSimCollection();
-
-        sim.setRawPosition((int)(state.position() / encoder.configGetFeedbackCoefficient() * (encoder.configGetSensorDirection() ? -1d : 1d)));
-
-        // TODO: causes loop overruns
-        sim.setVelocity((int)(state.position() * 10 / encoder.configGetFeedbackCoefficient() * (encoder.configGetSensorDirection() ? -1d : 1d)));
     }
 }

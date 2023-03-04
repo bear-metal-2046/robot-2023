@@ -24,9 +24,7 @@ import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
@@ -39,21 +37,20 @@ import org.tahomarobotics.robot.util.SparkMaxHelper;
 
 public class Paw extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Paw.class);
+    private int x;
     private static final Paw LEFT_INSTANCE =
-            new Paw("Left Paw", ClimbConstants.createPawConfig(RobotMap.LEFT_PAW, true));
+            new Paw("Left Paw", ClimbConstants.createPawConfig(RobotMap.LEFT_PAW, true), 0);
     private static final Paw RIGHT_INSTANCE =
-            new Paw("Right Paw", ClimbConstants.createPawConfig(RobotMap.RIGHT_PAW, false));
+            new Paw("Right Paw", ClimbConstants.createPawConfig(RobotMap.RIGHT_PAW, false), 1);
     public static Paw getLeftInstance() { return LEFT_INSTANCE; }
     public static Paw getRightInstance() { return RIGHT_INSTANCE; }
-
     private final String name;
     private final CANSparkMax motor;
     private final RelativeEncoder encoder;
     private final SparkMaxPIDController pidController;
-
-
-    private Paw(String name, SparkMaxConfig motorConfig) {
-
+    private PawShuffleboard shuffleboard;
+    private Paw(String name, SparkMaxConfig motorConfig, int x) {
+        this.x = x;
         this.name = name;
 
         motor = new CANSparkMax(motorConfig.canId, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -66,6 +63,7 @@ public class Paw extends SubsystemBase implements SubsystemIF {
 
     @Override
     public Paw initialize() {
+        shuffleboard = new PawShuffleboard(name, x, this);
 
         Commands.waitUntil(RobotState::isEnabled)
                 .andThen(new ZeroPawCommand(this))
@@ -77,7 +75,8 @@ public class Paw extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber(name + "Pos", getPos());
+        shuffleboard.update();
+        //SmartDashboard.putNumber(name + "Pos", getPos());
     }
 
     public void setGoal(MotionState setpoint) {
@@ -105,5 +104,9 @@ public class Paw extends SubsystemBase implements SubsystemIF {
 
     public void setZeroCurrentLimit(boolean isZeroLimit) {
         motor.setSmartCurrentLimit(isZeroLimit ? ClimbConstants.ZERO_CURRENT_LIMIT : ClimbConstants.FULL_CURRENT_LIMIT);
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -23,12 +23,13 @@ package org.tahomarobotics.robot.wrist;
 import com.revrobotics.*;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
+import org.tahomarobotics.robot.util.Shufflebear;
+import org.tahomarobotics.robot.util.CTREPheonixHelper;
 import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
@@ -40,6 +41,9 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
     CalibrationData<Double> calibrationData;
     AbsoluteEncoder absEncoder;
     SparkMaxPIDController pidController;
+    WristShuffleboard shuffleboard;
+    private boolean updateEncoders = false;
+
     public static Wrist getInstance() {
         return INSTANCE;
     }
@@ -56,7 +60,10 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
 
 
     public Wrist initialize() {
-        SmartDashboard.putData("Wrist Calibration", new WristCalibrationCommand());
+        shuffleboard = new WristShuffleboard();
+        Shufflebear.addSendable("Wrist", "Wrist Calibration", new WristCalibrationCommand(),0, 0, 3, 1, "Calibration");
+
+        //SmartDashboard.putData("Wrist Calibration", new WristCalibrationCommand());
         return this;
     }
 
@@ -69,6 +76,14 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Wrist Absolute Encoder Position", Units.radiansToDegrees(absEncoder.getPosition()));
+        shuffleboard.update();
+        //SmartDashboard.putNumber("Wrist CANCoder Position", Units.radiansToDegrees(canCoder.getAbsolutePosition()));
+        //SmartDashboard.putNumber("Wrist Relative Encoder Position", Units.radiansToDegrees(relEncoder.getPosition()));
+        if (updateEncoders || Math.abs(canCoder.getAbsolutePosition() - relEncoder.getPosition()) > 10) {
+            logger.info("Reset reletive wrist encoder");
+            updateEncoders = false;
+            relEncoder.setPosition(canCoder.getAbsolutePosition());
+        }
         if (DriverStation.isDisabled()) {
             pidController.setReference(0, CANSparkMax.ControlType.kDutyCycle);
         }
@@ -96,6 +111,13 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
 
     public double getPosition() {
         return absEncoder.getPosition();
+    }
+
+    public double getCanPosition() {
+        return canCoder.getAbsolutePosition();
+    }
+    public double getRelPosition() {
+        return relEncoder.getPosition();
     }
     public double getVelocity() {
         return absEncoder.getVelocity();

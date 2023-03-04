@@ -79,5 +79,7 @@ public class CollectCommand extends CommandBase {
                 if ( ! isEject ) grabber.off();
             }
         }
+        grabber.shuffleboard.update(state.toString());
+        SmartDashboard.putString("State", state.toString());
     }
 }

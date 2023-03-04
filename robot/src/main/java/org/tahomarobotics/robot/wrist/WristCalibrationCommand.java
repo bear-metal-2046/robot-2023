@@ -2,7 +2,6 @@ package org.tahomarobotics.robot.wrist;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.tahomarobotics.robot.util.CalibrationAction;
 
@@ -19,7 +18,8 @@ public class WristCalibrationCommand extends CommandBase {
         if (!DriverStation.isDisabled()) {
             cancel();
         }
-        SmartDashboard.putBoolean(FINALIZE_KEY, false);
+        wrist.shuffleboard.setFinalized(false);
+        //SmartDashboard.putBoolean(FINALIZE_KEY, false);
         wrist.calibration(CalibrationAction.Initiate);
     }
 
@@ -28,7 +28,7 @@ public class WristCalibrationCommand extends CommandBase {
         if (RobotState.isEnabled()) {
             cancel();
         }
-        finalized = SmartDashboard.getBoolean(FINALIZE_KEY, false);
+        finalized = wrist.shuffleboard.getFinalized();//SmartDashboard.getBoolean(FINALIZE_KEY, false);
     }
 
     @Override
