@@ -68,8 +68,8 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     }
 
     private static HolonomicDriveController createController() {
-        PIDController xController = new PIDController(0,0,0);
-        PIDController yController = new PIDController(0,0,0);
+        PIDController xController = new PIDController(1.25,0,0);
+        PIDController yController = new PIDController(1.25,0,0);
         ProfiledPIDController headingController = new ProfiledPIDController(2.05, 0, 0, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
         HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
 
