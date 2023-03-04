@@ -36,22 +36,23 @@ public class ArmMovements {
     private static final TrajectoryConfig SLOW_SPEED =
             new TrajectoryConfig(0.5, 1);
 
+
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-4));
-    private static final Translation2d STOW = new Translation2d(Units.inchesToMeters(15.8), Units.inchesToMeters(-3.2));
+    private static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-3.2));
 
     //Collecting
-    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(26.4), Units.inchesToMeters(-7));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(28.9), Units.inchesToMeters(-12.8));
-    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(17.4), Units.inchesToMeters(6.5));
-    private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(13.3), Units.inchesToMeters(13.8));
+    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(28.4), Units.inchesToMeters(-12.0));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(28.4), Units.inchesToMeters(-12.0));
+    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(4.2));
+    private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(4.2));
 
     //Box scoring positions
-    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(36.2), Units.inchesToMeters(18.3));
-    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(54.9), Units.inchesToMeters(31.5));
+    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(41.0), Units.inchesToMeters(17.4));
+    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(54.8), Units.inchesToMeters(27.5));
 
     //Pole scoring positions
-    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(48.5), Units.inchesToMeters(29.8));
-    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(53.3), Units.inchesToMeters(34.4));
+    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(45.2), Units.inchesToMeters(27.8));
+    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(54.2), Units.inchesToMeters(36.6));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
