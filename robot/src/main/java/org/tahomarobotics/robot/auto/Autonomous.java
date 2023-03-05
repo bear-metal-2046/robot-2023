@@ -1,6 +1,5 @@
 package org.tahomarobotics.robot.auto;
 
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
@@ -10,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
-import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -28,15 +26,13 @@ public class Autonomous implements SubsystemIF {
 
     private final Map<String, Command> autoCommands = new HashMap<>();
     private final SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
-
-    private Command defaultCommand; // TODO: SET THIS
+    private final Command defaultCommand = new NoOperation();
     private Command autonomousCommand;
 
-    private static final TrajectoryConfig SWERVE_CONFIG = new TrajectoryConfig(2, 5)
-            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
-
     public Autonomous initialize(){
-       // addAuto(defaultCommand);
+
+        addAuto(defaultCommand);
+        addAuto(new PlaceTaxi(GamePiece.CONE, Level.HIGH));
 
         SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
         selectionAutoChange(autoCommandChooser.getSelected());

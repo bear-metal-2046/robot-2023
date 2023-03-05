@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
@@ -24,11 +25,11 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     private final Trajectory trajectory;
 
     private final ChartData posXData = new ChartData("Path Motion", "Time (sec)", "Position",
-            new String[] {"expected x", "actual x"});
+            new String[]{"expected x", "actual x"});
     private final ChartData posYData = new ChartData("Path Motion", "Time (sec)", "Position",
-            new String[] {"expected y", "actual y"});
+            new String[]{"expected y", "actual y"});
     private final ChartData hdgData = new ChartData("Path Motion", "Time (sec)", "Angle",
-            new String[] {"expected hdg", "actual hgd"});
+            new String[]{"expected hdg", "actual hgd"});
     private final List<Pose2d> actualTrajectory = new ArrayList<>();
 
     private final Timer timer;
@@ -63,14 +64,14 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
     private static Rotation2d getFinalTrajectoryHeading(Trajectory trajectory) {
         var states = trajectory.getStates();
-        var finalPose = states.get(states.size()-1).poseMeters;
+        var finalPose = states.get(states.size() - 1).poseMeters;
         return finalPose.getRotation();
     }
 
     private static HolonomicDriveController createController() {
-        PIDController xController = new PIDController(1.25,0,0);
-        PIDController yController = new PIDController(1.25,0,0);
-        ProfiledPIDController headingController = new ProfiledPIDController(2.05, 0, 0, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
+        PIDController xController = new PIDController(2, 0, 0.25);
+        PIDController yController = new PIDController(2, 0, 0.25);
+        ProfiledPIDController headingController = new ProfiledPIDController(3.0, 0, 0.25, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
         HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
 
         // TODO: HolonomicDriveController sets this to 0 to 2PI
@@ -86,8 +87,9 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         Rotation2d currentHeading = Chassis.getInstance().getPose().getRotation();
         double tv = 0.5 * trajectory.getTotalTimeSeconds();
         double ta = 0.2 * trajectory.getTotalTimeSeconds();
-        double maxVelocity = (heading.minus(currentHeading)).getRadians()/(tv+ta);
+        double maxVelocity = Math.abs(heading.minus(currentHeading).getRadians()) / (tv + ta);
         double maxAcceleration = maxVelocity / ta;
+        log.info(maxVelocity + " : " + maxAcceleration);
         return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
     }
 
@@ -96,7 +98,6 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         super.initialize();
         timer.reset();
         timer.start();
-        log.error("Cleared Chart data");
         posXData.clear();
         posYData.clear();
         hdgData.clear();
@@ -116,15 +117,15 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
         Trajectory.State desiredPose = trajectory.sample(time);
 
-        posXData.addData(new double[]{ time,
+        posXData.addData(new double[]{time,
                 desiredPose.poseMeters.getX(),
                 Chassis.getInstance().getPose().getX()
         });
-        posYData.addData(new double[]{ time,
+        posYData.addData(new double[]{time,
                 desiredPose.poseMeters.getY(),
                 Chassis.getInstance().getPose().getY()
         });
-        hdgData.addData(new double[]{ time,
+        hdgData.addData(new double[]{time,
                 desiredPose.poseMeters.getRotation().getDegrees(),
                 Chassis.getInstance().getPose().getRotation().getDegrees(),
         });
@@ -133,6 +134,13 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         // update actual path
         actualTrajectory.add(chassis.getPose());
 
+    }
+
+    @Override
+    public boolean isFinished() {
+        return trajectory.getStates().get(trajectory.getStates().size() - 1)
+                .poseMeters.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(4)
+                || timer.hasElapsed(trajectory.getTotalTimeSeconds() + 0.5);
     }
 
     @Override

@@ -46,7 +46,6 @@ import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.vision.Vision;
-import org.tahomarobotics.robot.vision.VisionConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -118,13 +117,13 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         );
 
         vision = new Vision((pose, time) -> {
-            var poseDiff = getPose().minus(pose);
-            double diff = Math.sqrt(Math.pow(poseDiff.getX(), 2) + Math.pow(poseDiff.getY(), 2));
-            if (diff > VisionConstants.RESET_THRESHOLD) {
-                poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
-            } else {
-                poseEstimator.addVisionMeasurement(pose, time);
-            }
+//            var poseDiff = getPose().minus(pose);
+//            double diff = Math.sqrt(Math.pow(poseDiff.getX(), 2) + Math.pow(poseDiff.getY(), 2));
+//            if (diff > VisionConstants.RESET_THRESHOLD) {
+//                poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
+//            } else {
+//                poseEstimator.addVisionMeasurement(pose, time);
+//            }
         });
     }
 
@@ -268,7 +267,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public void updateActualTrajectory(List<Pose2d> actualTrajectory) {
         actualPath.addAll(actualTrajectory);
-        fieldPose.getRobotObject().setPoses(actualPath);
+        fieldPose.getObject("robot-path").setPoses(actualPath);
     }
 
     @Override

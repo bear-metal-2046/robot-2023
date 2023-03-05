@@ -53,12 +53,12 @@ public class ArmMovements {
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(19.0), Units.inchesToMeters(4.2));
 
     //Box scoring positions
-    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(41.0), Units.inchesToMeters(17.4));
-    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(54.8), Units.inchesToMeters(27.5));
+    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(41.0), Units.inchesToMeters(19.4));
+    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(52.8), Units.inchesToMeters(29.5));
 
     //Pole scoring positions
     private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(45.2), Units.inchesToMeters(27.8));
-    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(54.2), Units.inchesToMeters(36.6));
+    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(54.2), Units.inchesToMeters(36));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
@@ -156,7 +156,7 @@ public class ArmMovements {
             WristPosition.STOW);
 
     public static final ArmMove HIGH_POLE_TO_STOW = new ArmMove("High-Pole Stow",
-            new ArmTrajectory(HIGH_POLE, STOW, NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(HIGH_POLE, REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
 }

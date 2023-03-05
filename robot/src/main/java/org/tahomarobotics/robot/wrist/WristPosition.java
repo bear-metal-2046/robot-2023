@@ -22,13 +22,13 @@ package org.tahomarobotics.robot.wrist;
 import edu.wpi.first.math.util.Units;
 
 public enum WristPosition {
-    STOW(Units.degreesToRadians(250d)),
+    STOW(Units.degreesToRadians(220d)),
     CUBE_COLLECT(Units.degreesToRadians(186d)),
     CONE_COLLECT(Units.degreesToRadians(186d)),
     CUBE_FEEDER_COLLECT(Units.degreesToRadians(232d)),
     CONE_FEEDER_COLLECT(Units.degreesToRadians(232d)),
     MID_BOX_PLACE(Units.degreesToRadians(101d)),
-    HIGH_BOX_PLACE(Units.degreesToRadians(66d)),
+    HIGH_BOX_PLACE(Units.degreesToRadians(75d)),
     MID_POLE_PLACE(Units.degreesToRadians(54d)),
     HIGH_POLE_PLACE(Units.degreesToRadians(57d));
 

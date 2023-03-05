@@ -1,0 +1,20 @@
+Loading Side:
+    Start/First Place: 582.9, 216.7
+    First Collect: 399.2, 201.8
+    Taxi: 498.36, 201.8
+    Engage: 498.36, 154.2
+    Second Place: 582.9, 195.6
+    Second Collect: 399.2, 153.3
+
+Mid:
+    Start: 582.9, 152.2
+    Taxi: 438.9, 152.2
+    Engage: 498.8, 152.2
+
+Cable Side:
+    Start/First Place: 582.9, 41.24
+    First Collect: 395.2, 57.67
+    Engage: 498.5, 100.26
+    Second Place: 582.9, 63.65
+    Second Collect: 395.2, 105.77
+
