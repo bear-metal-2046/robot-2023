@@ -34,7 +34,7 @@ public class GrabberConstants {
     public static SparkMaxConfig createMotorConfig() {
         SparkMaxConfig cfg = new SparkMaxConfig();
         cfg.canId = RobotMap.GRABBER_MOTOR;
-        cfg.currentLimit = 30;
+        cfg.currentLimit = 60;
         cfg.motorInverted = true;
         return cfg;
     }

@@ -150,14 +150,15 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
      */
     public void cancelCalibration() { swerveModules.forEach(SwerveModuleIF::cancelCalibration); }
 
-    private Rotation2d getYaw() {
+    public Rotation2d getYaw() {
         return Rotation2d.fromDegrees(pigeon2.getYaw());
     }
-
-    private Rotation2d getPitch() {
+    public Rotation2d getPitch() {
         return Rotation2d.fromDegrees(pigeon2.getPitch());
     }
-
+    public Rotation2d getRoll() {
+        return Rotation2d.fromDegrees(pigeon2.getRoll());
+    }
     private void zeroGyro(){pigeon2.setYaw(0.0);}
 
     private Rotation2d getGyroRotation(){
@@ -186,6 +187,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         fieldPose.setRobotPose(getPose());
         swerveModules.forEach(SwerveModuleIF::displayPosition);
 
+        SmartDashboard.putString("Gyro Yaw", getYaw().toString());
+        SmartDashboard.putString("Gyro Pitch", getPitch().toString());
+        SmartDashboard.putString("Gyro Roll", getRoll().toString());
         SmartDashboard.putString("Pose", getPose().toString());
     }
 

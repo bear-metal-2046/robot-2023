@@ -24,33 +24,33 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InjestComand extends CommandBase {
+public class ScoreCommand extends CommandBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(InjestComand.class);
-    private static final double INJEST_DURATION = 1.0;
-    private static final double INJEST_LEVEL = 1.0;
+    private static final Logger logger = LoggerFactory.getLogger(ScoreCommand.class);
+    private static final double SCORE_DURATION = 0.25;
+    private static final double SCORE_LEVEL = 1.0;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
 
-    public InjestComand() {
+    public ScoreCommand() {
         addRequirements(grabber);
     }
 
     @Override
     public void initialize() {
         timer.restart();
-        grabber.ingest(INJEST_LEVEL);
+        grabber.score(SCORE_LEVEL);
     }
 
     @Override
     public void end(boolean interrupted) {
-        grabber.retain();
+        grabber.off();
         logger.info(getName() + " completed");
     }
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(INJEST_DURATION);
+        return timer.hasElapsed(SCORE_DURATION);
     }
 }

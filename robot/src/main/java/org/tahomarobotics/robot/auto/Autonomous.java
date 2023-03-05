@@ -1,14 +1,17 @@
 package org.tahomarobotics.robot.auto;
 
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
+import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -33,6 +36,7 @@ public class Autonomous implements SubsystemIF {
 
         addAuto(defaultCommand);
         addAuto(new PlaceTaxi(GamePiece.CONE, Level.HIGH));
+        addAuto(new MidPlaceEngage(GamePiece.CONE, Level.HIGH));
 
         SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
         selectionAutoChange(autoCommandChooser.getSelected());
