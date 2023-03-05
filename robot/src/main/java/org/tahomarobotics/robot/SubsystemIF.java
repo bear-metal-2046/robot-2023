@@ -22,7 +22,12 @@ package org.tahomarobotics.robot;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
 public interface SubsystemIF extends Subsystem {
-    default void disable() {}
 
     default SubsystemIF initialize() { return this; }
+
+    default void onDisabledInit() {}
+
+    default void onAutonomousInit() {}
+
+    default void onTeleopInit() {}
 }

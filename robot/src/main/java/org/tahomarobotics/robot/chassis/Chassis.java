@@ -275,7 +275,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     @Override
-    public void disable() {
+    public void onDisabledInit() {
         swerveModules.forEach(s -> s.setDriveVoltage(0));
     }
 }

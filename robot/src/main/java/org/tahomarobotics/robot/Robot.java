@@ -22,7 +22,6 @@ package org.tahomarobotics.robot;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,6 +79,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        subsystems.forEach(SubsystemIF::onAutonomousInit);
         logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
         Autonomous.getInstance().initiate();
     }
@@ -91,11 +91,13 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        subsystems.forEach(SubsystemIF::onTeleopInit);
         logger.warn("-=-=-=- TELEOP initiated -=-=-=-");
     }
 
     @Override
     public void disabledInit() {
+        subsystems.forEach(SubsystemIF::onDisabledInit);
         logger.info("-=-=-=- DISABLE initiated -=-=-=-");
     }
     @Override

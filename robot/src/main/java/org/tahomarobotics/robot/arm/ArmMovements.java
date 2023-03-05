@@ -34,7 +34,7 @@ public class ArmMovements {
 
     private static final Logger logger = LoggerFactory.getLogger(ArmMovements.class);
 
-    private static final double MIN_DISTANCE = Units.inchesToMeters(3.8);
+    private static final double MIN_DISTANCE = Units.inchesToMeters(4);
 
     //Trajectory Configurations
     private static final TrajectoryConfig NORMAL_SPEED =
