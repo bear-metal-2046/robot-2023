@@ -19,12 +19,16 @@
  */
 package org.tahomarobotics.robot.util;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
 public class BaseHelper {
 
+    protected static final String FORCE_CONFIGURE = "Force Configure";
+
+    protected static boolean forceConfigure = SmartDashboard.getBoolean(FORCE_CONFIGURE, false);
     private static final double EPSILON = 0.000001d;
 
     /**

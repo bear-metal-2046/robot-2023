@@ -23,6 +23,7 @@ import com.revrobotics.*;
 import com.revrobotics.jni.CANSparkMaxJNI;
 import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.slf4j.Logger;
 
 import java.util.function.Supplier;
@@ -333,6 +334,7 @@ public class SparkMaxHelper extends BaseHelper {
         if ( needsConfiguring(logger, cfg, motor, encoder, pidController, follower) || forceConfigure ) {
             logger.warn("Configuring " + name);
             configure(logger, cfg, motor, encoder, pidController, follower);
+
         }
 
         for(int i = 0; i < cfg.framePeriods.length; i++) {
@@ -344,10 +346,9 @@ public class SparkMaxHelper extends BaseHelper {
         }
     }
 
-    private static boolean forceConfigure = false;
 
-    public static void forceConfigure() {
-        forceConfigure = true;
+    public static void clear() {
+        forceConfigure = false;
+        SmartDashboard.putBoolean(FORCE_CONFIGURE, forceConfigure);
     }
-
 }

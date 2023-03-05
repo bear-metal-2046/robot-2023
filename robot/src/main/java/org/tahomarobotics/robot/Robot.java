@@ -41,7 +41,6 @@ import java.util.List;
 
 public class Robot extends TimedRobot {
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
-    private static final String FORCE_CONFIGURE = "Force Configure";
 
     static {
         // Initialize use of async loggers. Only to be done statically in the main class.
@@ -54,11 +53,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-
-        // use to force configure the SparkMax
-        if (SmartDashboard.getBoolean(FORCE_CONFIGURE, false)) {
-            SparkMaxHelper.forceConfigure();
-        }
 
         initializeSerializeWorkaround();
 
@@ -74,8 +68,8 @@ public class Robot extends TimedRobot {
         subsystems.add(Autonomous.getInstance().initialize());
         subsystems.add(OI.getInstance().initialize());
 
+        SparkMaxHelper.clear();
 
-        SmartDashboard.putBoolean(FORCE_CONFIGURE, false);
 
         logger.info("Robot Initialized.");
     }

@@ -77,17 +77,17 @@ public class ArmConstants {
                                 11d / 72d * 24d / 72d * 22d / 50d * 32d / 62d, false, false));
             };
 
-    public static final double MAX_PID_VOLTAGE = 4.0;
+    public static final double MAX_PID_VOLTAGE = 6.0;
 
     public record PIDGains(double kP, double kI, double kD){}
 
-    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(16, 3, 0.75);
-    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(16, 3, 0.75);
+    public static final PIDGains SHOULDER_PID_GAINS = new PIDGains(16, 6, 0.5);
+    public static final PIDGains ELBOW_PID_GAINS = new PIDGains(12, 6, 0.5);
 
     private static SparkMaxConfig createArmMotorConfig(boolean inverted, PIDGains pidGains) {
         SparkMaxConfig cfg = new SparkMaxConfig();
         cfg.motorInverted = inverted;
-        cfg.currentLimit = 20;
+        cfg.currentLimit = 42;
         cfg.positionConversionFactor = 1;
         cfg.velocityConversionFactor = 1;
         cfg.idleBrake = CANSparkMax.IdleMode.kBrake;

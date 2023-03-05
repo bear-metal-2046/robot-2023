@@ -131,6 +131,7 @@ public class ArmFeedForward {
         double motorVelocity2 = w2 / ARM_PHYSICAL_PROPERTIES.foreArm().gearReduction();
         double voltageElbow = MOTOR_ELBOW.getVoltage(motorTorque2, motorVelocity2);
 
+
         if (logger.isDebugEnabled()) {
 
             logger.debug(String.format("Shoulder: %7.3f V, %7.3f nM, %7.3f nM, %7.3f nM, %7.3f nM, Elbow: %7.3f V, %7.3f nM, %7.3f nM, %7.3f nM %n",

@@ -44,7 +44,7 @@ public class ArmMovements {
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-4));
-    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-3.2));
+    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-1.2));
 
     //Collecting
     private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(28.4), Units.inchesToMeters(-12.0));
