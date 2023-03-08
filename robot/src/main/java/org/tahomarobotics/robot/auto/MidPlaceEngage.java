@@ -44,8 +44,6 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
                 ),
                 Drive.drive(engage, taxi, rot, config, list),
                 Drive.drive(taxi, engage, rot, reversedConfig, list),
-                new BalancedCommand(),
-                new WaitCommand(0.1),
                 new BalancedCommand()
         );
     }
