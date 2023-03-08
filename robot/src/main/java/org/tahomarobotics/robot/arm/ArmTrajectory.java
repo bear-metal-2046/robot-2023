@@ -43,6 +43,10 @@ public class ArmTrajectory {
 
     static final List<ArmTrajectory> allTrajectories = new ArrayList<>();
 
+    public ArmTrajectory(Trajectory trajectory) {
+        this.trajectory = trajectory;
+        valid = this.trajectory != null;
+    }
     public ArmTrajectory(Translation2d start, Translation2d end, TrajectoryConfig config) {
         this(start, end, end.minus(start).getAngle(), config);
     }
@@ -81,6 +85,14 @@ public class ArmTrajectory {
         }
         return trajectory;
     }
+
+    public Trajectory getTrajectory() {
+        return trajectory;
+    }
+    public ArmTrajectory concatenate(ArmTrajectory other) {
+        return new ArmTrajectory(this.trajectory.concatenate(other.getTrajectory()));
+    }
+
 
     private Translation2d convertToAngles(Translation2d position) throws ArmKinematics.KinematicsException {
         ArmState armState = kinematics.inverseKinematics(0, position);

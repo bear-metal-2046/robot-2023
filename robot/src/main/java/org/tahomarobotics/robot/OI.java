@@ -54,7 +54,7 @@ public final class OI implements SubsystemIF {
     private final XboxController driveController = new XboxController(0);
     private final XboxController manipController = new XboxController(1);
 
-    private final ClimbSequence climbSequence = new ClimbSequence();
+    private final ClimbSequence climbCommand = new ClimbSequence();
     private final ResetCommand resetCommand = new ResetCommand();
 
     public OperatorArmMoveSelection getArmMoveSelector() {
@@ -89,10 +89,10 @@ public final class OI implements SubsystemIF {
 
         //Climb
         JoystickButton climb = new JoystickButton(driveController, kStart.value);
-        climb.onTrue(new InstantCommand(this::initiateClimb));
+        climb.onTrue(new InstantCommand(this::initiateMounting));
 
-        JoystickButton reset = new JoystickButton(driveController, kBack.value);
-        reset.onTrue(new InstantCommand(this::resetClimb));
+        JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
+        preClimb.onTrue(new ArmMoveCommand(ArmMovements.STOW_TO_CLIMB));
 
 
 
@@ -121,15 +121,15 @@ public final class OI implements SubsystemIF {
 
         JoystickButton YButton = new JoystickButton(driveController, kY.value);
         //YButton.onTrue(new InstantCommand(() -> ArmMovements.createPositionToStowCommand().schedule()));
-        YButton.onTrue(new ArmMoveCommand(ArmMovements.START_TO_STOW));
+        YButton.onTrue(ArmMovements.createPositionToStowCommand());
     }
 
     private void resetClimb() {
         resetCommand.schedule();
     }
 
-    private void initiateClimb() {
-        climbSequence.schedule();
+    private void initiateMounting() {
+        climbCommand.schedule();
     }
 
     private static final double DEAD_ZONE = 0.09;

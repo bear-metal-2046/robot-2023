@@ -19,18 +19,20 @@
  */
 package org.tahomarobotics.robot.climb;
 
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import org.tahomarobotics.robot.arm.ArmMoveCommand;
+import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.DriveForwardCommand;
 
 public class ClimbSequence extends SequentialCommandGroup {
     private final Paw left = Paw.getLeftInstance();
     private final Paw right = Paw.getRightInstance();
-    private static final double START_MOVE_ANGLE = 1.9; // radians
+    private static final double START_MOVE_ANGLE = 1.6; // radians
     private static final double FINAL_ANGLE = 2.72;
 
-    private static final double VELOCITY = 2;
+    private static final double VELOCITY = 2.5;
     public ClimbSequence() {
 
         addCommands(
@@ -38,11 +40,20 @@ public class ClimbSequence extends SequentialCommandGroup {
                         new PawCommand(left, FINAL_ANGLE, VELOCITY),
 
                         new PawCommand(right, FINAL_ANGLE, VELOCITY),
-                        Commands.waitUntil(
-                                () -> left.getPos() > START_MOVE_ANGLE && right.getPos() > START_MOVE_ANGLE)
-                                .andThen(new DriveForwardCommand(-0.75, 2.5)
-                                .alongWith(new BeacherCommand(2.5, 0.25)))
+
+                        new SequentialCommandGroup(
+                                new WaitCommand(0.85),
+                                new ParallelCommandGroup(
+                                        new DriveForwardCommand(-1, 2.5),
+                                        new BeacherCommand(2.5, -0.5)
+                                )
+                        ),
+                        new SequentialCommandGroup(
+                                new WaitCommand(2),
+                                new ArmMoveCommand(ArmMovements.CLIMB_SWING)
+                        )
                 )
         );
     }
 }
+

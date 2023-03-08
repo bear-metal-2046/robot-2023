@@ -22,6 +22,7 @@ package org.tahomarobotics.robot.wrist;
 import edu.wpi.first.math.util.Units;
 
 public enum WristPosition {
+    PRE_CLIMB(Units.degreesToRadians(15d)),
     STOW(Units.degreesToRadians(220d)),
     CUBE_COLLECT(Units.degreesToRadians(186d)),
     CONE_COLLECT(Units.degreesToRadians(186d)),

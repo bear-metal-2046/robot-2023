@@ -45,6 +45,7 @@ public class ArmMovements {
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-4));
     static final Translation2d STOW = new Translation2d(Units.inchesToMeters(16.2), Units.inchesToMeters(-1.2));
+    static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
     private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(28.4), Units.inchesToMeters(-12.0));
@@ -71,27 +72,35 @@ public class ArmMovements {
 
     public record ArmMove(String name, ArmTrajectory trajectory, WristPosition wristPosition) {}
 
+    private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
+            4.5, 0.5, 0.15, 0.15, Units.degreesToRadians(-138.5),
+            Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
+    public static final ArmMove STOW_TO_CLIMB = new ArmMove("Stow To Climb",
+            new ArmTrajectory(STOW, PRE_CLIMB, SLOW_SPEED),
+            WristPosition.PRE_CLIMB);
+
+    public static ArmMove CLIMB_SWING = new ArmMove("Climb Swing", CLIMB_SWING_TRAJ, WristPosition.PRE_CLIMB);
     public static final ArmMove START_TO_STOW = new ArmMove("Start to Stow",
             new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(STOW, UP), SLOW_SPEED),
             WristPosition.STOW);
 
     public static ArmMoveCommand createPositionToStowCommand() {
-        return new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition()), WristPosition.STOW);
+        return new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW);
     }
-    static ArmTrajectory createPositionToStowTrajectory(Translation2d position) {
-        Translation2d delta = position.minus(STOW);
+    static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
+        Translation2d delta = position.minus(desired);
         double norm = delta.getNorm();
         if (norm < MIN_DISTANCE) {
 
             double scalar = MIN_DISTANCE/norm;
             delta = delta.times(scalar);
-            Translation2d moved = STOW.plus(delta);
+            Translation2d moved = desired.plus(delta);
 
             logger.warn("Moving position from " + position + " to " + moved);
             position = moved;
         }
 
-        return new ArmTrajectory(position, STOW, SLOW_SPEED);
+        return new ArmTrajectory(position, desired, SLOW_SPEED);
     }
 
     public static final ArmMove STOW_TO_CUBE_COLLECT = new ArmMove("Cube Collect",
