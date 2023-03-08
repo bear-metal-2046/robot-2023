@@ -50,7 +50,7 @@ public class ArmTrajectoryTest {
                 double y = range * Math.sin(theta);
                 Translation2d position = new Translation2d(x, y);
 
-                var trajectory = ArmMovements.createPositionToStowTrajectory(position);
+                var trajectory = ArmMovements.createPositionToStowTrajectory(position, ArmMovements.STOW);
 
                 if (!trajectory.isValid()) {
                     fail("Invalid Trajectory position:" + position + " STOW:" + ArmMovements.STOW + " Diff:" + (position.minus(ArmMovements.STOW)));

@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.wrist.WristPosition;
@@ -84,8 +85,8 @@ public class ArmMovements {
             new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(STOW, UP), SLOW_SPEED),
             WristPosition.STOW);
 
-    public static ArmMoveCommand createPositionToStowCommand() {
-        return new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW);
+    public static ProxyCommand createPositionToStowCommand() {
+        return new ProxyCommand(() -> new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW));
     }
     static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
         Translation2d delta = position.minus(desired);

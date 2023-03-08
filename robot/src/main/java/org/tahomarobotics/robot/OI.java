@@ -120,7 +120,6 @@ public final class OI implements SubsystemIF {
         XButton.onTrue(armMoveSelector.toggleGamePieceMode());
 
         JoystickButton YButton = new JoystickButton(driveController, kY.value);
-        //YButton.onTrue(new InstantCommand(() -> ArmMovements.createPositionToStowCommand().schedule()));
         YButton.onTrue(ArmMovements.createPositionToStowCommand());
     }
 
@@ -159,5 +158,10 @@ public final class OI implements SubsystemIF {
     private double desensitizePowerBased(double value, double power) {
         value = deadband(value);
         return Math.pow(Math.abs(value), power - 1) * value;
+    }
+
+    @Override
+    public void onDisabledInit() {
+        armMoveSelector.reset();
     }
 }

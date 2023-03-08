@@ -33,6 +33,8 @@ import static org.tahomarobotics.robot.arm.ArmMovements.*;
 public class OperatorArmMoveSelection {
 
     private static final Logger logger = LoggerFactory.getLogger(OperatorArmMoveSelection.class);
+
+
     public enum ConeOrCube { CONE, CUBE }
     public enum ScoringLevel { HIGH(0), MID(90);
         public final int pov;
@@ -149,4 +151,7 @@ public class OperatorArmMoveSelection {
         return cmd;
     }
 
+    public void reset() {
+        armPosition = ArmPosition.STOW;
+    }
 }
