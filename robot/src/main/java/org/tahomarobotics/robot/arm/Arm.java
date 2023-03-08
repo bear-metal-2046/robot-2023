@@ -34,14 +34,12 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.Robot;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.ident.RobotIdentity;
-import org.tahomarobotics.robot.util.Shufflebear;
 import org.tahomarobotics.robot.util.CTREPheonixHelper;
 import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
@@ -80,10 +78,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private final PIDController shoulderPIDController;
     private final PIDController elbowPIDController;
     private final ArmFeedForward feedForward = new ArmFeedForward();
-    private final ArmKinematics kinematics = new ArmKinematics();
-
     private record ArmMechanism (Mechanism2d mech, MechanismLigament2d upperArm, MechanismLigament2d foreArm) {}
-
     private final ArmMechanism armMechanism;
 
     private ArmState desiredState = null;
@@ -123,70 +118,60 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         CTREPheonixHelper.checkThenConfigure("Elbow Encoder", logger, elbowEncoder, elbowEncoderConfig);
 
         // Shoulder PID Controller
-        shoulderPIDController = new PIDController(ArmConstants.CONFIG_SHOULDER_MOTOR.kP,ArmConstants.CONFIG_SHOULDER_MOTOR.kI,ArmConstants.CONFIG_SHOULDER_MOTOR.kD);
+        shoulderPIDController = new PIDController(
+                ArmConstants.CONFIG_SHOULDER_MOTOR.kP,
+                ArmConstants.CONFIG_SHOULDER_MOTOR.kI,
+                ArmConstants.CONFIG_SHOULDER_MOTOR.kD);
 
         // Elbow PID Controller
-        elbowPIDController = new PIDController(ArmConstants.CONFIG_ELBOW_MOTOR.kP,ArmConstants.CONFIG_ELBOW_MOTOR.kI,ArmConstants.CONFIG_ELBOW_MOTOR.kD);
+        elbowPIDController = new PIDController(
+                ArmConstants.CONFIG_ELBOW_MOTOR.kP,
+                ArmConstants.CONFIG_ELBOW_MOTOR.kI,
+                ArmConstants.CONFIG_ELBOW_MOTOR.kD);
 
         shoulderPIDController.setIntegratorRange(-2.0, 2.0);
         elbowPIDController.setIntegratorRange(-2.0, 2.0);
 
-        Mechanism2d mech = new Mechanism2d(HORIZONTAL_EXTENSION_FRONT_LIMIT + 2 * FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT ,
+        armMechanism = Robot.isSimulation() ? createArmMechanism() : null;
+
+        shuffleboard = new ArmShuffleboard(this);
+    }
+
+    private ArmMechanism createArmMechanism() {
+
+        Mechanism2d mech = new Mechanism2d(
+                HORIZONTAL_EXTENSION_FRONT_LIMIT + 2 * FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT,
                 VERTICAL_EXTENSION_UPPER_LIMIT);
-        MechanismRoot2d root = mech.getRoot("shoulder", FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT + SHOULDER_AXIS.getX(), SHOULDER_AXIS.getY());
+
+        MechanismRoot2d root = mech.getRoot("shoulder",
+                FRAME_HALF_SIZE + HORIZONTAL_EXTENSION_REAR_LIMIT + SHOULDER_AXIS.getX(),
+                SHOULDER_AXIS.getY());
+
         MechanismLigament2d upperArm = root.append(new MechanismLigament2d("upper-arm",
                 ArmConstants.ARM_PHYSICAL_PROPERTIES.upperArm().length(), 0));
+
         MechanismLigament2d foreArm = upperArm.append(new MechanismLigament2d("fore-arm",
-                ArmConstants.ARM_PHYSICAL_PROPERTIES.foreArm().length(), -90, 6, new Color8Bit(Color.kPurple)));
-        armMechanism = new ArmMechanism(mech, upperArm, foreArm);
+                ArmConstants.ARM_PHYSICAL_PROPERTIES.foreArm().length(), -90, 6,
+                new Color8Bit(Color.kPurple)));
+
+        ArmMechanism armMechanism = new ArmMechanism(mech, upperArm, foreArm);
 
         SmartDashboard.putData("Arm", mech);
 
-        shuffleboard = new ArmShuffleboard(this);
-
-
+        return armMechanism;
     }
 
     @Override
     public ArmSubsystemIF initialize() {
-
-        SmartDashboard.putData("Arm to Stow",
-                new ArmMoveCommand(ArmMovements.START_TO_STOW));
-
-        SmartDashboard.putData("Position to Stow",
-                new InstantCommand(() -> ArmMovements.createPositionToStowCommand().schedule()));
-
-        SmartDashboard.putData("Stow to Up Collect",
-                new ArmMoveCommand(ArmMovements.STOW_TO_CONE_COLLECT));
-
-        SmartDashboard.putData("Up Collect to Stow",
-                new ArmMoveCommand(ArmMovements.CONE_COLLECT_TO_STOW));
-
-        SmartDashboard.putData("Stow to Down Collect",
-                new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT));
-
-        SmartDashboard.putData("Down Collect to Stow",
-                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW));
-
-        SmartDashboard.putData("Stow to Feeder Collect",
-                new ArmMoveCommand(ArmMovements.STOW_TO_CONE_FEEDER_COLLECT));
-
-        SmartDashboard.putData("Feeder Collect to Stow",
-                new ArmMoveCommand(ArmMovements.CONE_FEEDER_COLLECT_TO_STOW));
-
-
-
-        SmartDashboard.putData("Calibrate Arm", new ArmCalibrationCommand());
+        shuffleboard.initialize();
         return this;
     }
 
     @Override
     public ArmState getCurrentArmState() {
-
         if (Robot.isSimulation()) {
             return desiredState == null ? initialState : desiredState;
         }
-
         return new ArmState(0d,
                 new ArmState.JointState(shoulderEncoder.getAbsolutePosition(), shoulderEncoder.getVelocity(), 0),
                 new ArmState.JointState(elbowEncoder.getAbsolutePosition(), elbowEncoder.getVelocity(), 0));
@@ -218,12 +203,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     @Override
     public void periodic() {
 
+        // update dashboard
         shuffleboard.update();
-
-        ArmState currentState = getCurrentArmState();
-
-        double shoulderVoltage = 0;
-        double elbowVoltage = 0;
 
         // disable arm when robot is transitioned to disable
         // this is to ensure that the arm doesn't move until an arm movement action
@@ -232,50 +213,28 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
             desiredState = null;
         }
 
-        // arm movement is initiated by setting the desired state
-        if (desiredState != null) {
-
-            ArmFeedForward.FeedForwardVoltages ffVoltages = feedForward.calculate(desiredState, currentState);
-            double shoulderFeedforwardVoltage = ffVoltages.shoulder();
-            double elbowFeedforwardVoltage = ffVoltages.elbow();
-
-            SmartDashboard.putNumber("Shoulder FF Voltage", shoulderFeedforwardVoltage);
-            SmartDashboard.putNumber("Elbow FF Voltage", elbowFeedforwardVoltage);
-
-            double shoulderFeedbackVoltage = shoulderPIDController.calculate(shoulderEncoder.getPosition(), desiredState.shoulder.position());
-            double elbowFeedbackVoltage = elbowPIDController.calculate(elbowEncoder.getPosition(), desiredState.elbow.position());
-
-            SmartDashboard.putNumber("Shoulder Diff", shoulderEncoder.getPosition() - desiredState.shoulder.position());
-            SmartDashboard.putNumber("Elbow Diff", elbowEncoder.getPosition() - desiredState.elbow.position());
-
-            // limit feed-back voltages
-            // BUT DO NOT ALLOW FULL VOLTAGE to be applied to motor if there are large errors
-            shoulderFeedbackVoltage = MathUtil.clamp(shoulderFeedbackVoltage, -MAX_PID_VOLTAGE, MAX_PID_VOLTAGE);
-            elbowFeedbackVoltage = MathUtil.clamp(elbowFeedbackVoltage, -MAX_PID_VOLTAGE, MAX_PID_VOLTAGE);
-
-            // apply voltages to output
-            shoulderVoltage = shoulderFeedforwardVoltage + shoulderFeedbackVoltage;
-            elbowVoltage = elbowFeedforwardVoltage + elbowFeedbackVoltage;
-
-            SmartDashboard.putNumber("Desired Shoulder Angle", Units.radiansToDegrees(desiredState.shoulder.position()));
-            SmartDashboard.putNumber("Desired Elbow Angle", Units.radiansToDegrees(desiredState.elbow.position()));
+        if (desiredState == null) {
+            shoulderMotor.setVoltage(0);
+            elbowMotor.setVoltage(0);
+            return;
         }
 
-        // power the motors
-        shoulderMotor.setVoltage(shoulderVoltage);
-        elbowMotor.setVoltage(elbowVoltage);
+        // calculate feed-forward voltages
+        ArmState currentState = getCurrentArmState();
+        ArmFeedForward.FeedForwardVoltages ffVoltages = feedForward.calculate(desiredState, currentState);
 
-        SmartDashboard.putNumber("Shoulder Voltage", shoulderVoltage);
-        SmartDashboard.putNumber("Elbow Voltage", elbowVoltage);
+        // calculate and limit feed-back voltages
+        // BUT DO NOT ALLOW FULL VOLTAGE to be applied to motor if there are large errors
+        double shoulderFeedbackVoltage = MathUtil.clamp(
+                shoulderPIDController.calculate(currentState.shoulder.position(), desiredState.shoulder.position()),
+                -MAX_PID_VOLTAGE, MAX_PID_VOLTAGE);
+        double elbowFeedbackVoltage = MathUtil.clamp(
+                elbowPIDController.calculate(currentState.elbow.position(), desiredState.elbow.position()),
+                -MAX_PID_VOLTAGE, MAX_PID_VOLTAGE);
 
-        Translation2d position = getCurrentPosition();
-        SmartDashboard.putNumber("Arm X", Units.metersToInches(position.getX()));
-        SmartDashboard.putNumber("Arm Y", Units.metersToInches(position.getY()));
-
-
-
-        armMechanism.upperArm.setAngle(Units.radiansToDegrees(currentState.shoulder.position()));
-        armMechanism.foreArm.setAngle(Units.radiansToDegrees(currentState.elbow.position()));
+        // apply voltages to output
+        shoulderMotor.setVoltage(ffVoltages.shoulder() + shoulderFeedbackVoltage);
+        elbowMotor.setVoltage(ffVoltages.elbow() + elbowFeedbackVoltage);
     }
 
     /**
@@ -294,18 +253,17 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         switch (calibrationAction) {
 
             // reset arm angles, so that the angle readings will indicate the unadjusted values
-            case Initiate -> {
-                setAngularOffsets(new EncoderOffsets(Math.PI / 2 * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d), 0),
-                        CANSparkMax.IdleMode.kCoast);
-            }
+            case Initiate -> setAngularOffsets(new EncoderOffsets(
+                    Math.PI / 2 * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
+                    0), CANSparkMax.IdleMode.kCoast);
+
             // reinstate old calibration offsets
-            case Cancel -> setAngularOffsets(calibrationData.get(),
-                    CANSparkMax.IdleMode.kBrake);
+            case Cancel -> setAngularOffsets(calibrationData.get(), CANSparkMax.IdleMode.kBrake);
 
             // set and save the offsets to the negated reading from this calibration
             case Finalize -> setAngularOffsets(calibrationData.set(new EncoderOffsets(
-                            shoulderEncoder.getAbsolutePosition() * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
-                            elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))),
+                    shoulderEncoder.getAbsolutePosition() * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
+                    elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))),
                     CANSparkMax.IdleMode.kBrake);
         }
     }
@@ -316,5 +274,13 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
         shoulderEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.shoulder));
         elbowEncoder.configMagnetOffset(Units.radiansToDegrees(encoderOffsets.elbow));
+    }
+
+
+    @Override
+    public void simulationPeriodic() {
+        ArmState currentState = getCurrentArmState();
+        armMechanism.upperArm.setAngle(Units.radiansToDegrees(currentState.shoulder.position()));
+        armMechanism.foreArm.setAngle(Units.radiansToDegrees(currentState.elbow.position()));
     }
 }

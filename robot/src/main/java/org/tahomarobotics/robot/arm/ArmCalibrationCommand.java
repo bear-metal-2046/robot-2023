@@ -15,7 +15,6 @@ public class ArmCalibrationCommand extends CommandBase {
     private final BooleanSupplier finalizeInput;
 
     private final BooleanConsumer finializeUpdate;
-    private boolean finalized = false;
     private static final String FINALIZE_KEY = "Finalize";
 
 

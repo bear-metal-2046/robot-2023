@@ -57,7 +57,9 @@ public final class OI implements SubsystemIF {
     private final ClimbSequence climbSequence = new ClimbSequence();
     private final ResetCommand resetCommand = new ResetCommand();
 
-
+    public OperatorArmMoveSelection getArmMoveSelector() {
+        return armMoveSelector;
+    }
 
     private OI() {
 
