@@ -31,6 +31,8 @@ import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.climb.Beacher;
 import org.tahomarobotics.robot.climb.Paw;
 import org.tahomarobotics.robot.grabber.Grabber;
+import org.tahomarobotics.robot.lights.LED;
+import org.tahomarobotics.robot.lights.LEDConstants;
 import org.tahomarobotics.robot.util.ChartData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
 import org.tahomarobotics.robot.wrist.Wrist;
@@ -69,6 +71,7 @@ public class Robot extends TimedRobot {
 
         SparkMaxHelper.clear();
 
+        LED.getInstance().setLEDColor(LEDConstants.PARTY_MODE);
 
         logger.info("Robot Initialized.");
     }

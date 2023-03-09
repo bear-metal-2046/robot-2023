@@ -19,10 +19,13 @@
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
+import org.tahomarobotics.robot.lights.LED;
+import org.tahomarobotics.robot.lights.LEDConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -94,9 +97,17 @@ public class OperatorArmMoveSelection {
         InstantCommand cmd = new InstantCommand(() -> {
             mode = switch (mode) {
                 case CONE -> ConeOrCube.CUBE;
+
                 case CUBE -> ConeOrCube.CONE;
             };
             logger.info("Scoring mode: " + mode);
+            if (mode == ConeOrCube.CUBE){
+                LED.getInstance().color = LEDConstants.PURPLE;
+            } else if (mode == ConeOrCube.CONE) {
+                LED.getInstance().color = LEDConstants.YELLOW;
+            } else {
+                LED.getInstance().color = LEDConstants.BAD;
+            }
         });
         cmd.setName("Game Piece Toggle");
         return cmd;

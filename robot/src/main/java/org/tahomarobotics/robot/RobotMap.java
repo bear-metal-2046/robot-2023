@@ -54,4 +54,6 @@ public final class RobotMap {
 Peripherals
  */
     public static int PIGEON = 0;
+
+    public static int BLINKIN = 9;
 }

@@ -32,6 +32,7 @@ import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
+import org.tahomarobotics.robot.lights.LED;
 
 import static edu.wpi.first.wpilibj.XboxController.Button.*;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CONE;
