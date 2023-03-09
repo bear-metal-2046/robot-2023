@@ -34,8 +34,7 @@ public class OperatorArmMoveSelection {
 
     private static final Logger logger = LoggerFactory.getLogger(OperatorArmMoveSelection.class);
 
-
-    public enum ConeOrCube { CONE, CUBE }
+        public enum ConeOrCube { CONE, CUBE }
     public enum ScoringLevel { HIGH(0), MID(90);
         public final int pov;
         ScoringLevel(int pov) {
@@ -99,7 +98,13 @@ public class OperatorArmMoveSelection {
             };
             logger.info("Scoring mode: " + mode);
         });
-        cmd.setName("Game Piece");
+        cmd.setName("Game Piece Toggle");
+        return cmd;
+    }
+
+    public InstantCommand gamePieceMode(ConeOrCube mode) {
+        var cmd = new InstantCommand(() -> this.mode = mode);
+        cmd.setName(mode.name());
         return cmd;
     }
 

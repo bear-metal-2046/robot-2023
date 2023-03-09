@@ -19,8 +19,10 @@
  */
 package org.tahomarobotics.robot.grabber;
 
+import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 
@@ -30,13 +32,13 @@ public class CollectCommand extends CommandBase {
 
     private final DoubleSupplier driveLeftTrigger;
     private final DoubleSupplier manipLeftTrigger;
-    private final IntSupplier povDir;
+    private final BooleanSupplier ejectButton;
 
     Grabber grabber = Grabber.getInstance();
-    public CollectCommand(DoubleSupplier driveLeftTrigger, DoubleSupplier manipLeftTrigger, IntSupplier povDir) {
+    public CollectCommand(DoubleSupplier driveLeftTrigger, DoubleSupplier manipLeftTrigger, BooleanSupplier ejectButton) {
         this.driveLeftTrigger = driveLeftTrigger;
         this.manipLeftTrigger = manipLeftTrigger;
-        this.povDir = povDir;
+        this.ejectButton = ejectButton;
         addRequirements(grabber);
     }
 
@@ -44,7 +46,7 @@ public class CollectCommand extends CommandBase {
     public void execute() {
         double ingest = driveLeftTrigger.getAsDouble();
         double score = manipLeftTrigger.getAsDouble();
-        boolean isEject = povDir.getAsInt() == 180;
+        boolean isEject = ejectButton.getAsBoolean();
         boolean isScore = score > TRIGGER_DEAD_ZONE;
         boolean isIngest = ingest > TRIGGER_DEAD_ZONE;
 

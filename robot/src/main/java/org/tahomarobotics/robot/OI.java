@@ -30,33 +30,32 @@ import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
-import org.tahomarobotics.robot.climb.ResetCommand;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 
 import static edu.wpi.first.wpilibj.XboxController.Button.*;
+import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CONE;
+import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CUBE;
 
 public final class OI implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(OI.class);
-
     private static final OI INSTANCE = new OI();
+
+    private static final int POV_EAST = 90;
+    private static final int POV_SOUTH = 180;
+    private static final int POV_WEST = 270;
 
     public static OI getInstance() {
         return INSTANCE;
     }
 
-    private final OperatorArmMoveSelection armMoveSelector = new OperatorArmMoveSelection();
-    private final Grabber grabber = Grabber.getInstance();
-
     private static final double ROTATIONAL_SENSITIVITY = 3;
     private static final double FORWARD_SENSITIVITY = 3;
+    private static final double DEAD_ZONE = 0.09;
+    // If 9% does not fell responsive enough try 10.5%
 
-    private final XboxController driveController = new XboxController(0);
-    private final XboxController manipController = new XboxController(1);
 
-    private final ClimbSequence climbCommand = new ClimbSequence();
-    private final ResetCommand resetCommand = new ResetCommand();
-
+    private final OperatorArmMoveSelection armMoveSelector = new OperatorArmMoveSelection();
     public OperatorArmMoveSelection getArmMoveSelector() {
         return armMoveSelector;
     }
@@ -64,6 +63,9 @@ public final class OI implements SubsystemIF {
     private OI() {
 
         Chassis chassis = Chassis.getInstance();
+
+        XboxController driveController = new XboxController(0);
+        XboxController manipController = new XboxController(1);
 
         chassis.setDefaultCommand(
                 new TeleopDriveCommand(
@@ -73,28 +75,52 @@ public final class OI implements SubsystemIF {
                 )
         );
 
-        grabber.setDefaultCommand(
+        Grabber.getInstance().setDefaultCommand(
                 new CollectCommand(
                         driveController::getLeftTriggerAxis,
                         manipController::getLeftTriggerAxis,
-                        driveController::getPOV
+                        new POVButton(driveController, POV_SOUTH)
                 )
         );
-        //Robot Orientation
+
+        /*
+         *  Buttons - Driver
+         *    A         - Orient to Zero Heading
+         *    B         - Robot/Field Oriented Toggle
+         *    X         - Game Cone/Cube Toggle
+         *    Y         - Position to Stow
+         *    Start     - Climb
+         *    Back      - Pre-Climb
+         *    L Bumper  - Low Collect
+         *    R Bumper  - Feeder Collect
+         *    POV South - Eject (Grabber above)
+         *    POV East  - Cube Mode
+         *    POV West  - Cone Mode
+         */
+
+        // Robot Heading Zeroing
         JoystickButton AButton = new JoystickButton(driveController, 1);
         AButton.onTrue(new InstantCommand(chassis::orientToZeroHeading));
 
+        // Robot/Field Orientation
         JoystickButton BButton = new JoystickButton(driveController, 2);
         BButton.onTrue(new InstantCommand(chassis::toggleOrientation));
 
-        //Climb
-        JoystickButton climb = new JoystickButton(driveController, kStart.value);
-        climb.onTrue(new InstantCommand(this::initiateMounting));
+        // Select Game Piece Mode
+        JoystickButton XButton = new JoystickButton(driveController, kX.value);
+        XButton.onTrue(armMoveSelector.toggleGamePieceMode());
 
+        // Position to Stow
+        JoystickButton YButton = new JoystickButton(driveController, kY.value);
+        YButton.onTrue(ArmMovements.createPositionToStowCommand());
+
+        // Climb
+        JoystickButton climb = new JoystickButton(driveController, kStart.value);
+        climb.onTrue(new ClimbSequence());
+
+        // Pre-Clmb
         JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
         preClimb.onTrue(new ArmMoveCommand(ArmMovements.STOW_TO_CLIMB));
-
-
 
         // Move to arm to collecting
         JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);
@@ -103,10 +129,22 @@ public final class OI implements SubsystemIF {
         JoystickButton driveLB = new JoystickButton(driveController, kLeftBumper.value);
         driveLB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW));
 
+        POVButton povEast = new POVButton(driveController, POV_EAST);
+        povEast.onTrue(armMoveSelector.gamePieceMode(CUBE));
+
+        POVButton povWest = new POVButton(driveController, POV_WEST);
+        povWest.onTrue(armMoveSelector.gamePieceMode(CONE));
+
+        /*
+         *  Buttons - Manipulator
+         *    POV North - Score HIGH
+         *    POV East  - Score MID
+         *    R Bumper  - Scoring Toggle
+         */
+
         // Move to arm to scoring
         JoystickButton manipRB = new JoystickButton(manipController, kRightBumper.value);
         manipRB.onTrue(armMoveSelector.toggleScoring());
-
 
         // Select Scoring Levels
         POVButton manipUp = new POVButton(manipController, OperatorArmMoveSelection.ScoringLevel.HIGH.pov);
@@ -114,25 +152,8 @@ public final class OI implements SubsystemIF {
 
         POVButton manipMid = new POVButton(manipController, OperatorArmMoveSelection.ScoringLevel.MID.pov);
         manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
-
-        // Select Game Piece Mode
-        JoystickButton XButton = new JoystickButton(driveController, kX.value);
-        XButton.onTrue(armMoveSelector.toggleGamePieceMode());
-
-        JoystickButton YButton = new JoystickButton(driveController, kY.value);
-        YButton.onTrue(ArmMovements.createPositionToStowCommand());
     }
 
-    private void resetClimb() {
-        resetCommand.schedule();
-    }
-
-    private void initiateMounting() {
-        climbCommand.schedule();
-    }
-
-    private static final double DEAD_ZONE = 0.09;
-    //If 9% does not fell responsive enough try 10.5%
 
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {

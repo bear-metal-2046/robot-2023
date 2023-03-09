@@ -182,16 +182,24 @@ public class ArmShuffleboard {
 
         var armGamePieceMode = armControls.getLayout("game-piece-mode", BuiltInLayouts.kGrid)
                 .withProperties(Map.of(
-                        "Number of columns", 2,
+                        "Number of columns", 4,
                         "Number of rows", 1,
                         "Label position", "HIDDEN"));
 
-        armGamePieceMode.add("Game-Piece", selector.toggleGamePieceMode());
+        armGamePieceMode.add("Toggle Game-Piece", selector.toggleGamePieceMode())
+                .withPosition(0,0);
 
         gamePieceMode = armGamePieceMode.add("game-piece-mode-value", Boolean.FALSE)
                 .withWidget(BuiltInWidgets.kBooleanBox)
+                .withPosition(1, 0)
                 .withProperties(Map.of("Color when false", "MAGENTA", "Color when true", "YELLOW"))
                 .getEntry();
+
+        armGamePieceMode.add("Cube", selector.gamePieceMode(ConeOrCube.CUBE))
+                .withPosition(2,0);
+        armGamePieceMode.add("Cone", selector.gamePieceMode(ConeOrCube.CONE))
+                .withPosition(3,0);
+
 
 
 

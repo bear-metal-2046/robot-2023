@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tahomarobotics.robot.grabber.GrabberConstants.TRIGGER_DEAD_ZONE;
@@ -63,13 +63,13 @@ class CollectCommandTest {
         }
     }
 
-    static class TestPovDirSupplier implements IntSupplier {
-        private int direction;
+    static class TestPovDirSupplier implements BooleanSupplier {
+        private boolean active;
 
-        public void setDirection(int direction) { this.direction = direction; }
+        public void setActive(boolean active) { this.active = active; }
         @Override
-        public int getAsInt() {
-            return direction;
+        public boolean getAsBoolean() {
+            return active;
         }
     }
 
@@ -127,11 +127,11 @@ class CollectCommandTest {
             testCollectCommand.execute();
             assertEquals(Grabber.MovementState.INGEST, testGrabber.getState());
 
-            povDir.setDirection(180);
+            povDir.setActive(true);
             testCollectCommand.execute();
             assertEquals(Grabber.MovementState.EJECT, testGrabber.getState());
 
-            povDir.setDirection(0);
+            povDir.setActive(false);
             testCollectCommand.execute();
             assertEquals(Grabber.MovementState.OFF, testGrabber.getState());
 
