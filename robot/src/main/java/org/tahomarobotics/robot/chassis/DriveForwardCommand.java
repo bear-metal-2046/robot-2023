@@ -43,11 +43,8 @@ public class DriveForwardCommand extends CommandBase {
     public void initialize() {
         timer.reset();
         timer.start();
-    }
-
-    @Override
-    public void execute() {
-        chassis.drive(ChassisSpeeds.fromFieldRelativeSpeeds(velocity, 0, 0, chassis.getPose().getRotation()), false);
+        // drive robot oriented mode
+        chassis.drive(new ChassisSpeeds(velocity, 0d, 0d), false);
     }
 
     @Override
@@ -58,5 +55,6 @@ public class DriveForwardCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         chassis.drive(new ChassisSpeeds());
+        logger.info("Completed DriveForwardCommand");
     }
 }
