@@ -24,23 +24,24 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class InjestCommand extends CommandBase {
+public class IngestCommand extends CommandBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(InjestCommand.class);
-    private static final double INJEST_DURATION = 1.0;
-    private static final double INJEST_LEVEL = 1.0;
+    private static final Logger logger = LoggerFactory.getLogger(IngestCommand.class);
+    private static double INGEST_DURATION;
+    private static final double INGEST_LEVEL = 1.0;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
 
-    public InjestCommand() {
+    public IngestCommand(double time) {
         addRequirements(grabber);
+        INGEST_DURATION = time;
     }
 
     @Override
     public void initialize() {
         timer.restart();
-        grabber.ingest(INJEST_LEVEL);
+        grabber.ingest(INGEST_LEVEL);
     }
 
     @Override
@@ -51,6 +52,6 @@ public class InjestCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return timer.hasElapsed(INJEST_DURATION);
+        return timer.hasElapsed(INGEST_DURATION) || grabber.getState() == Grabber.MovementState.RETAIN;
     }
 }

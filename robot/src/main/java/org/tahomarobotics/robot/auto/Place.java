@@ -9,7 +9,7 @@ public class Place extends SequentialCommandGroup {
     public Place(GamePiece piece, Level level) {
         if (level.equals(Level.GROUND)) {
             addCommands(
-                    new ScoreCommand()
+                    new ScoreCommand(0.25)
             );
         }
         switch (piece) {
@@ -19,13 +19,12 @@ public class Place extends SequentialCommandGroup {
                             //TODO What ever I do to this, do to all
                         addCommands(
                                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
-                                new ScoreCommand()
+                                new ScoreCommand(0.25)
                         );
                     case MID ->
                         addCommands(
                                 new ArmMoveCommand(ArmMovements.STOW_TO_MID_POLE),
-                                new ScoreCommand(),
-                                new ArmMoveCommand(ArmMovements.MID_POLE_TO_STOW)
+                                new ScoreCommand(0.25)
                         );
                 }
             }
@@ -34,14 +33,12 @@ public class Place extends SequentialCommandGroup {
                     case HIGH ->
                         addCommands(
                                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_BOX),
-                                new ScoreCommand(),
-                                new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW)
+                                new ScoreCommand(0.25)
                         );
                     case MID ->
                         addCommands(
                                 new ArmMoveCommand(ArmMovements.STOW_TO_MID_BOX),
-                                new ScoreCommand(),
-                                new ArmMoveCommand(ArmMovements.MID_BOX_TO_STOW)
+                                new ScoreCommand(0.25)
                         );
                 }
             }

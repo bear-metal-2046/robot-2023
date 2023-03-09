@@ -27,14 +27,15 @@ import org.slf4j.LoggerFactory;
 public class ScoreCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(ScoreCommand.class);
-    private static final double SCORE_DURATION = 0.25;
+    private static double SCORE_DURATION = 0.25;
     private static final double SCORE_LEVEL = 1.0;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
 
-    public ScoreCommand() {
+    public ScoreCommand(double time) {
         addRequirements(grabber);
+        SCORE_DURATION = time;
     }
 
     @Override
