@@ -17,7 +17,12 @@ import java.util.List;
 
 public class MidPlaceEngage extends Place implements AutonomousCommandIF{
 
-    private List<Trajectory> list = new ArrayList<>();
+    private static final List<Trajectory> trajectories = new ArrayList<>();
+
+    @Override
+    public List<Trajectory> getTrajectories() {
+        return trajectories;
+    }
 
     private final Pose2d startPose = new Pose2d(Units.inchesToMeters(582.9), Units.inchesToMeters(152.2),
             new Rotation2d(Units.degreesToRadians(180)));
@@ -39,17 +44,12 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(new Pose2d(startPose.getTranslation(), new Rotation2d(0)))),
                 new ParallelCommandGroup(
-                        Drive.drive(startPose, engage, rot, config, list),
+                        Drive.drive(startPose, engage, rot, config, trajectories),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
                 ),
-                Drive.drive(engage, taxi, rot, config, list),
-                Drive.drive(taxi, engage, rot, reversedConfig, list),
+                Drive.drive(engage, taxi, rot, config, trajectories),
+                Drive.drive(taxi, engage, rot, reversedConfig, trajectories),
                 new BalancedCommand()
         );
-    }
-
-    @Override
-    public void onSelection() {
-        Chassis.getInstance().updateTrajectory(list.size() > 0 ? list : null);
     }
 }

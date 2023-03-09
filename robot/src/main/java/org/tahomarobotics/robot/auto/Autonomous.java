@@ -31,8 +31,10 @@ public class Autonomous implements SubsystemIF {
     private final SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
     private final Command defaultCommand = new NoOperation();
     private Command autonomousCommand;
+    private AutoShuffleboard shuffleboard;
 
     public Autonomous initialize(){
+        shuffleboard = new AutoShuffleboard(autoCommandChooser);
 
         addAuto(defaultCommand);
         addAuto(new PlaceTaxi(GamePiece.CONE, Level.HIGH));
@@ -42,7 +44,7 @@ public class Autonomous implements SubsystemIF {
         selectionAutoChange(autoCommandChooser.getSelected());
 
         NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
-        StringSubscriber subscriber = netInstance.getTable("SmartDashboard").getSubTable("AutonomousChooser").getStringTopic("selected").subscribe("defaultAutoCommand");
+        StringSubscriber subscriber = netInstance.getTable("Shuffleboard").getSubTable("Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
         netInstance.addListener(subscriber, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
             selectionAutoChange(autoCommands.get((String) e.valueData.value.getValue()));
         });

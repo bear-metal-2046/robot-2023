@@ -249,19 +249,16 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     public void displayAbsolutePositions() { swerveModules.forEach(SwerveModuleIF::displayPosition); }
 
     public void updateTrajectory(List<Trajectory> trajectories) {
-        String name = SendableRegistry.getName(fieldPose);
-        var inst = NetworkTableInstance.getDefault();
-        var sd = inst.getTable("SmartDashboard").getSubTable(name);
-        for (String key : sd.getKeys()) {
-            if (key.startsWith("traj")) {
-                fieldPose.getObject(key).setPoses(List.of());
-            }
-        }
-        actualPath.clear();
-        SmartDashboard.getEntry(name + "/Robot").unpublish();
 
+        // clear out any previous paths
+        for (int i = 0; i < 10; i++) {
+            fieldPose.getObject("traj" + i).setTrajectory(new Trajectory());
+        }
+        fieldPose.getObject("robot-path").setTrajectory(new Trajectory());
+        actualPath.clear();
 
         fieldPose.setRobotPose(trajectories == null ? getPose() : trajectories.get(0).getInitialPose());
+
         if (trajectories != null) {
             for (int i = 0; i < trajectories.size(); i++) {
                 fieldPose.getObject("traj" + i).setTrajectory(trajectories.get(i));
@@ -272,6 +269,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     public void updateActualTrajectory(List<Pose2d> actualTrajectory) {
         actualPath.addAll(actualTrajectory);
         fieldPose.getObject("robot-path").setPoses(actualPath);
+    }
+
+    public Field2d getFieldView() {
+        return fieldPose;
     }
 
     @Override

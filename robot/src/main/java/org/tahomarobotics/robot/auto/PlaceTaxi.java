@@ -12,7 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PlaceTaxi extends Place implements AutonomousCommandIF {
-    private List<Trajectory> trajectories = new ArrayList<>();
+
+    private static final List<Trajectory> trajectories = new ArrayList<>();
+
+    @Override
+    public List<Trajectory> getTrajectories() {
+        return trajectories;
+    }
     private final Pose2d startPose = new Pose2d(Units.inchesToMeters(582.9), Units.inchesToMeters(216.7),
             new Rotation2d(Units.degreesToRadians(180)));
     private final Pose2d taxi = new Pose2d(Units.inchesToMeters(498.36), Units.inchesToMeters(216.7),
@@ -30,10 +36,5 @@ public class PlaceTaxi extends Place implements AutonomousCommandIF {
                 Drive.drive(startPose, taxi, taxiRot, config.setEndVelocity(1.5), trajectories),
                 Drive.drive(taxi, firstCollect, fistCollectRot, config.setStartVelocity(1.5), trajectories)
         );
-    }
-
-    @Override
-    public void onSelection() {
-        Chassis.getInstance().updateTrajectory(trajectories.size() > 0 ? trajectories : null);
     }
 }
