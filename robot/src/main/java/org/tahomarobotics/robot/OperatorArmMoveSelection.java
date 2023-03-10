@@ -46,7 +46,6 @@ public class OperatorArmMoveSelection {
     }
     public enum CollectLevel {FEEDER, LOW }
     public enum ArmPosition { SCORE, STOW, COLLECT }
-    private static final Command NULL_ARM_MOVE = new InstantCommand();
     private record ScoreCommandKey(ScoringLevel level, ConeOrCube mode, ArmPosition armPosition) {}
     private record CollectCommandKey(CollectLevel level, ConeOrCube mode, ArmPosition armPosition) {}
     private final Map<ScoreCommandKey, ArmMove> scoreCommands = new HashMap<>();
@@ -77,9 +76,7 @@ public class OperatorArmMoveSelection {
     private ScoringLevel scoreLevel = ScoringLevel.HIGH;
     private ConeOrCube mode = ConeOrCube.CUBE;
     private ArmPosition armPosition = ArmPosition.STOW;
-    private Command stowCommand = NULL_ARM_MOVE;
-    private Command scoreCommand = NULL_ARM_MOVE;
-    private Command collectCommand = NULL_ARM_MOVE;
+    private Command stowCommand = new InstantCommand();
 
     public InstantCommand setScoringLevel(ScoringLevel level) {
         InstantCommand cmd = new InstantCommand(() -> {
@@ -134,7 +131,7 @@ public class OperatorArmMoveSelection {
             case COLLECT, SCORE -> stowCommand
                     .andThen(new InstantCommand(() -> {
                         armPosition = ArmPosition.STOW;
-                        stowCommand = NULL_ARM_MOVE;
+                        stowCommand = new InstantCommand();
                     }));
         };
 
@@ -158,7 +155,7 @@ public class OperatorArmMoveSelection {
             case SCORE, COLLECT -> stowCommand
                     .andThen(new InstantCommand(() -> {
                         armPosition = ArmPosition.STOW;
-                        stowCommand = NULL_ARM_MOVE;
+                        stowCommand = new InstantCommand();
                     }));
         };
 
