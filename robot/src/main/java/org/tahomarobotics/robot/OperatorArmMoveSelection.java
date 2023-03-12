@@ -19,8 +19,8 @@
  */
 package org.tahomarobotics.robot;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
@@ -29,7 +29,6 @@ import org.tahomarobotics.robot.lights.LEDConstants;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static org.tahomarobotics.robot.arm.ArmMovements.*;
 
@@ -116,52 +115,55 @@ public class OperatorArmMoveSelection {
         return cmd;
     }
 
-    public ProxyCommand toggleScoring() {
+    public Command toggleScoring() {
 
-        Supplier<Command> selector = () -> switch (armPosition) {
+        return new InstantCommand(() -> {
 
-            // Stowed position, so move to score
-            case STOW -> new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)))
-                    .andThen(new InstantCommand(() -> {
-                        armPosition = ArmPosition.SCORE;
-                        stowCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW))); // set stow command for next stow
-                    }));
+            switch (armPosition) {
 
-            // Collect position, stow first then move to score
-            case COLLECT, SCORE -> stowCommand
-                    .andThen(new InstantCommand(() -> {
-                        armPosition = ArmPosition.STOW;
-                        stowCommand = new InstantCommand();
-                    }));
-        };
+                // Stowed position, so move to score
+                case STOW -> {
+                    var scoreCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)));
+                    scoreCommand.schedule();
+                    logger.info("Scoring " + mode + " at " + scoreLevel + " with " + scoreCommand.getName());
+                    armPosition = ArmPosition.SCORE;
+                    stowCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW))); // set stow command for next stow
+                }
 
-        var cmd = new ProxyCommand(selector);
-        cmd.setName("Score");
-        return cmd;
+                // Collect position, stow first then move to score
+                case COLLECT, SCORE -> {
+                    stowCommand.schedule();
+                    logger.info("Stowing Arm with " + stowCommand.getName());
+                    armPosition = ArmPosition.STOW;
+                    stowCommand = new InstantCommand();
+                }
+            }
+        });
     }
 
-    public ProxyCommand toggleCollecting(CollectLevel collectLevel) {
+    public Command toggleCollecting(CollectLevel collectLevel) {
 
-        Supplier<Command> selector = () -> switch (armPosition) {
+        return new InstantCommand(() -> {
+            switch (armPosition) {
 
-            // Stowed position, so move to score
-            case STOW -> new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.COLLECT)))
-                    .andThen(new InstantCommand(() -> {
-                        armPosition = ArmPosition.COLLECT;
-                        stowCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.STOW))); // set stow command for next stow
-                    }));
+                // Stowed position, so move to score
+                case STOW -> {
+                    var collectCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.COLLECT)));
+                    collectCommand.schedule();
+                    logger.info("Collecting " + mode + " with " + collectCommand.getName());
+                    armPosition = ArmPosition.COLLECT;
+                    stowCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.STOW))); // set stow command for next stow
+                }
 
-            // Collect position, stow first then move to score
-            case SCORE, COLLECT -> stowCommand
-                    .andThen(new InstantCommand(() -> {
-                        armPosition = ArmPosition.STOW;
-                        stowCommand = new InstantCommand();
-                    }));
-        };
-
-        var cmd = new ProxyCommand(selector);
-        cmd.setName("Collect " + collectLevel);
-        return cmd;
+                // Collect position, stow first then move to score
+                case SCORE, COLLECT -> {
+                    stowCommand.schedule();
+                    logger.info("Stowing Arm with " + stowCommand.getName());
+                    armPosition = ArmPosition.STOW;
+                    stowCommand = new InstantCommand();
+                }
+            }
+        });
     }
 
     public void reset() {

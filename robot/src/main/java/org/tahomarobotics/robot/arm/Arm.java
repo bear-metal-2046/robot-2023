@@ -163,7 +163,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     @Override
     public ArmSubsystemIF initialize() {
-        shuffleboard.initialize();
+        //shuffleboard.initialize();
         return this;
     }
 

@@ -44,8 +44,8 @@ public class ClimbSequence extends SequentialCommandGroup {
                         new SequentialCommandGroup(
                                 new WaitCommand(0.85),
                                 new ParallelCommandGroup(
-                                        new DriveForwardCommand(-1, 2.5),
-                                        new BeacherCommand(2.5, -0.5)
+                                        new DriveForwardCommand(-1, 3.0),
+                                        new BeacherCommand(3.0, -0.5)
                                 )
                         ),
                         new SequentialCommandGroup(

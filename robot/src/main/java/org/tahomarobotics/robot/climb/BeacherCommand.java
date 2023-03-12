@@ -24,7 +24,6 @@ public class BeacherCommand extends CommandBase {
 
     @Override
     public void execute() {
-        logger.error("Running beacher command");
         beacher.runBeacher(speed);
     }
 

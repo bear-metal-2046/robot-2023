@@ -7,7 +7,6 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
@@ -49,7 +48,11 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
                 ),
                 Drive.drive(engage, taxi, rot, config, trajectories),
                 Drive.drive(taxi, engage, rot, reversedConfig, trajectories),
-                new BalancedCommand()
+                new BalancedCommand(),
+                new InstantCommand(() -> Chassis.getInstance().resetOdometry(
+                        new Pose2d(engage.getTranslation(),
+                        new Rotation2d(Units.degreesToRadians(180))))
+                )
         );
     }
 }

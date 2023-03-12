@@ -76,7 +76,7 @@ public final class RevChassisConstants implements ChassisConstantsIF {
 
 
     //The Acceleration limiters for translation
-    public static final double TRANSLATION_LIMIT = 9.0;
+    public static final double TRANSLATION_LIMIT = 12.0;
 
     //The Acceleration limiters for rotation
     public static final double ROTATION_LIMIT = TRANSLATION_LIMIT/ Math.hypot(HALF_TRACK_WIDTH, HALF_WHEELBASE);

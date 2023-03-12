@@ -36,6 +36,10 @@ public class PlaceTaxi extends Place implements AutonomousCommandIF {
                 new ParallelCommandGroup(
                         Drive.drive(startPose, firstPreCollect, fistCollectRot, config, trajectories),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
+                ),
+                new InstantCommand(() -> Chassis.getInstance().resetOdometry(
+                        new Pose2d(firstPreCollect.getTranslation(),
+                        new Rotation2d(Units.degreesToRadians(180))))
                 )
         );
     }
