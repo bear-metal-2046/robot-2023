@@ -265,6 +265,11 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         return positionOffset;
     }
 
+    @Override
+    public void simulationPeriodic() {
+
+    }
+
     /* From SDS with Modifications */
     public void setReferenceAngle(double referenceAngle) {
 

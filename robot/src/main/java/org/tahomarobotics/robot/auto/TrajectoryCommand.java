@@ -122,7 +122,7 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
         velData.addData(new double[]{time,
                 desiredPose.velocityMetersPerSecond,
-                Chassis.getInstance().getAvgVelocity()
+                Chassis.getInstance().getVelocity()
         });
         hdgData.addData(new double[]{time,
                 desiredPose.poseMeters.getRotation().getDegrees(),

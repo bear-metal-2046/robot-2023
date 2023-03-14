@@ -32,8 +32,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -49,6 +47,8 @@ import org.tahomarobotics.robot.vision.Vision;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static edu.wpi.first.wpilibj.Timer.getFPGATimestamp;
 
 /**
  * Chassis Subsystem Class
@@ -82,6 +82,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final CalibrationData<Double[]> swerveCalibration;
 
     private final Vision vision;
+
+    private double lastUpdateTime = getFPGATimestamp();
+
+    private double velocity = 0d;
 
     private Chassis() {
         // Configures the Chassis according to the current RobotID.
@@ -183,8 +187,24 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
+        Pose2d prev = getPose();
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
-        fieldPose.setRobotPose(getPose());
+        Pose2d current = getPose();
+
+        // calculate velocity
+        double time = getFPGATimestamp();
+        var distance = prev.getTranslation().getDistance(current.getTranslation());
+        var dt = time - lastUpdateTime;
+        lastUpdateTime = time;
+        velocity = distance / dt;
+
+        if (velocity > 10) {
+            logger.warn("Large velocity: " + velocity + "prevPose: " + prev);
+        }
+
+        fieldPose.setRobotPose(current);
+
+
         swerveModules.forEach(SwerveModuleIF::displayPosition);
 
         SmartDashboard.putString("Gyro Yaw", getYaw().toString());
@@ -201,8 +221,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         return swerveModules.stream().map(SwerveModuleIF::getPosition).toArray(SwerveModulePosition[]::new);
     }
 
-    public double getAvgVelocity() {
-        return swerveModules.stream().mapToDouble(SwerveModuleIF::getDriveVelocity).sum()/4d;
+    public double getVelocity() {
+        return velocity;
     }
 
     public void setSwerveStates(SwerveModuleState[] states) {
@@ -226,6 +246,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
+        logger.info("Reset Pose: " + pose);
     }
 
     public void orientToZeroHeading() {
@@ -242,7 +263,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void simulationPeriodic() {
         final double dT = 0.02;
-
+        swerveModules.forEach(SwerveModuleIF::simulationPeriodic);
         ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(swerveModules.stream()
                 .map(SwerveModuleIF::getState)
                 .toArray(SwerveModuleState[]::new));

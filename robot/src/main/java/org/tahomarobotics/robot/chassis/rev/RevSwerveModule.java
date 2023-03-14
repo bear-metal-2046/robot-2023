@@ -35,6 +35,8 @@ import org.tahomarobotics.robot.chassis.SwerveModuleIF;
 import org.tahomarobotics.robot.util.SparkMaxConfig;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
 
+import static edu.wpi.first.wpilibj.Timer.getFPGATimestamp;
+
 /**
  * SwerveModule Class
  * Handles setup and various utility methods for Swerve Modules.
@@ -102,6 +104,14 @@ public class RevSwerveModule implements SwerveModuleIF {
     }
 
     @Override
+    public void simulationPeriodic() {
+        double time = getFPGATimestamp();
+        position.angle = state.angle;
+        position.distanceMeters += state.speedMetersPerSecond * (time - lastTime);
+        lastTime = time;
+    }
+
+    @Override
     public double getVelocity() {
         return driveMotor.getEncoder().getVelocity();
     }
@@ -129,12 +139,6 @@ public class RevSwerveModule implements SwerveModuleIF {
         return RobotBase.isReal() ? new SwerveModulePosition(getDrivePos(), new Rotation2d(getAbsoluteAngle())) : position;
     }
 
-    @Override
-    public double getDriveVelocity() {
-        SwerveModuleState _state = SwerveModuleState.optimize(getState(), new Rotation2d(getAbsoluteAngle()));
-        return _state.speedMetersPerSecond;
-    }
-
     /**
      * Sets the desired state for the module.
      * @param desiredState Desired state with speed and angle.
@@ -144,11 +148,6 @@ public class RevSwerveModule implements SwerveModuleIF {
         double steerAngle = getAbsoluteAngle();
 
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
-
-        double time = RobotController.getFPGATime() * 1e-6;
-        position.angle = state.angle;
-        position.distanceMeters += state.speedMetersPerSecond * (time - lastTime);
-        lastTime = time;
 
         // Calculate the drive output from the drive PID controller.
         double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
