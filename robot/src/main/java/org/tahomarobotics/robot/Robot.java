@@ -75,6 +75,7 @@ public class Robot extends TimedRobot {
 
         logger.info("Robot Initialized.");
     }
+
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
@@ -84,18 +85,12 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
         subsystems.forEach(SubsystemIF::onAutonomousInit);
         logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
-        Autonomous.getInstance().initiate();
-    }
-
-    @Override
-    public void autonomousExit() {
-        Autonomous.getInstance().cancel();
     }
 
     @Override
     public void teleopInit() {
         subsystems.forEach(SubsystemIF::onTeleopInit);
-        logger.warn("-=-=-=- TELEOP initiated -=-=-=-");
+        logger.info("-=-=-=- TELEOP initiated -=-=-=-");
     }
 
     @Override
@@ -116,6 +111,8 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {}
     @Override
     public void testPeriodic() {}
+    @Override
+    public void disabledPeriodic() {}
 
     private void initializeSerializeWorkaround() {
         ChartData chartData = new ChartData(

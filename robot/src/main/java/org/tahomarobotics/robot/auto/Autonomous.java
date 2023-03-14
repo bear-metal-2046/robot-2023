@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
+import org.tahomarobotics.robot.arm.ArmMovements;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -73,7 +74,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
     private Map<Command, Command> blueToRed = new HashMap<>();
 
-    public void addAuto(Command command, Command red) {
+    private void addAuto(Command command, Command red) {
         blueToRed.put(command, red);
         autoCommands.put(command.getName(), command);
 
@@ -104,15 +105,26 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         return command;
     }
 
-    public void initiate() {
+    @Override
+    public void onDisabledInit() {
+        if (autonomousCommand != null) {
+            autonomousCommand.cancel();
+        }
+    }
+
+    @Override
+    public void onAutonomousInit() {
         autonomousCommand = getSelectedCommand();
         logger.info("Running " + autonomousCommand.getName() + "...");
         autonomousCommand.schedule();
     }
 
-    public void cancel() {
+    @Override
+    public void onTeleopInit() {
         if (autonomousCommand != null) {
-            autonomousCommand.cancel();
+            ArmMovements.createPositionToStowCommand().schedule();
+            autonomousCommand = null;
         }
+
     }
 }

@@ -21,7 +21,7 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
 
     private final Pose2d startPose = new Pose2d(Units.inchesToMeters(582.9), Units.inchesToMeters(152.2),
             new Rotation2d(Units.degreesToRadians(180)));
-    private final Pose2d taxi = new Pose2d(Units.inchesToMeters(420.9), Units.inchesToMeters(152.2),
+    private final Pose2d taxi = new Pose2d(Units.inchesToMeters(410.0), Units.inchesToMeters(152.2),
             new Rotation2d(Units.degreesToRadians(180)));
     private final Pose2d engage = new Pose2d(Units.inchesToMeters(498.8), Units.inchesToMeters(152.2),
             new Rotation2d(Units.degreesToRadians(180)));
