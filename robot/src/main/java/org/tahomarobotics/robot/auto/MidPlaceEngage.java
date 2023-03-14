@@ -8,14 +8,16 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MidPlaceEngage extends Place implements AutonomousCommandIF{
+public class MidPlaceEngage extends SequentialCommandGroup implements AutonomousCommandIF{
 
     private static final List<Trajectory> trajectories = new ArrayList<>();
 
@@ -28,8 +30,7 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
 
     private final Rotation2d rot = new Rotation2d(Units.degreesToRadians(0));
 
-    public MidPlaceEngage(GamePiece piece, Level level){
-        super(piece, level);
+    public MidPlaceEngage(){
 
         TrajectoryConfig config = new TrajectoryConfig(1, 2)
                 .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
@@ -38,17 +39,15 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(new Pose2d(startPose.getTranslation(), new Rotation2d(0)))),
+                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         Drive.drive("Mid-to-Engage", startPose, engage, rot, config, trajectories),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
                 ),
                 Drive.drive("Engage-to-Taxi", engage, taxi, rot, config, trajectories),
                 Drive.drive("Back-to-Engage", taxi, engage, rot, reversedConfig, trajectories),
-                new BalancedCommand(),
-                new InstantCommand(() -> Chassis.getInstance().resetOdometry(
-                        new Pose2d(engage.getTranslation(),
-                        new Rotation2d(Units.degreesToRadians(180))))
-                )
+                new BalancedCommand()
         );
     }
 
@@ -64,6 +63,6 @@ public class MidPlaceEngage extends Place implements AutonomousCommandIF{
 
     @Override
     public List<Trajectory> getTrajectories() {
-        return List.of();
+        return trajectories;
     }
 }

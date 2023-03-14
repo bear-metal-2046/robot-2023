@@ -8,6 +8,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
@@ -15,7 +16,7 @@ import org.tahomarobotics.robot.chassis.Chassis;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaceTaxi extends Place implements AutonomousCommandIF {
+public class PlaceTaxi extends SequentialCommandGroup implements AutonomousCommandIF {
 
     private static final List<Trajectory> trajectories = new ArrayList<>();
 
@@ -24,10 +25,11 @@ public class PlaceTaxi extends Place implements AutonomousCommandIF {
     private final Pose2d firstPreCollect = new Pose2d(Units.inchesToMeters(434.2), Units.inchesToMeters(201.8),
             new Rotation2d(Units.degreesToRadians(180)));
     private final Rotation2d fistCollectRot = new Rotation2d(Units.degreesToRadians(180));
-    public PlaceTaxi(GamePiece piece, Level level) {
-        super(piece, level);
+    public PlaceTaxi() {
+
         TrajectoryConfig config = new TrajectoryConfig(2, 3)
                 .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(new Pose2d(startPose.getTranslation(), new Rotation2d(0)))),
                 new ParallelCommandGroup(
