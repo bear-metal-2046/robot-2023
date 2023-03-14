@@ -32,22 +32,17 @@ import java.util.function.Consumer;
 public class Autonomous extends VBox implements Consumer<EntryNotification> {
 
     private final NetworkTable table = DashboardNetworkTable.INSTANCE.getSmartDashboard();
-    private final NetworkTableEntry XChartEntry = table.getEntry("XPos");
-    private final NetworkTableEntry YChartEntry = table.getEntry("YPos");
+    private final NetworkTableEntry VelChartEntry = table.getEntry("Vel");
 
     private final XYChartPane chartPane = new XYChartPane();
-    private final XYChartPane chartPane2 = new XYChartPane();
 
     public Autonomous() {
         getChildren().add(chartPane);
-        getChildren().add(chartPane2);
         setFillWidth(true);
 
         VBox.setVgrow(chartPane, Priority.ALWAYS);
-        VBox.setVgrow(chartPane2, Priority.ALWAYS);
 
-        XChartEntry.addListener(this, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
-        YChartEntry.addListener(this::acceptSecond, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+        VelChartEntry.addListener(this, EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
     }
 
     @Override
@@ -55,11 +50,6 @@ public class Autonomous extends VBox implements Consumer<EntryNotification> {
         byte[] rawData = notification.getEntry().getRaw(null);
         ChartData chartData = ChartData.deserialize(rawData);
         chartPane.update(chartData);
-    }
-    public void acceptSecond(final EntryNotification notification) {
-        byte[] rawData = notification.getEntry().getRaw(null);
-        ChartData chartData = ChartData.deserialize(rawData);
-        chartPane2.update(chartData);
     }
 }
 

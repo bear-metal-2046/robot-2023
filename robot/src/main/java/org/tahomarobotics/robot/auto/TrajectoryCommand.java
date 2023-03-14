@@ -22,13 +22,11 @@ import java.util.List;
 
 public class TrajectoryCommand extends SwerveControllerCommand {
 
-    private static final Logger log = LoggerFactory.getLogger(TrajectoryCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(TrajectoryCommand.class);
     private final Trajectory trajectory;
 
-    private final ChartData posXData = new ChartData("Path Motion", "Time (sec)", "Position",
-            new String[]{"expected x", "actual x"});
-    private final ChartData posYData = new ChartData("Path Motion", "Time (sec)", "Position",
-            new String[]{"expected y", "actual y"});
+    private final ChartData velData = new ChartData("Path Motion", "Time (sec)", "Velocity",
+            new String[]{"expected vel", "actual vel"});
     private final ChartData hdgData = new ChartData("Path Motion", "Time (sec)", "Angle",
             new String[]{"expected hdg", "actual hgd"});
     private final List<Pose2d> actualTrajectory = new ArrayList<>();
@@ -40,15 +38,19 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     private final HolonomicDriveController controller;
     private final Rotation2d heading;
 
-    public TrajectoryCommand(Trajectory trajectory) {
-        this(trajectory, getFinalTrajectoryHeading(trajectory), createController());
+    private final boolean hasEndVelocity;
+
+    private final String name;
+
+    public TrajectoryCommand(String name, Trajectory trajectory) {
+        this(name, trajectory, getFinalTrajectoryHeading(trajectory), false, createController());
     }
 
-    public TrajectoryCommand(Trajectory trajectory, Rotation2d heading) {
-        this(trajectory, heading, createController());
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity) {
+        this(name, trajectory, heading, hasEndVelocity, createController());
     }
 
-    private TrajectoryCommand(Trajectory trajectory, Rotation2d heading, HolonomicDriveController controller) {
+    private TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity, HolonomicDriveController controller) {
         super(trajectory,
                 Chassis.getInstance()::getPose,
                 Chassis.getInstance().getSwerveDriveKinematics(),
@@ -57,9 +59,11 @@ public class TrajectoryCommand extends SwerveControllerCommand {
                 Chassis.getInstance()::setSwerveStates,
                 Chassis.getInstance()
         );
+        this.name = name;
         this.trajectory = trajectory;
         this.controller = controller;
         this.heading = heading;
+        this.hasEndVelocity = hasEndVelocity;
         timer = new Timer();
     }
 
@@ -70,8 +74,8 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     }
 
     private static HolonomicDriveController createController() {
-        PIDController xController = new PIDController(2, 0, 0.25);
-        PIDController yController = new PIDController(2, 0, 0.25);
+        PIDController xController = new PIDController(5, 0, 0.5);
+        PIDController yController = new PIDController(5, 0, 0.5);
         ProfiledPIDController headingController = new ProfiledPIDController(3.0, 0, 0.25, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
         HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
 
@@ -90,7 +94,6 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         double ta = 0.2 * trajectory.getTotalTimeSeconds();
         double maxVelocity = Math.abs(heading.minus(currentHeading).getRadians()) / (tv + ta);
         double maxAcceleration = maxVelocity / ta;
-        log.info(maxVelocity + " : " + maxAcceleration);
         return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
     }
 
@@ -99,8 +102,7 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         super.initialize();
         timer.reset();
         timer.start();
-        posXData.clear();
-        posYData.clear();
+        velData.clear();
         hdgData.clear();
         actualTrajectory.clear();
         actualTrajectory.add(chassis.getPose());
@@ -118,13 +120,9 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
         Trajectory.State desiredPose = trajectory.sample(time);
 
-        posXData.addData(new double[]{time,
-                desiredPose.poseMeters.getX(),
-                Chassis.getInstance().getPose().getX()
-        });
-        posYData.addData(new double[]{time,
-                desiredPose.poseMeters.getY(),
-                Chassis.getInstance().getPose().getY()
+        velData.addData(new double[]{time,
+                desiredPose.velocityMetersPerSecond,
+                Chassis.getInstance().getAvgVelocity()
         });
         hdgData.addData(new double[]{time,
                 desiredPose.poseMeters.getRotation().getDegrees(),
@@ -139,19 +137,21 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
     @Override
     public boolean isFinished() {
+        if (!timer.hasElapsed(trajectory.getTotalTimeSeconds())) return false;
         return trajectory.getStates().get(trajectory.getStates().size() - 1)
-                .poseMeters.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(4)
-                || timer.hasElapsed(trajectory.getTotalTimeSeconds() + 0.5);
+                .poseMeters.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(0.5) ||
+                timer.hasElapsed(trajectory.getTotalTimeSeconds() + 0.5);
     }
 
     @Override
     public void end(boolean interrupted) {
         super.end(interrupted);
-        SmartDashboard.putRaw("XPos", posXData.serialize());
-        SmartDashboard.putRaw("YPos", posYData.serialize());
+        SmartDashboard.putRaw("Vel", velData.serialize());
         SmartDashboard.putRaw("Hdg", hdgData.serialize());
         chassis.updateActualTrajectory(actualTrajectory);
-        chassis.drive(new ChassisSpeeds());
+        if (!hasEndVelocity)
+            chassis.drive(new ChassisSpeeds());
         timer.stop();
+        logger.info(name + "Trajectory has completed with velocity: " + trajectory.sample(trajectory.getTotalTimeSeconds()).velocityMetersPerSecond);
     }
 }

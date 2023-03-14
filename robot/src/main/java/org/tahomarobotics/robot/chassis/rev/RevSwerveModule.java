@@ -72,6 +72,7 @@ public class RevSwerveModule implements SwerveModuleIF {
         SparkMaxConfig driveConfig = RevChassisConstants.createDriveConfig(ports.drive());
 
         SparkMaxHelper.checkThenConfigure(name, logger, driveConfig, driveMotor, driveMotor.getEncoder());
+        drivePIDController.setPID(driveConfig.kP, driveConfig.kI, driveConfig.kD);
 
         driveMotor.getEncoder().setPosition(0.0);
 
@@ -126,6 +127,12 @@ public class RevSwerveModule implements SwerveModuleIF {
     public SwerveModulePosition getPosition() {
         // This code is speculative as the documentation and examples on is non-existent
         return RobotBase.isReal() ? new SwerveModulePosition(getDrivePos(), new Rotation2d(getAbsoluteAngle())) : position;
+    }
+
+    @Override
+    public double getDriveVelocity() {
+        SwerveModuleState _state = SwerveModuleState.optimize(getState(), new Rotation2d(getAbsoluteAngle()));
+        return _state.speedMetersPerSecond;
     }
 
     /**

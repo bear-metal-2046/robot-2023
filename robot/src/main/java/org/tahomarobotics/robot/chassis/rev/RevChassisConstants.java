@@ -43,8 +43,8 @@ public final class RevChassisConstants implements ChassisConstantsIF {
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
     // This changes the drive speed of the module (a pinion gear with more teeth will result in a
     // robot that drives faster).
-    public static final double DRIVING_MOTOR_PINION_TEETH = 14;
-    public static final double WHEEL_DIAMETER = 0.0762;
+    public static final double DRIVING_MOTOR_PINION_TEETH = 14d;
+    public static final double WHEEL_DIAMETER = Units.inchesToMeters(2.805);
     public static final double WHEEL_RADIUS = WHEEL_DIAMETER / 2;
 
     public static final double WHEEL_CIRCUMFERENCE = 2 * Math.PI * WHEEL_RADIUS;
@@ -134,6 +134,7 @@ public final class RevChassisConstants implements ChassisConstantsIF {
         cfg.currentLimit = DRIVE_CURRENT_LIMIT;
         cfg.positionConversionFactor = DRIVE_ENCODER_POSITION_FACTOR;
         cfg.velocityConversionFactor = DRIVE_ENCODER_VELOCITY_FACTOR;
+        cfg.kP = 1d;
         return cfg;
     }
     public static SparkMaxConfig createSteerConfig(int id, double offset) {

@@ -55,6 +55,14 @@ public interface SwerveModuleIF {
     double getVelocity();
 
     /**
+     * Get the current drive velocity of the module (post-optimization).
+     * @return Velocity in MPS
+     */
+    default double getDriveVelocity() {
+        return getVelocity();
+    }
+
+    /**
      * Current state of the module.
      * @return SwerveModuleState, the current state.
      */

@@ -3,9 +3,11 @@ package org.tahomarobotics.robot.auto;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
@@ -14,7 +16,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Autonomous implements SubsystemIF {
+public class Autonomous extends SubsystemBase implements SubsystemIF {
     /** Initialize this classes logger. */
     private static final Logger logger = LoggerFactory.getLogger(Autonomous.class);
 
@@ -26,19 +28,34 @@ public class Autonomous implements SubsystemIF {
 
     private final Map<String, Command> autoCommands = new HashMap<>();
     private final SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
-    private final Command defaultCommand = new NoOperation();
+    private final Command defaultCommand = new NoOperation(DriverStation.Alliance.Blue);
     private Command autonomousCommand;
     private AutoShuffleboard shuffleboard;
+
 
     public Autonomous initialize(){
         shuffleboard = new AutoShuffleboard(autoCommandChooser);
 
-        addAuto(defaultCommand);
-        addAuto(new PlaceTaxi(GamePiece.CONE, Level.HIGH));
-        addAuto(new MidPlaceEngage(GamePiece.CONE, Level.HIGH));
+        addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
+
+        addAuto(new PlaceTaxi(GamePiece.CONE, Level.HIGH),
+                new PlaceTaxi(GamePiece.CONE, Level.HIGH));
+
+        addAuto(new MidPlaceEngage(GamePiece.CONE, Level.HIGH),
+                new MidPlaceEngage(GamePiece.CONE, Level.HIGH));
+
+        addAuto(new PlaceCollect(DriverStation.Alliance.Blue),
+                new PlaceCollect(DriverStation.Alliance.Red));
+
+        addAuto(new TestStraight(),
+                new TestStraight());
+
+        addAuto(new TestCurved(),
+                new TestCurved());
 
         SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
         selectionAutoChange(autoCommandChooser.getSelected());
+
 
         NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
         StringSubscriber subscriber = netInstance.getTable("Shuffleboard").getSubTable("Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
@@ -49,7 +66,15 @@ public class Autonomous implements SubsystemIF {
         return this;
     }
 
-    public void addAuto(Command command) {
+    @Override
+    public void periodic() {
+        shuffleboard.update();
+    }
+
+    private Map<Command, Command> blueToRed = new HashMap<>();
+
+    public void addAuto(Command command, Command red) {
+        blueToRed.put(command, red);
         autoCommands.put(command.getName(), command);
 
         if (command == defaultCommand) {
@@ -63,13 +88,20 @@ public class Autonomous implements SubsystemIF {
      * Listener for "AutonomousChooser/selected" change.
      */
     private void selectionAutoChange(Command command) {
+        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+            command = blueToRed.get(command);
+        }
         if (command instanceof AutonomousCommandIF) {
             ((AutonomousCommandIF) command).onSelection();
         }
     }
 
-    public Command getSelectedCommand() {
-        return autoCommandChooser.getSelected();
+    private Command getSelectedCommand() {
+        var command = autoCommandChooser.getSelected();
+        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+            command = blueToRed.get(command);
+        }
+        return command;
     }
 
     public void initiate() {

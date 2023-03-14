@@ -201,6 +201,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         return swerveModules.stream().map(SwerveModuleIF::getPosition).toArray(SwerveModulePosition[]::new);
     }
 
+    public double getAvgVelocity() {
+        return swerveModules.stream().mapToDouble(SwerveModuleIF::getDriveVelocity).sum()/4d;
+    }
+
     public void setSwerveStates(SwerveModuleState[] states) {
         for(int i = 0; i < states.length; i++) swerveModules.get(i).setDesiredState(states[i]);
     }
@@ -242,7 +246,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(swerveModules.stream()
                 .map(SwerveModuleIF::getState)
                 .toArray(SwerveModuleState[]::new));
-        logger.debug("ChassisSpeeds: " + speeds.toString());
+
+
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
 

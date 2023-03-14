@@ -1,9 +1,12 @@
 package org.tahomarobotics.robot.auto;
 
-public class PlaceCollectPlace extends PlaceCollect {
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
-    public PlaceCollectPlace(GamePiece place, Level level) {
-        super(place, level);
+public class PlaceCollectPlace extends SequentialCommandGroup {
+
+    public PlaceCollectPlace(DriverStation.Alliance alliance, GamePiece place, Level level) {
+
         addCommands(
 
         );

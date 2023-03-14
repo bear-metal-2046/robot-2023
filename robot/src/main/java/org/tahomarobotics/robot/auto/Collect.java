@@ -11,13 +11,15 @@ public class Collect extends SequentialCommandGroup {
             case CONE -> {
                 addCommands(
                         new ArmMoveCommand(ArmMovements.STOW_TO_CONE_COLLECT),
-                        new IngestCommand(2)
+                        new IngestCommand(2),
+                        new ArmMoveCommand(ArmMovements.CONE_COLLECT_TO_STOW)
                 );
             }
             case CUBE -> {
                 addCommands(
                         new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
-                        new IngestCommand(2)
+                        new IngestCommand(2),
+                        new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW)
                 );
             }
         }

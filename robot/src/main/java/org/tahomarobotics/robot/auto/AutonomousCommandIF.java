@@ -10,12 +10,12 @@ public interface AutonomousCommandIF {
 
     List<Trajectory> getTrajectories();
 
+    Pose2d getStartPose();
 
     default void onSelection() {
         var chassis = Chassis.getInstance();
-        var trajectories = getTrajectories();
 
-        chassis.updateTrajectory(trajectories.size() > 0 ? trajectories : null);
-        chassis.resetOdometry(trajectories.size() > 0 ? trajectories.get(0).getInitialPose() : new Pose2d());
+        chassis.updateTrajectory(getTrajectories());
+        chassis.resetOdometry(getStartPose());
     }
 }
