@@ -24,7 +24,7 @@ import org.tahomarobotics.robot.util.SparkMaxConfig;
 
 public class GrabberConstants {
     public static final double INTAKE_TIMOUT = 0.1;
-    public static final double RETAIN_SPEED = 0.1;
+    public static final double RETAIN_SPEED = 0.06;
     public static final double EJECT_SPEED = -0.8;
 
     public static final double MAX_SPEED = 0.8;
@@ -35,7 +35,6 @@ public class GrabberConstants {
         SparkMaxConfig cfg = new SparkMaxConfig();
         cfg.canId = RobotMap.GRABBER_MOTOR;
         cfg.currentLimit = 60;
-        cfg.motorInverted = true;
         return cfg;
     }
 }

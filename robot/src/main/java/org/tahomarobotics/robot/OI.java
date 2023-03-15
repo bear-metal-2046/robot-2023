@@ -45,6 +45,7 @@ public final class OI implements SubsystemIF {
     private static final int POV_EAST = 90;
     private static final int POV_SOUTH = 180;
     private static final int POV_WEST = 270;
+    private static final int POV_NORTH = 0;
 
     public static OI getInstance() {
         return INSTANCE;
@@ -112,8 +113,8 @@ public final class OI implements SubsystemIF {
         XButton.onTrue(armMoveSelector.toggleGamePieceMode());
 
         // Position to Stow
-        JoystickButton YButton = new JoystickButton(driveController, kY.value);
-        YButton.onTrue(ArmMovements.createPositionToStowCommand());
+        POVButton povNorth = new POVButton(driveController, POV_NORTH);
+        povNorth.onTrue(ArmMovements.createPositionToStowCommand());
 
         // Climb
         JoystickButton climb = new JoystickButton(driveController, kStart.value);
@@ -129,6 +130,9 @@ public final class OI implements SubsystemIF {
 
         JoystickButton driveLB = new JoystickButton(driveController, kLeftBumper.value);
         driveLB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW));
+
+        JoystickButton YButton = new JoystickButton(driveController, kY.value);
+        YButton.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.SLIDER));
 
         POVButton povEast = new POVButton(driveController, POV_EAST);
         povEast.onTrue(armMoveSelector.gamePieceMode(CUBE));

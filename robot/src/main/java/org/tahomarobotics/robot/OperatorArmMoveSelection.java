@@ -43,7 +43,7 @@ public class OperatorArmMoveSelection {
             this.pov = pov;
         }
     }
-    public enum CollectLevel {FEEDER, LOW }
+    public enum CollectLevel {FEEDER, LOW, SLIDER}
     public enum ArmPosition { SCORE, STOW, COLLECT }
     private record ScoreCommandKey(ScoringLevel level, ConeOrCube mode, ArmPosition armPosition) {}
     private record CollectCommandKey(CollectLevel level, ConeOrCube mode, ArmPosition armPosition) {}
@@ -70,6 +70,11 @@ public class OperatorArmMoveSelection {
         collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CONE, ArmPosition.STOW), CONE_COLLECT_TO_STOW);
         collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CUBE, ArmPosition.COLLECT), STOW_TO_CUBE_COLLECT);
         collectCommands.put(new CollectCommandKey(CollectLevel.LOW, ConeOrCube.CUBE, ArmPosition.STOW), CUBE_COLLECT_TO_STOW);
+
+        collectCommands.put(new CollectCommandKey(CollectLevel.SLIDER, ConeOrCube.CONE, ArmPosition.COLLECT), STOW_TO_CONE_SLIDER_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.SLIDER, ConeOrCube.CONE, ArmPosition.STOW), CONE_SLIDER_COLLECT_TO_STOW);
+        collectCommands.put(new CollectCommandKey(CollectLevel.SLIDER, ConeOrCube.CUBE, ArmPosition.COLLECT), STOW_TO_CUBE_SLIDER_COLLECT);
+        collectCommands.put(new CollectCommandKey(CollectLevel.SLIDER, ConeOrCube.CUBE, ArmPosition.STOW), CUBE_SLIDER_COLLECT_TO_STOW);
     }
 
     private ScoringLevel scoreLevel = ScoringLevel.HIGH;
