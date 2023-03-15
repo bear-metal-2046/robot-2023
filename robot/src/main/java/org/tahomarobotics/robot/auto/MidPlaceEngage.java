@@ -14,55 +14,60 @@ import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class MidPlaceEngage extends SequentialCommandGroup implements AutonomousCommandIF{
+public class MidPlaceEngage extends AutonomousBase {
 
-    private static final List<Trajectory> trajectories = new ArrayList<>();
+    private static final Pose2d FIRST_PLACE =
+            new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(130.325), new Rotation2d(0));
 
-    private final Pose2d startPose = new Pose2d(Units.inchesToMeters(582.9), Units.inchesToMeters(152.2),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private final Pose2d taxi = new Pose2d(Units.inchesToMeters(410.0), Units.inchesToMeters(152.2),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private final Pose2d engage = new Pose2d(Units.inchesToMeters(498.8), Units.inchesToMeters(152.2),
-            new Rotation2d(Units.degreesToRadians(180)));
+    private static final Pose2d ENGAGE =
+            new Pose2d(Units.inchesToMeters(69.6 + 84.1), Units.inchesToMeters(130.325), new Rotation2d(0));
 
-    private final Rotation2d rot = new Rotation2d(Units.degreesToRadians(0));
+    private static final Pose2d TAXI =
+            new Pose2d(Units.inchesToMeters(69.6 + 172.9), Units.inchesToMeters(130.325), new Rotation2d(0));
 
-    public MidPlaceEngage(){
+    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180d));
 
-        TrajectoryConfig config = new TrajectoryConfig(1, 2)
-                .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
-        TrajectoryConfig reversedConfig = new TrajectoryConfig(1, 2)
-                .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
+    private static final TrajectoryConfig FWD_CONFIG =
+            new TrajectoryConfig(1, 2)
+            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+
+    private static final TrajectoryConfig REV_CONFIG =
+            new TrajectoryConfig(1, 2)
+            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
+
+
+    public MidPlaceEngage(DriverStation.Alliance alliance){
+
+        // alliance converted start pose
+        super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+
+        // alliance converted trajectories
+        Trajectory place2Engage = createTrajectory(FIRST_PLACE, ENGAGE, FWD_CONFIG);
+        Trajectory engage2Taxi = createTrajectory(ENGAGE, TAXI, FWD_CONFIG);
+        Trajectory taxi2Engage = createTrajectory(TAXI, ENGAGE, REV_CONFIG);
+
+        // alliance converted rotations
+        Rotation2d placeHeading = createRotation(PLACE_HEADING);
 
         addCommands(
-                new InstantCommand(() -> Chassis.getInstance().resetOdometry(new Pose2d(startPose.getTranslation(), new Rotation2d(0)))),
+
+                new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
+
                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
+
                 new ParallelCommandGroup(
-                        Drive.drive("Mid-to-Engage", startPose, engage, rot, config, trajectories),
+                        new TrajectoryCommand("Mid-to-Engage", place2Engage, placeHeading),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
                 ),
-                Drive.drive("Engage-to-Taxi", engage, taxi, rot, config, trajectories),
-                Drive.drive("Back-to-Engage", taxi, engage, rot, reversedConfig, trajectories),
+
+                new TrajectoryCommand("Engage-to-Taxi", engage2Taxi, placeHeading),
+
+                new TrajectoryCommand("Back-to-Engage", taxi2Engage, placeHeading),
+
                 new BalancedCommand()
         );
-    }
-
-
-    @Override
-    public Pose2d getStartPose() {
-        Pose2d startPose = new Pose2d(this.startPose.getTranslation(), rot);
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-            startPose = AllianceUtil.convertToRed(startPose);
-        }
-        return startPose;
-    }
-
-    @Override
-    public List<Trajectory> getTrajectories() {
-        return trajectories;
     }
 }

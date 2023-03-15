@@ -2,6 +2,7 @@ package org.tahomarobotics.robot.auto;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
@@ -12,49 +13,44 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.grabber.ScoreCommand;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class PlaceTaxi extends SequentialCommandGroup implements AutonomousCommandIF {
+public class PlaceTaxi extends AutonomousBase {
 
-    private static final List<Trajectory> trajectories = new ArrayList<>();
+    private static final Pose2d FIRST_PLACE =
+            new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325), new Rotation2d(0));
+    private static final Translation2d MID_PT =
+            new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
+    private static final Pose2d TAXI =
+            new Pose2d(Units.inchesToMeters(69.6 + 170), Units.inchesToMeters(196.325), new Rotation2d(0));
+    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(-179));
+    private static final Rotation2d TAXI_HEADING = new Rotation2d(Units.degreesToRadians(0));
 
-    private final Pose2d startPose = new Pose2d(Units.inchesToMeters(582.9), Units.inchesToMeters(220.1),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private final Pose2d firstPreCollect = new Pose2d(Units.inchesToMeters(434.2), Units.inchesToMeters(201.8),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private final Rotation2d fistCollectRot = new Rotation2d(Units.degreesToRadians(180));
-    public PlaceTaxi() {
+    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.5, 3)
+            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-        TrajectoryConfig config = new TrajectoryConfig(2, 3)
-                .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+    public PlaceTaxi(DriverStation.Alliance alliance) {
+
+        // alliance converted start pose
+        super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+
+        // alliance converted trajectories
+        Trajectory taxiTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), TAXI, CONFIG);
+
+        // alliance converted rotations
+        Rotation2d taxiHeading = createRotation(TAXI_HEADING);
 
         addCommands(
-                new InstantCommand(() -> Chassis.getInstance().resetOdometry(new Pose2d(startPose.getTranslation(), new Rotation2d(0)))),
+                new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
+                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                new ScoreCommand(0.25),
+
                 new ParallelCommandGroup(
-                        Drive.drive("Reverse-to-Taxi", startPose, firstPreCollect, fistCollectRot, config, trajectories),
+                        new TrajectoryCommand("Reverse-to-Taxi", taxiTrajectory, taxiHeading, 0.3, 0.9),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
-                ),
-                new InstantCommand(() -> Chassis.getInstance().resetOdometry(
-                        new Pose2d(firstPreCollect.getTranslation(),
-                        new Rotation2d(Units.degreesToRadians(180))))
                 )
         );
-    }
-
-
-    @Override
-    public Pose2d getStartPose() {
-        Pose2d startPose = new Pose2d(this.startPose.getTranslation(), new Rotation2d());
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-            startPose = AllianceUtil.convertToRed(startPose);
-        }
-        return startPose;
-    }
-
-    @Override
-    public List<Trajectory> getTrajectories() {
-        return List.of();
     }
 }

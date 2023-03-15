@@ -39,16 +39,16 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
 
-        addAuto(new PlaceTaxi(),
-                new PlaceTaxi());
+        addAuto(new PlaceTaxi(DriverStation.Alliance.Blue),
+                new PlaceTaxi(DriverStation.Alliance.Red));
 
-        addAuto(new MidPlaceEngage(),
-                new MidPlaceEngage());
+        addAuto(new MidPlaceEngage(DriverStation.Alliance.Blue),
+                new MidPlaceEngage(DriverStation.Alliance.Red));
 
         addAuto(new PlaceCollectPlace(DriverStation.Alliance.Blue),
                 new PlaceCollectPlace(DriverStation.Alliance.Red));
 
-                addAuto(new PlaceCollect(DriverStation.Alliance.Blue),
+        addAuto(new PlaceCollect(DriverStation.Alliance.Blue),
                 new PlaceCollect(DriverStation.Alliance.Red));
 
         SmartDashboard.putData("AutonomousChooser", autoCommandChooser);

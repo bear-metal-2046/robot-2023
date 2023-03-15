@@ -20,8 +20,7 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaceCollectPlace extends SequentialCommandGroup implements AutonomousCommandIF {
-    private List<Trajectory> trajectories = new ArrayList<>();
+public class PlaceCollectPlace extends AutonomousBase {
 
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
@@ -40,26 +39,25 @@ public class PlaceCollectPlace extends SequentialCommandGroup implements Autonom
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
 
 
-    private final Pose2d startPose;
-
     public PlaceCollectPlace(DriverStation.Alliance alliance) {
 
-        startPose = AllianceUtil.adjustPoseForAlliance(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+        // alliance converted start pose
+        super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
-        Trajectory collectTrajectory = AllianceUtil.createTrajectory(alliance, FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
+        // alliance converted trajectories
+        Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
+        Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT, List.of(MID_PT_2), SECOND_PLACE, REVERSED_CONFIG);
 
-        Trajectory placeTrajectory = AllianceUtil.createTrajectory(alliance, FIRST_COLLECT, List.of(MID_PT_2), SECOND_PLACE, REVERSED_CONFIG);
-
-        Rotation2d collectHeading = AllianceUtil.adjustAngleForAlliance(alliance, COLLECT_HEADING);
-
-        Rotation2d placeHeading = AllianceUtil.adjustAngleForAlliance(alliance, PLACE_HEADING);
+        // alliance converted rotations
+        Rotation2d collectHeading = createRotation(COLLECT_HEADING);
+        Rotation2d placeHeading = createRotation(PLACE_HEADING);
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        Drive.drive("Start to collect", collectTrajectory, collectHeading, trajectories),
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(
@@ -70,7 +68,7 @@ public class PlaceCollectPlace extends SequentialCommandGroup implements Autonom
                 ),
                 new WaitCommand(0.25),
                 new ParallelCommandGroup(
-                        Drive.drive("Collect to Place", placeTrajectory, placeHeading, trajectories),
+                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.1, 0.7),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
                                 new WaitCommand(1),
@@ -80,15 +78,5 @@ public class PlaceCollectPlace extends SequentialCommandGroup implements Autonom
                 new ScoreCommand(0.25),
                 new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW)
         );
-    }
-
-    @Override
-    public Pose2d getStartPose() {
-        return startPose;
-    }
-
-    @Override
-    public List<Trajectory> getTrajectories() {
-        return trajectories;
     }
 }

@@ -19,6 +19,7 @@ import org.tahomarobotics.robot.util.ChartData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class TrajectoryCommand extends SwerveControllerCommand {
 
@@ -42,29 +43,76 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
     private final String name;
 
+    private static class HeadingSupplier implements Supplier<Rotation2d> {
+
+        private final Timer timer = new Timer();
+
+        private Rotation2d startHeading;
+        private final Rotation2d endHeading;
+
+        private final double turnStart;
+
+        public HeadingSupplier(Rotation2d endHeading, double turnStart) {
+            this.endHeading = endHeading;
+            this.turnStart = turnStart;
+            initialize();
+        }
+        public void initialize() {
+            timer.restart();
+            startHeading = Chassis.getInstance().getPose().getRotation();
+        }
+        @Override
+        public Rotation2d get() {
+            return timer.hasElapsed(turnStart) ? endHeading : startHeading;
+        }
+    }
+
+    private final HeadingSupplier headingSupplier;
+
+    private final double turnDuration;
+
     public TrajectoryCommand(String name, Trajectory trajectory) {
-        this(name, trajectory, getFinalTrajectoryHeading(trajectory), false, createController());
+        this(name, trajectory,getFinalTrajectoryHeading(trajectory));
+    }
+
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading) {
+        this(name, trajectory, heading, 0d, 1d, false);
     }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity) {
-        this(name, trajectory, heading, hasEndVelocity, createController());
+        this(name, trajectory, heading, 0d, 1d, hasEndVelocity);
     }
 
-    private TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity, HolonomicDriveController controller) {
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
+        this(name, trajectory, heading, turnStart, turnEnd, false);
+    }
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, boolean hasEndVelocity) {
+        this(name, trajectory,
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds()),
+                heading,
+                (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
+                hasEndVelocity,
+                createController());
+    }
+
+    private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, boolean hasEndVelocity, HolonomicDriveController controller) {
         super(trajectory,
                 Chassis.getInstance()::getPose,
                 Chassis.getInstance().getSwerveDriveKinematics(),
                 controller,
-                () -> heading,
+                headingSupplier,
                 Chassis.getInstance()::setSwerveStates,
                 Chassis.getInstance()
         );
+
         this.name = name;
         this.trajectory = trajectory;
         this.controller = controller;
         this.heading = heading;
         this.hasEndVelocity = hasEndVelocity;
         timer = new Timer();
+        this.headingSupplier = headingSupplier;
+        this.turnDuration = turnDuration;
     }
 
     private static Rotation2d getFinalTrajectoryHeading(Trajectory trajectory) {
@@ -88,27 +136,30 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     /**
      * Calculates the velocity and acceleration such that the heading change completes in 90% of the trajectory move.
      */
-    private static TrapezoidProfile.Constraints createHeadingChangeConstraints(Trajectory trajectory, Rotation2d heading) {
+    private static TrapezoidProfile.Constraints createHeadingChangeConstraints(double turnDuration, Rotation2d heading) {
         Rotation2d currentHeading = Chassis.getInstance().getPose().getRotation();
-        double tv = 0.5 * trajectory.getTotalTimeSeconds();
-        double ta = 0.2 * trajectory.getTotalTimeSeconds();
+        double tv = 0.5 * turnDuration;
+        double ta = 0.2 * turnDuration;
         double maxVelocity = Math.abs(heading.minus(currentHeading).getRadians()) / (tv + ta);
         double maxAcceleration = maxVelocity / ta;
         return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
     }
 
+
+
     @Override
     public void initialize() {
+        controller.getThetaController().reset(Chassis.getInstance().getPose().getRotation().getRadians());
+        headingSupplier.initialize();
         super.initialize();
-        timer.reset();
-        timer.start();
+        timer.restart();
         velData.clear();
         hdgData.clear();
         actualTrajectory.clear();
         actualTrajectory.add(chassis.getPose());
 
         // set the speed of the heading change
-        controller.getThetaController().setConstraints(createHeadingChangeConstraints(trajectory, heading));
+        controller.getThetaController().setConstraints(createHeadingChangeConstraints(turnDuration, heading));
     }
 
     @Override
@@ -154,4 +205,6 @@ public class TrajectoryCommand extends SwerveControllerCommand {
         timer.stop();
         logger.info(name + "Trajectory has completed with velocity: " + trajectory.sample(trajectory.getTotalTimeSeconds()).velocityMetersPerSecond);
     }
+
+
 }
