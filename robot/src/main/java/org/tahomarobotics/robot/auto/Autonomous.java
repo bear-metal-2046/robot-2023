@@ -51,9 +51,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         addAuto(new PlaceCollect(DriverStation.Alliance.Blue),
                 new PlaceCollect(DriverStation.Alliance.Red));
 
-        SmartDashboard.putData("AutonomousChooser", autoCommandChooser);
         selectionAutoChange(autoCommandChooser.getSelected());
-
 
         NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
         StringSubscriber subscriber = netInstance.getTable("Shuffleboard").getSubTable("Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");

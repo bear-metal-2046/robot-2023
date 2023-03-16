@@ -27,8 +27,7 @@ import org.slf4j.LoggerFactory;
 public class IngestCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(IngestCommand.class);
-    private static double INGEST_DURATION;
-    private static final double INGEST_LEVEL = 1.0;
+    private final double INGEST_DURATION;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
@@ -41,7 +40,7 @@ public class IngestCommand extends CommandBase {
     @Override
     public void initialize() {
         timer.restart();
-        grabber.ingest(INGEST_LEVEL);
+        grabber.ingest(1.0);
     }
 
     @Override

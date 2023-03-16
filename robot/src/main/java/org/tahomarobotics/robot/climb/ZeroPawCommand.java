@@ -20,7 +20,6 @@
 package org.tahomarobotics.robot.climb;
 
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +44,6 @@ public class ZeroPawCommand extends CommandBase {
         paw.setPower(-0.05);
     }
 
-    @Override
-    public void execute() {
-        SmartDashboard.putNumber("Velocity", paw.getVelocity());
-    }
-
     private boolean hasStopped() {
         return Math.abs(paw.getVelocity()) < STOPPED_VELOCITY_THREASHOLD;
     }
@@ -63,7 +57,7 @@ public class ZeroPawCommand extends CommandBase {
     public void end(boolean interrupted) {
 
         if (timer.hasElapsed(TIMEOUT)) {
-            logger.warn(paw.getName() + " zero command has timedout");
+            logger.warn(paw.getName() + " zero command has timed out.");
         }
 
         paw.setPower(0);

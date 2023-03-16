@@ -77,7 +77,6 @@ public class Paw extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber(name + "Pos", getPos());
     }
 
     public void setGoal(MotionState setpoint) {

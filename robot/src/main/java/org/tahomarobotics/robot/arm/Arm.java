@@ -156,8 +156,6 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
         ArmMechanism armMechanism = new ArmMechanism(mech, upperArm, foreArm);
 
-        SmartDashboard.putData("Arm", mech);
-
         return armMechanism;
     }
 

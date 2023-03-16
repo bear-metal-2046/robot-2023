@@ -366,7 +366,7 @@ public class MK4iSwerveModule implements SwerveModuleIF {
         final double driveFeedforward = this.driveFeedforward.calculate(state.speedMetersPerSecond);
 
         setDriveVoltage(driveOutput + driveFeedforward);
-        SmartDashboard.putNumber(name + " REF ANGLE", state.angle.getRadians());
+//        SmartDashboard.putNumber(name + " REF ANGLE", state.angle.getRadians());
         setReferenceAngle(state.angle.getRadians());
     }
 

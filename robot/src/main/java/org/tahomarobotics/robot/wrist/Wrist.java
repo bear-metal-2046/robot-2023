@@ -68,7 +68,7 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Wrist Absolute Encoder Position", Units.radiansToDegrees(absEncoder.getPosition()));
+//        SmartDashboard.putNumber("Wrist Angle (ABS)", Units.radiansToDegrees(absEncoder.getPosition()));
         if (DriverStation.isDisabled()) {
             pidController.setReference(0, CANSparkMax.ControlType.kDutyCycle);
         }

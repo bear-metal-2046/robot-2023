@@ -1,21 +1,20 @@
 /**
  * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without
  * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
  * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions
  * of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
  * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- *
  */
 package org.tahomarobotics.robot.chassis;
 
@@ -93,7 +92,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             // configure Mk4I Swerve
             case PROTOTYPE -> new MK4iChassisConstants();
             // configure Rev Swerve
-            case ALPHA, PRACTICE, COMPETITION ->  new RevChassisConstants();
+            case ALPHA, PRACTICE, COMPETITION -> new RevChassisConstants();
         };
 
         // read calibration data
@@ -139,37 +138,46 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     public void finalizeCalibration() {
         swerveCalibration.set(
                 swerveModules.stream()
-                .map(SwerveModuleIF::finalizeCalibration)
-                .toArray(Double[]::new)
+                        .map(SwerveModuleIF::finalizeCalibration)
+                        .toArray(Double[]::new)
         );
     }
 
     /*
     Zeroes all offsets, used for offset configuration.
      */
-    public void initializeCalibration() { swerveModules.forEach(SwerveModuleIF::initializeCalibration); }
+    public void initializeCalibration() {
+        swerveModules.forEach(SwerveModuleIF::initializeCalibration);
+    }
 
     /*
     Updates each offset to the new one defined in DriverStation.
      */
-    public void cancelCalibration() { swerveModules.forEach(SwerveModuleIF::cancelCalibration); }
+    public void cancelCalibration() {
+        swerveModules.forEach(SwerveModuleIF::cancelCalibration);
+    }
 
     public Rotation2d getYaw() {
         return Rotation2d.fromDegrees(pigeon2.getYaw());
     }
+
     public Rotation2d getPitch() {
         return Rotation2d.fromDegrees(pigeon2.getPitch());
     }
+
     public Rotation2d getRoll() {
         return Rotation2d.fromDegrees(pigeon2.getRoll());
     }
-    private void zeroGyro(){pigeon2.setYaw(0.0);}
 
-    private Rotation2d getGyroRotation(){
+    private void zeroGyro() {
+        pigeon2.setYaw(0.0);
+    }
+
+    private Rotation2d getGyroRotation() {
         return Rotation2d.fromDegrees(pigeon2.getYaw());
     }
 
-    public void toggleOrientation(){
+    public void toggleOrientation() {
         isFieldOriented = !isFieldOriented;
     }
 
@@ -177,10 +185,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
 
         zeroGyro();
-
-        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0,0.0, new Rotation2d(0.0)));
-
-        SmartDashboard.putData(fieldPose);
+        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
 
         return this;
     }
@@ -204,16 +209,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
         fieldPose.setRobotPose(current);
 
-
-        swerveModules.forEach(SwerveModuleIF::displayPosition);
-
-        SmartDashboard.putString("Gyro Yaw", getYaw().toString());
-        SmartDashboard.putString("Gyro Pitch", getPitch().toString());
-        SmartDashboard.putString("Gyro Roll", getRoll().toString());
         SmartDashboard.putString("Pose", getPose().toString());
     }
 
-    public Pose2d getPose(){
+    public Pose2d getPose() {
         return poseEstimator.getEstimatedPosition();
     }
 
@@ -226,10 +225,12 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     public void setSwerveStates(SwerveModuleState[] states) {
-        for(int i = 0; i < states.length; i++) swerveModules.get(i).setDesiredState(states[i]);
+        for (int i = 0; i < states.length; i++) swerveModules.get(i).setDesiredState(states[i]);
     }
 
-    public void drive(ChassisSpeeds velocity) { drive(velocity, isFieldOriented); }
+    public void drive(ChassisSpeeds velocity) {
+        drive(velocity, isFieldOriented);
+    }
 
     public void drive(ChassisSpeeds velocity, boolean fieldRelative) {
 
@@ -254,7 +255,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         resetOdometry(new Pose2d(pose.getTranslation(), new Rotation2d(0)));
     }
 
-    public ChassisConstantsIF getSwerveConstants() { return swerveConstants; }
+    public ChassisConstantsIF getSwerveConstants() {
+        return swerveConstants;
+    }
 
     public SwerveDriveKinematics getSwerveDriveKinematics() {
         return swerveDriveKinematics;
@@ -272,7 +275,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
     }
 
-    public void displayAbsolutePositions() { swerveModules.forEach(SwerveModuleIF::displayPosition); }
+    public void displayAbsolutePositions() {
+        swerveModules.forEach(SwerveModuleIF::displayPosition);
+    }
 
     public void updateTrajectory(List<Trajectory> trajectories) {
 

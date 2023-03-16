@@ -29,10 +29,10 @@ public final class RobotMap {
     /*
     Swerve Modules
      */
-    public static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);
-    public static SwerveModulePorts FRONT_RIGHT_MOD = new SwerveModulePorts(2, 12, 22);
-    public static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);
-    public static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);
+    public final static SwerveModulePorts FRONT_LEFT_MOD = new SwerveModulePorts(1, 11, 21);
+    public final static SwerveModulePorts FRONT_RIGHT_MOD = new SwerveModulePorts(2, 12, 22);
+    public final static SwerveModulePorts BACK_LEFT_MOD = new SwerveModulePorts(3, 13, 23);
+    public final static SwerveModulePorts BACK_RIGHT_MOD = new SwerveModulePorts(4, 14, 24);
 
     public static final int SHOULDER_CANCODER = 8;
     public static final int SHOULDER_MOTOR_TOP = 6;
@@ -45,15 +45,15 @@ public final class RobotMap {
     /*
     Climb Motors
      */
-    public static int LEFT_PAW = 31;
-    public static int RIGHT_PAW = 32;
-    public static int BEACHER = 25;
+    public final static int LEFT_PAW = 31;
+    public final static int RIGHT_PAW = 32;
+    public final static int BEACHER = 25;
 
     public static final int GRABBER_MOTOR = 10;
     /*
 Peripherals
  */
-    public static int PIGEON = 0;
+    public final static int PIGEON = 0;
 
-    public static int BLINKIN = 9;
+    public final static int BLINKIN = 9;
 }

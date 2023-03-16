@@ -123,7 +123,7 @@ public class Robot extends TimedRobot {
             chartData.addData(new double[] { time, time, time, time, time, time});
         }
 
-        byte raw[] = chartData.serialize();
+        chartData.serialize();
     }
 
     public static void main(String... args) {

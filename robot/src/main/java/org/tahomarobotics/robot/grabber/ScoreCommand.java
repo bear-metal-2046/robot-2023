@@ -27,8 +27,7 @@ import org.slf4j.LoggerFactory;
 public class ScoreCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(ScoreCommand.class);
-    private static double SCORE_DURATION = 0.25;
-    private static final double SCORE_LEVEL = 1.0;
+    private final double SCORE_DURATION;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
@@ -41,7 +40,7 @@ public class ScoreCommand extends CommandBase {
     @Override
     public void initialize() {
         timer.restart();
-        grabber.score(SCORE_LEVEL);
+        grabber.score(1.0);
     }
 
     @Override
