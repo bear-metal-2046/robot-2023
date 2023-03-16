@@ -1,24 +1,24 @@
 /**
  * Copyright 2023 Tahoma Robotics - http://tahomarobotics.org - Bear Metal 2046 FRC Team
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without
  * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
  * Software, and to permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or substantial portions
  * of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
  * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- *
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -33,6 +33,9 @@ import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 import org.tahomarobotics.robot.lights.LED;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static edu.wpi.first.wpilibj.XboxController.Button.*;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CONE;
@@ -58,16 +61,18 @@ public final class OI implements SubsystemIF {
 
 
     private final OperatorArmMoveSelection armMoveSelector = new OperatorArmMoveSelection();
+
     public OperatorArmMoveSelection getArmMoveSelector() {
         return armMoveSelector;
     }
+
+    private XboxController driveController = new XboxController(0);
+    private XboxController manipController = new XboxController(1);
 
     private OI() {
 
         Chassis chassis = Chassis.getInstance();
 
-        XboxController driveController = new XboxController(0);
-        XboxController manipController = new XboxController(1);
 
         chassis.setDefaultCommand(
                 new TeleopDriveCommand(
@@ -159,6 +164,9 @@ public final class OI implements SubsystemIF {
         manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
     }
 
+    @Override
+    public void periodic() {
+    }
 
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {
@@ -184,6 +192,35 @@ public final class OI implements SubsystemIF {
     private double desensitizePowerBased(double value, double power) {
         value = deadband(value);
         return Math.pow(Math.abs(value), power - 1) * value;
+    }
+
+    private static final Executor rumbleExec = Executors.newFixedThreadPool(2,
+            r -> new Thread(r, "RumbleThread")
+    );
+
+    private static final long RUMBLE_TIMEOUT_MS = 300;
+
+    private void rumble(XboxController controller) {
+        rumbleExec.execute(() -> {
+            controller.setRumble(GenericHID.RumbleType.kLeftRumble, 1.0);
+            controller.setRumble(GenericHID.RumbleType.kRightRumble, 1.0);
+            try {
+                Thread.sleep(RUMBLE_TIMEOUT_MS);
+            } catch (InterruptedException e) {
+                // ignore and disable
+                Thread.currentThread().interrupt();
+            }
+            controller.setRumble(GenericHID.RumbleType.kLeftRumble, 0);
+            controller.setRumble(GenericHID.RumbleType.kRightRumble, 0);
+        });
+    }
+
+    public void rumbleManip() {
+        rumble(manipController);
+    }
+
+    public void rumbleDrive() {
+        rumble(driveController);
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,8 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     private MovementState state = MovementState.OFF;
 
     private final Timer injectStallTimer = new Timer();
+
+    private boolean retained = false;
 
     private Grabber() {
         grabberMotor = new CANSparkMax(RobotMap.GRABBER_MOTOR, CANSparkMaxLowLevel.MotorType.kBrushless);
@@ -78,23 +81,25 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     }
 
     void off() {
+        retained = false;
         state = MovementState.OFF;
         setGrabberSpeed(0);
     }
 
-    public void ingest(double level) {
+    public void ingest(double speed) {
 
         state = MovementState.INGEST;
 
         // clear timer if not stalled
         if (!isStalled()) {
-            injectStallTimer.reset();
+            injectStallTimer.restart();
         }
 
-        if (injectStallTimer.hasElapsed(GrabberConstants.INTAKE_TIMOUT)) {
+        if (retained || injectStallTimer.hasElapsed(GrabberConstants.INTAKE_TIMOUT)) {
             setGrabberSpeed(RETAIN_SPEED);
+            retained = true;
         } else {
-            setGrabberSpeed(Math.max(RETAIN_SPEED, MAX_SPEED * level));
+            setGrabberSpeed(Math.max(RETAIN_SPEED, MAX_SPEED * speed));
         }
     }
 
@@ -113,7 +118,9 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
         setGrabberSpeed(EJECT_SPEED);
     }
 
-    private boolean isStalled() {
-        return Math.abs(getVelocity()) < 10;
+    public boolean isStalled() {
+        double current = grabberMotor.getOutputCurrent();
+        SmartDashboard.putNumber("Grabber Current", current);
+        return current > 75;
     }
 }
