@@ -20,6 +20,7 @@
 package org.tahomarobotics.robot.chassis;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.tahomarobotics.robot.util.SwerveRateLimiter;
 
@@ -62,8 +63,10 @@ public class TeleopDriveCommand extends CommandBase {
     @Override
     public void execute() {
 
-        velocityInput.vxMetersPerSecond = xSup.getAsDouble() * maxVelocity;
-        velocityInput.vyMetersPerSecond = ySup.getAsDouble() * maxVelocity;
+        double direction = DriverStation.getAlliance() == DriverStation.Alliance.Blue ? 1.0 : -1.0;
+
+        velocityInput.vxMetersPerSecond = xSup.getAsDouble() * maxVelocity * direction;
+        velocityInput.vyMetersPerSecond = ySup.getAsDouble() * maxVelocity * direction;
         velocityInput.omegaRadiansPerSecond = rotSup.getAsDouble() * maxRotationalVelocity;
 
         ChassisSpeeds velocityOutput = rateLimiter.calculate(velocityInput);

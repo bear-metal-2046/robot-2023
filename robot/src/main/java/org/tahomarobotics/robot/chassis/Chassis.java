@@ -31,6 +31,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -229,6 +230,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     public void drive(ChassisSpeeds velocity) {
+        if (!isFieldOriented && DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+            velocity = new ChassisSpeeds(-velocity.vxMetersPerSecond, -velocity.vyMetersPerSecond, velocity.omegaRadiansPerSecond);
+        }
         drive(velocity, isFieldOriented);
     }
 
@@ -251,8 +255,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     public void orientToZeroHeading() {
-        Pose2d pose = getPose();
-        resetOdometry(new Pose2d(pose.getTranslation(), new Rotation2d(0)));
+        Rotation2d heading = new Rotation2d(DriverStation.getAlliance() == DriverStation.Alliance.Blue ? 0.0 : Math.PI);
+        resetOdometry(new Pose2d(getPose().getTranslation(), heading));
     }
 
     public ChassisConstantsIF getSwerveConstants() {
@@ -266,10 +270,20 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void simulationPeriodic() {
         final double dT = 0.02;
+
         swerveModules.forEach(SwerveModuleIF::simulationPeriodic);
-        ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(swerveModules.stream()
+
+        var states = swerveModules.stream()
                 .map(SwerveModuleIF::getState)
-                .toArray(SwerveModuleState[]::new));
+                .toArray(SwerveModuleState[]::new);
+
+        ChassisSpeeds speeds = swerveDriveKinematics.toChassisSpeeds(states);
+
+        if (speeds.omegaRadiansPerSecond > 10.0) {
+            System.out.println(speeds);
+        }
+
+
 
 
         pigeon2.getSimCollection().addHeading(dT * Units.radiansToDegrees(speeds.omegaRadiansPerSecond));
