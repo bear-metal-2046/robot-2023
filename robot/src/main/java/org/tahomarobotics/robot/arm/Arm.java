@@ -154,9 +154,9 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
                 ArmConstants.ARM_PHYSICAL_PROPERTIES.foreArm().length(), -90, 6,
                 new Color8Bit(Color.kPurple)));
 
-        ArmMechanism armMechanism = new ArmMechanism(mech, upperArm, foreArm);
+        SmartDashboard.putData("Arm", mech);
 
-        return armMechanism;
+        return new ArmMechanism(mech, upperArm, foreArm);
     }
 
     @Override

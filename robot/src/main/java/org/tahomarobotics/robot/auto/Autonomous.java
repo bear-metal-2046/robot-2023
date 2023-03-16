@@ -4,6 +4,7 @@ import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,6 +23,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Autonomous.class);
 
     private static final Autonomous INSTANCE = new Autonomous();
+    private static final double AUTO_STOW_TIMEOUT = 5.0;
 
     public static Autonomous getInstance(){
         return INSTANCE;
@@ -33,6 +35,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     private Command autonomousCommand;
     private AutoShuffleboard shuffleboard;
 
+    private final Timer automaticStowTimer = new Timer();
 
     public Autonomous initialize(){
         shuffleboard = new AutoShuffleboard(autoCommandChooser);
@@ -104,6 +107,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     public void onDisabledInit() {
         if (autonomousCommand != null) {
             autonomousCommand.cancel();
+            automaticStowTimer.restart();
         }
     }
 
@@ -117,7 +121,9 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     @Override
     public void onTeleopInit() {
         if (autonomousCommand != null) {
-            ArmMovements.createPositionToStowCommand().schedule();
+            if ( ! automaticStowTimer.hasElapsed(AUTO_STOW_TIMEOUT) ) {
+                ArmMovements.createPositionToStowCommand().schedule();
+            }
             autonomousCommand = null;
         }
 
