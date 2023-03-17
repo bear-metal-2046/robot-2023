@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -34,6 +35,8 @@ import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.DriveForwardCommand;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
+import org.tahomarobotics.robot.climb.Paw;
+import org.tahomarobotics.robot.climb.PawCommand;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 
@@ -130,7 +133,13 @@ public final class OI implements SubsystemIF {
 
         // Pre-Clmb
         JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
-        preClimb.onTrue(new ArmMoveCommand(ArmMovements.STOW_TO_CLIMB));
+        preClimb.onTrue(Commands.sequence(
+                Commands.parallel(
+                        new PawCommand(Paw.getLeftInstance(), 1.6, 2),
+                        new PawCommand(Paw.getRightInstance(), 1.6, 2)
+                ),
+                new ArmMoveCommand(ArmMovements.STOW_TO_CLIMB)
+        ));
 
         // Move to arm to collecting
         JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);

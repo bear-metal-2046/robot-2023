@@ -42,7 +42,7 @@ public class ClimbSequence extends SequentialCommandGroup {
                         new PawCommand(right, FINAL_ANGLE, VELOCITY),
 
                         new SequentialCommandGroup(
-                                new WaitCommand(0.85),
+                                new WaitCommand(0.1),
                                 new ParallelCommandGroup(
                                         new DriveForwardCommand(-1, 3.0),
                                         new BeacherCommand(3.0, -0.5)
