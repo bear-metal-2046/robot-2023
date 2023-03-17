@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.OI;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
@@ -121,6 +122,6 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     public boolean isStalled() {
         double current = grabberMotor.getOutputCurrent();
         SmartDashboard.putNumber("Grabber Current", current);
-        return current > 75;
+        return current > 60 + 10 * OI.getInstance().getDriverLeftAxis();
     }
 }

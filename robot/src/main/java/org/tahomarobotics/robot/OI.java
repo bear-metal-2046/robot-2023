@@ -32,7 +32,6 @@ import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
-import org.tahomarobotics.robot.lights.LED;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -226,5 +225,9 @@ public final class OI implements SubsystemIF {
     @Override
     public void onDisabledInit() {
         armMoveSelector.reset();
+    }
+
+    public double getDriverLeftAxis() {
+        return driveController.getLeftTriggerAxis();
     }
 }
