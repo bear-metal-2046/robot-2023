@@ -21,7 +21,6 @@ package org.tahomarobotics.robot.wrist;
 
 
 import com.revrobotics.*;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -51,7 +50,7 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
         pidController = motor.getPIDController();
         pidController.setFeedbackDevice(absEncoder);
         SparkMaxHelper.checkThenConfigure("Wrist Motor", logger,
-                WristConstants.createWristMotorConfig(false, calibrationData.get()), motor, absEncoder, pidController);
+                WristConstants.createWristMotorConfig(true, calibrationData.get()), motor, absEncoder, pidController);
     }
 
 

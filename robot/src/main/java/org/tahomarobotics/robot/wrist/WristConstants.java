@@ -12,13 +12,13 @@ public class WristConstants {
 
         SparkMaxConfig cfg = new SparkMaxConfig();
         cfg.motorInverted = inverted;
-        cfg.currentLimit = 42;
+        cfg.currentLimit = 40;
         cfg.positionConversionFactor = 2 * Math.PI;
         cfg.velocityConversionFactor = cfg.positionConversionFactor / 60d;
         cfg.encoderOffset = offset;
         cfg.idleBrake = CANSparkMax.IdleMode.kBrake;
-        cfg.kP = 2.0;
-        cfg.kD = 3.0;
+        cfg.kP = 1.0;
+        cfg.kD = 2.0;
         cfg.wrapEnabled = true;
         cfg.encoderInverted = true;
 
