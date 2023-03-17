@@ -48,7 +48,7 @@ public class PlaceCollect extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),

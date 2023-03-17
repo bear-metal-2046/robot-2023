@@ -27,7 +27,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tahomarobotics.robot.wrist.Wrist;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
 import java.util.List;
@@ -45,7 +44,7 @@ public class ArmMovements {
             new TrajectoryConfig(0.5, 1);
 
 
-    private static final Translation2d START = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-4));
+    private static final Translation2d START = new Translation2d(Units.inchesToMeters(10.5), Units.inchesToMeters(-2.1));
     static final Translation2d STOW = new Translation2d(Units.inchesToMeters(18.0), Units.inchesToMeters(-0.7));
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
@@ -64,7 +63,7 @@ public class ArmMovements {
 
     //Pole scoring positions
     private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(33.1), Units.inchesToMeters(18));
-    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50), Units.inchesToMeters(31));
+    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50), Units.inchesToMeters(29));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
@@ -88,6 +87,9 @@ public class ArmMovements {
     public static final ArmMove START_TO_STOW = new ArmMove("Start to Stow",
             new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(STOW, UP), SLOW_SPEED),
             WristPosition.STOW);
+    public static final ArmMove START_TO_HIGH_POLE = new ArmMove("Start to High-Pole",
+            new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(HIGH_POLE, FWD), NORMAL_SPEED),
+            WristPosition.HIGH_POLE_PLACE);
 
     public static ProxyCommand createPositionToStowCommand() {
         return new ProxyCommand(() -> new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW));
@@ -144,7 +146,7 @@ public class ArmMovements {
         WristPosition.MID_POLE_PLACE);
 
     public static final ArmMove STOW_TO_HIGH_POLE = new ArmMove("High-Pole",
-            new ArmTrajectory(STOW, HIGH_POLE, NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(STOW, UP), NONE, new Pose2d(HIGH_POLE, FWD), NORMAL_SPEED),
             WristPosition.HIGH_POLE_PLACE);
 
     //Reversed Commands

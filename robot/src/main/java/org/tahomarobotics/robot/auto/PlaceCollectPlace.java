@@ -17,21 +17,22 @@ import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.IngestCommand;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlaceCollectPlace extends AutonomousBase {
 
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 6),
-            new Rotation2d(0));
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 10.0),
+            new Rotation2d(Units.degreesToRadians(180)));
     private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 50.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 190.9), Units.inchesToMeters(196.325),
-            new Rotation2d(0));
-    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(-179));
-    private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(0));
+    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 40.0), Units.inchesToMeters(196.325 - 8.0));
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+            new Rotation2d(Units.degreesToRadians(-35)));
+    private static final Pose2d FIRST_COLLECT_2 = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+            new Rotation2d(Units.degreesToRadians(180)));
+    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
+    private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
 
     private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.0, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
@@ -46,7 +47,7 @@ public class PlaceCollectPlace extends AutonomousBase {
 
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
-        Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT, List.of(MID_PT_2), SECOND_PLACE, REVERSED_CONFIG);
+        Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT_2, List.of(MID_PT_2), SECOND_PLACE, CONFIG);
 
         // alliance converted rotations
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
@@ -54,7 +55,7 @@ public class PlaceCollectPlace extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),
@@ -62,13 +63,12 @@ public class PlaceCollectPlace extends AutonomousBase {
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(
                                         new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
-                                        new IngestCommand(1)
+                                        new IngestCommand(2)
                                 )
                         )
                 ),
-                new WaitCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.1, 0.7),
+                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.2, 0.7),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
                                 new WaitCommand(1),

@@ -9,13 +9,13 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
+
 
 public class PlaceTaxi extends AutonomousBase {
 

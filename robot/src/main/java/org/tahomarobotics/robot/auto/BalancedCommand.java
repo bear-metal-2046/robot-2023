@@ -10,7 +10,7 @@ import org.tahomarobotics.robot.chassis.Chassis;
 public class BalancedCommand extends CommandBase {
     private final Chassis chassis = Chassis.getInstance();
 
-    private static final double GAIN = 1.83;
+    private static final double GAIN = 1.5;
 
     private static final double ANGLE = Units.degreesToRadians(5.0);
 

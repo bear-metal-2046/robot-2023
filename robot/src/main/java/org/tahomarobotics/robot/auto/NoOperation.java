@@ -6,7 +6,6 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.List;
 

@@ -8,13 +8,10 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
-
-import java.util.List;
 
 public class MidPlaceEngage extends AutonomousBase {
 
@@ -55,7 +52,7 @@ public class MidPlaceEngage extends AutonomousBase {
 
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
 
-                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
 
                 new ParallelCommandGroup(

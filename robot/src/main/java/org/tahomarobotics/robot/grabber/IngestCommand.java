@@ -28,6 +28,7 @@ public class IngestCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(IngestCommand.class);
     private final double INGEST_DURATION;
+    private final double INGEST_LEVEL = 1.0;
     private final Grabber grabber = Grabber.getInstance();
 
     private final Timer timer = new Timer();
@@ -40,7 +41,7 @@ public class IngestCommand extends CommandBase {
     @Override
     public void initialize() {
         timer.restart();
-        grabber.ingest(1.0);
+        grabber.ingest(INGEST_LEVEL);
     }
 
     @Override

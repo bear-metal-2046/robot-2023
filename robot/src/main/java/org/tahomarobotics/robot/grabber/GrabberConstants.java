@@ -27,7 +27,7 @@ public class GrabberConstants {
     public static final double RETAIN_SPEED = 0.06;
     public static final double EJECT_SPEED = -0.8;
 
-    public static final double MAX_SPEED = 0.8;
+    public static final double MAX_SPEED = 0.6;
 
     public static final double TRIGGER_DEAD_ZONE = 0.05;
 
