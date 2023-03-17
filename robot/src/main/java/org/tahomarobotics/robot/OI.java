@@ -18,9 +18,12 @@
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import org.slf4j.Logger;
@@ -28,11 +31,11 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
+import org.tahomarobotics.robot.chassis.DriveForwardCommand;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
 import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
-import org.tahomarobotics.robot.lights.LED;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -123,7 +126,7 @@ public final class OI implements SubsystemIF {
 
         // Climb
         JoystickButton climb = new JoystickButton(driveController, kStart.value);
-        climb.onTrue(new ClimbSequence());
+        climb.onTrue(new ProxyCommand(this::climbOrNot));
 
         // Pre-Clmb
         JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
@@ -162,6 +165,10 @@ public final class OI implements SubsystemIF {
 
         POVButton manipMid = new POVButton(manipController, OperatorArmMoveSelection.ScoringLevel.MID.pov);
         manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
+    }
+
+    private Command climbOrNot(){
+        return DriverStation.getMatchTime() > 6 ? new ClimbSequence() : new DriveForwardCommand(0.5, 0.5);
     }
 
     @Override
