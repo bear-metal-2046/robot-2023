@@ -50,6 +50,12 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         addAuto(new PlaceCollectPlace(DriverStation.Alliance.Blue),
                 new PlaceCollectPlace(DriverStation.Alliance.Red));
 
+        addAuto(new TwoPieceBalance(DriverStation.Alliance.Blue),
+                new TwoPieceBalance(DriverStation.Alliance.Red));
+
+        addAuto(new PlaceCollectPlaceCollect(DriverStation.Alliance.Blue),
+                new PlaceCollectPlaceCollect(DriverStation.Alliance.Red));
+
         addAuto(new PlaceCollect(DriverStation.Alliance.Blue),
                 new PlaceCollect(DriverStation.Alliance.Red));
 
