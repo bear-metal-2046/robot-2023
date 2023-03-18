@@ -22,9 +22,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -44,6 +42,7 @@ import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.vision.Vision;
+import org.tahomarobotics.robot.vision.VisionConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +72,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final ChassisConstantsIF swerveConstants;
 
     private final SwerveDrivePoseEstimator poseEstimator;
+    // Shadow pose estimator to compare vision+odometry with odometry only
+    private final SwerveDrivePoseEstimator odometryPoseEstimator;
 
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
@@ -81,7 +82,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private final CalibrationData<Double[]> swerveCalibration;
 
-    private final Vision vision;
+    private final Vision frontVision;
+    private final Vision backVision;
 
     private double lastUpdateTime = getFPGATimestamp();
 
@@ -120,15 +122,30 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
         );
 
-        vision = new Vision((pose, time) -> {
-//            var poseDiff = getPose().minus(pose);
-//            double diff = Math.sqrt(Math.pow(poseDiff.getX(), 2) + Math.pow(poseDiff.getY(), 2));
-//            if (diff > VisionConstants.RESET_THRESHOLD) {
-//                poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
-//            } else {
-//                poseEstimator.addVisionMeasurement(pose, time);
-//            }
-        });
+        odometryPoseEstimator = new SwerveDrivePoseEstimator(
+                swerveDriveKinematics,
+                getGyroRotation(),
+                getSwerveModulePositions(),
+                new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
+                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
+                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
+        );
+
+        frontVision = new Vision(this::visionCallback, Vision.PVCamera.FRONT);
+        backVision = new Vision(this::visionCallback, Vision.PVCamera.BACK);
+    }
+
+    private void visionCallback(Pose2d pose, double time, double distanceToTargets) {
+        Transform2d poseDiff = getPose().minus(pose);
+        double poseDiffHypot = Math.hypot(poseDiff.getX(), poseDiff.getY());
+
+        // Only add vision measurements where the apriltags are close to the robot
+        // Only add vision measurements close to where the robot currently thinks it is.
+        if (distanceToTargets < 10f && poseDiffHypot < VisionConstants.VISION_MEASUREMENT_THRESHOLD) {
+            poseEstimator.addVisionMeasurement(pose, time,
+                    new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.05 * distanceToTargets, 0.05 * distanceToTargets, 0.01)
+            );
+        }
     }
 
 
@@ -187,6 +204,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
         zeroGyro();
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
+        odometryPoseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
 
         return this;
     }
@@ -195,6 +213,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     public void periodic() {
         Pose2d prev = getPose();
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
+        odometryPoseEstimator.update(getGyroRotation(), getSwerveModulePositions());
         Pose2d current = getPose();
 
         // calculate velocity
@@ -209,8 +228,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         }
 
         fieldPose.setRobotPose(current);
+        fieldPose.getObject("shadowBot").setPose(odometryPoseEstimator.getEstimatedPosition());
 
         SmartDashboard.putString("Pose", getPose().toString());
+        SmartDashboard.putString("Odometry Only Pose", odometryPoseEstimator.getEstimatedPosition().toString());
     }
 
     public Pose2d getPose() {
@@ -251,6 +272,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
+        odometryPoseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
         logger.info("Reset Pose: " + pose);
     }
 
@@ -282,7 +304,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         if (speeds.omegaRadiansPerSecond > 10.0) {
             System.out.println(speeds);
         }
-
 
 
 
