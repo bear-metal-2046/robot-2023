@@ -22,6 +22,9 @@ package org.tahomarobotics.robot.util;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.WPIUtilJNI;
+import org.tahomarobotics.robot.chassis.Chassis;
+
+import java.util.function.DoubleSupplier;
 
 public class SwerveRateLimiter {
 
@@ -31,9 +34,14 @@ public class SwerveRateLimiter {
     private final ChassisSpeeds output = new ChassisSpeeds();
     private double previousTime = 0;
 
+
     public SwerveRateLimiter(double accelerationLimit, double angularAccelerationLimit) {
         this.accelerationLimit = accelerationLimit;
         angularRateLimiter = new SlewRateLimiter(angularAccelerationLimit);
+    }
+
+    protected double getAccelerationLimit(ChassisSpeeds input) {
+        return accelerationLimit;
     }
 
     public ChassisSpeeds calculate(ChassisSpeeds input) {
@@ -58,7 +66,7 @@ public class SwerveRateLimiter {
         double mag = Math.sqrt(dx * dx + dy * dy);
 
         // limit delta speed
-        mag = Math.min(mag, accelerationLimit * elapsedTime);
+        mag = Math.min(mag, getAccelerationLimit(input) * elapsedTime);
 
         // add delta velocity to output
         output.vxMetersPerSecond += mag * Math.cos(dir);

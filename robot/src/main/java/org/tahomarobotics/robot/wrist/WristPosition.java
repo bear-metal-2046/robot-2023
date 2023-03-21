@@ -30,7 +30,7 @@ public enum WristPosition {
     CONE_FEEDER_COLLECT(Units.degreesToRadians(190)),
     MID_BOX_PLACE(Units.degreesToRadians(96d)),
     HIGH_BOX_PLACE(Units.degreesToRadians(70d)),
-    MID_POLE_PLACE(Units.degreesToRadians(138)),
+    MID_POLE_PLACE(Units.degreesToRadians(133)),
     HIGH_POLE_PLACE(Units.degreesToRadians(97)),
     CONE_SLIDER_COLLECT(Units.degreesToRadians(110)),
     CUBE_SLIDER_COLLECT(Units.degreesToRadians(110));

@@ -69,7 +69,7 @@ public class PlaceCollectPlaceCollect extends AutonomousBase {
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(

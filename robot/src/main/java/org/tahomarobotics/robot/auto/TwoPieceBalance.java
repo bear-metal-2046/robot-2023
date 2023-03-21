@@ -28,9 +28,9 @@ public class TwoPieceBalance extends AutonomousBase{
             new Rotation2d(Units.degreesToRadians(-45)));
 
     //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 2.5),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 2.5),
             new Rotation2d(Units.degreesToRadians(180)));
 
     private static final Pose2d ENGAGE = new Pose2d(Units.inchesToMeters(69.6 + 110.0), Units.inchesToMeters(135.0),
@@ -67,7 +67,7 @@ public class TwoPieceBalance extends AutonomousBase{
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(

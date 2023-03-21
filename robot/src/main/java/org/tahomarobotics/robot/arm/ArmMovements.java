@@ -53,8 +53,8 @@ public class ArmMovements {
     private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23.28), Units.inchesToMeters(-10.75));
     private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(16.9), Units.inchesToMeters(10.9)); // TODO change this to inches
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(16.9), Units.inchesToMeters(10.9)); // and this
-    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(28.9));
-    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(28.9));
+    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(27.75));
+    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(27.75));
 
 
     //Box scoring positions

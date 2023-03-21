@@ -44,7 +44,11 @@ public class DriveForwardCommand extends CommandBase {
         timer.reset();
         timer.start();
         // drive robot oriented mode
-        chassis.drive(new ChassisSpeeds(velocity, 0d, 0d), false);
+    }
+
+    @Override
+    public void execute() {
+        chassis.drive(new ChassisSpeeds(0d, velocity, 0d), true);
     }
 
     @Override

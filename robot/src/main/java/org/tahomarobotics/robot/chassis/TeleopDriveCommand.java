@@ -28,16 +28,22 @@ import java.util.function.DoubleSupplier;
 
 public class TeleopDriveCommand extends CommandBase {
 
-    private final Chassis chassis = Chassis.getInstance();
+    private static final Chassis chassis = Chassis.getInstance();
 
     private final ChassisSpeeds velocityInput = new ChassisSpeeds();
 
-    SwerveRateLimiter rateLimiter;
+    private SwerveRateLimiter rateLimiter;
 
     private final DoubleSupplier xSup, ySup, rotSup;
 
     private final double maxVelocity;
     private final double maxRotationalVelocity;
+
+    private static final double MIN_ACCELERATION = 2.0;
+    private static final double MAX_ACCELERATION = chassis.getSwerveConstants().accelerationLimit();
+
+    private static final double ACCELERATION_RANGE = MAX_ACCELERATION - MIN_ACCELERATION;
+
 
     public TeleopDriveCommand(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rotation) {
         this.xSup = x;
@@ -50,7 +56,20 @@ public class TeleopDriveCommand extends CommandBase {
 
         rateLimiter = new SwerveRateLimiter(
                 constants.accelerationLimit(),
-                constants.angularAccelerationLimit());
+                constants.angularAccelerationLimit()); /*{
+
+            @Override
+            protected double getAccelerationLimit(ChassisSpeeds input) {
+
+                double level = Math.abs(Math.hypot(input.vxMetersPerSecond, input.vyMetersPerSecond))/constants.maxRotationalVelocity();
+
+                double limit =  MIN_ACCELERATION + level * ACCELERATION_RANGE;
+
+                SmartDashboard.putNumber("Limit", limit);
+
+                return limit;
+            }
+        };*/
 
         maxVelocity = constants.maxRotationalVelocity();
         maxRotationalVelocity = constants.maxRotationalVelocity();
