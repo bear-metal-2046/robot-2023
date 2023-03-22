@@ -20,7 +20,6 @@
 package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.slf4j.Logger;
@@ -33,21 +32,17 @@ import org.tahomarobotics.robot.climb.Paw;
 import org.tahomarobotics.robot.grabber.Grabber;
 import org.tahomarobotics.robot.lights.LED;
 import org.tahomarobotics.robot.lights.LEDConstants;
-import org.tahomarobotics.robot.util.ChartData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
+import org.tahomarobotics.robot.util.SystemLogger;
 import org.tahomarobotics.robot.wrist.Wrist;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 public class Robot extends TimedRobot {
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
-
-    static {
-        // Initialize use of async loggers. Only to be done statically in the main class.
-        System.setProperty("log4j2.contextSelector",
-                "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector");
-    }
 
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final List<SubsystemIF> subsystems = new ArrayList<>();
@@ -55,7 +50,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
 
-        initializeSerializeWorkaround();
+        SystemLogger.logRobotInit();
 
         DriverStation.silenceJoystickConnectionWarning(true);
 
@@ -83,23 +78,35 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+
+        SystemLogger.logAutoInit();
+
         subsystems.forEach(SubsystemIF::onAutonomousInit);
+
         logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
     }
 
     @Override
     public void teleopInit() {
+        SystemLogger.logTeleopInit();
+
         subsystems.forEach(SubsystemIF::onTeleopInit);
+
         logger.info("-=-=-=- TELEOP initiated -=-=-=-");
     }
 
     @Override
     public void disabledInit() {
+        SystemLogger.logDisabledInit();
+
         subsystems.forEach(SubsystemIF::onDisabledInit);
+
         logger.info("-=-=-=- DISABLE initiated -=-=-=-");
     }
     @Override
     public void testInit() {
+        SystemLogger.logTestInit();
+
         logger.info("-=-=-=- TEST initiated -=-=-=-");
     }
 
@@ -113,20 +120,4 @@ public class Robot extends TimedRobot {
     public void testPeriodic() {}
     @Override
     public void disabledPeriodic() {}
-
-    private void initializeSerializeWorkaround() {
-        ChartData chartData = new ChartData(
-                "Workaround", " Time ( Sec", "Velocity (mps)",
-                new String[]{"expected-vel", "actual-vel", "voltage", "expected-pos", "actual-pos"});
-
-        for (double time = 0; time < 2.0; time += 0.02) {
-            chartData.addData(new double[] { time, time, time, time, time, time});
-        }
-
-        chartData.serialize();
-    }
-
-    public static void main(String... args) {
-        RobotBase.startRobot(Robot::new);
-    }
 }

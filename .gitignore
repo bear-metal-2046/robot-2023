@@ -345,3 +345,5 @@ simgui-window.json
 simgui.json
 networktables.json
 .outlineviewer
+
+crash_tracking.txt

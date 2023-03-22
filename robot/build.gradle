@@ -7,7 +7,7 @@ def javaVersion = JavaVersion.VERSION_17
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
 
-def ROBOT_MAIN_CLASS = "org.tahomarobotics.robot.Robot"
+def ROBOT_MAIN_CLASS = "org.tahomarobotics.robot.Main"
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -85,6 +85,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+    implementation 'com.lmax:disruptor:3.4.4'
 
     //YAML Configuration Support.
     implementation 'me.carleslc.Simple-YAML:Simple-Yaml:1.8.3'

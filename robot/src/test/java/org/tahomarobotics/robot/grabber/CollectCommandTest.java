@@ -75,7 +75,9 @@ class CollectCommandTest {
 
     static class TestGrabber extends Grabber {
         private double speed = 0.0;
-        double velocity = 20;
+        double current = 20;
+        double power = 0;
+
         public TestGrabber() {
             super(true);
         }
@@ -83,10 +85,17 @@ class CollectCommandTest {
         public double getGrabberSpeed() { return speed; }
         public void setGrabberSpeed(double percentage) { speed = percentage; }
 
-        public double getVelocity() {
-            return velocity;
+        public double getCurrent() {
+            return current;
         }
-        public void setVelocity(double v) { velocity =  v; }
+
+        public double getPower() {
+            return power;
+        }
+
+        public void setCurrent(double current) { this.current = current; }
+
+        public void setPower(double power) { this.power = power; }
     }
 
     TestDriveLeftTrigerSupplier driveLeftTriger = new TestDriveLeftTrigerSupplier();

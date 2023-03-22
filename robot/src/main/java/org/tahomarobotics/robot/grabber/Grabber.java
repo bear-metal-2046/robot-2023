@@ -77,9 +77,14 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
         grabberMotor.set(percentage);
     }
 
-    double getVelocity() {
-        return encoder.getVelocity();
+    double getCurrent() {
+        return grabberMotor.getOutputCurrent();
     }
+
+    double getPower() {
+        return OI.getInstance().getDriverLeftAxis();
+    }
+
 
     void off() {
         retained = false;
@@ -120,8 +125,8 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
     }
 
     public boolean isStalled() {
-        double current = grabberMotor.getOutputCurrent();
+        double current = getCurrent();
         SmartDashboard.putNumber("Grabber Current", current);
-        return current > 60 + 10 * OI.getInstance().getDriverLeftAxis();
+        return current > 60 + 10 * getPower();
     }
 }
