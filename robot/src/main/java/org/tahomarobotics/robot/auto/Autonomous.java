@@ -40,6 +40,7 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         shuffleboard = new AutoShuffleboard(autoCommandChooser);
 
         addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
+        addAuto(new OdometryStraightTest(), new OdometryStraightTest());
 
         addAuto(new PlaceTaxi(DriverStation.Alliance.Blue),
                 new PlaceTaxi(DriverStation.Alliance.Red));

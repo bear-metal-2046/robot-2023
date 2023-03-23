@@ -44,7 +44,7 @@ public final class RevChassisConstants implements ChassisConstantsIF {
     // This changes the drive speed of the module (a pinion gear with more teeth will result in a
     // robot that drives faster).
     public static final double DRIVING_MOTOR_PINION_TEETH = 14d;
-    public static final double WHEEL_DIAMETER = Units.inchesToMeters(2.805);
+    public static final double WHEEL_DIAMETER = Units.inchesToMeters(2.805) * 161.5 / 163d;
     public static final double WHEEL_RADIUS = WHEEL_DIAMETER / 2;
 
     public static final double WHEEL_CIRCUMFERENCE = 2 * Math.PI * WHEEL_RADIUS;
@@ -134,7 +134,9 @@ public final class RevChassisConstants implements ChassisConstantsIF {
         cfg.currentLimit = DRIVE_CURRENT_LIMIT;
         cfg.positionConversionFactor = DRIVE_ENCODER_POSITION_FACTOR;
         cfg.velocityConversionFactor = DRIVE_ENCODER_VELOCITY_FACTOR;
-        cfg.kP = 1d;
+        cfg.kP = 0.2;
+        cfg.kI = 0;
+        cfg.kD = 0;
         return cfg;
     }
     public static SparkMaxConfig createSteerConfig(int id, double offset) {
@@ -145,7 +147,7 @@ public final class RevChassisConstants implements ChassisConstantsIF {
         cfg.velocityConversionFactor = STEER_ENCODER_VELOCITY_FACTOR;
         cfg.encoderInverted = true;
         cfg.encoderOffset = offset;
-        cfg.kP = 0.75;
+        cfg.kP = 5d;
         cfg.wrapEnabled = true;
         return cfg;
     }

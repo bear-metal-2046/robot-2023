@@ -52,7 +52,7 @@ public class RevSwerveModule implements SwerveModuleIF {
     private final CANSparkMax steerMotor;
     private final AbsoluteEncoder steerABSEncoder;
 
-    private final PIDController drivePIDController = new PIDController(0, 0, 0);
+    private final SparkMaxPIDController drivePIDController;
     private SparkMaxPIDController steerPIDController;
     private final SimpleMotorFeedforward driveFeedforward = new SimpleMotorFeedforward(0, RevChassisConstants.kV_DRIVE);
     private SwerveModuleState state = new SwerveModuleState();
@@ -71,15 +71,16 @@ public class RevSwerveModule implements SwerveModuleIF {
 
         // configure drive motor
         driveMotor = new CANSparkMax(ports.drive(), CANSparkMaxLowLevel.MotorType.kBrushless);
+        drivePIDController = driveMotor.getPIDController();
         SparkMaxConfig driveConfig = RevChassisConstants.createDriveConfig(ports.drive());
 
-        SparkMaxHelper.checkThenConfigure(name, logger, driveConfig, driveMotor, driveMotor.getEncoder());
-        drivePIDController.setPID(driveConfig.kP, driveConfig.kI, driveConfig.kD);
+        SparkMaxHelper.checkThenConfigure(name, logger, driveConfig, driveMotor, driveMotor.getEncoder(), drivePIDController);
 
         driveMotor.getEncoder().setPosition(0.0);
 
         // configure steer motor
         steerMotor = new CANSparkMax(ports.steer(), CANSparkMaxLowLevel.MotorType.kBrushless);
+        steerMotor.setPeriodicFramePeriod(CANSparkMaxLowLevel.PeriodicFrame.kStatus5, 20);
         steerABSEncoder = steerMotor.getAbsoluteEncoder(SparkMaxAbsoluteEncoder.Type.kDutyCycle);
         steerPIDController = steerMotor.getPIDController();
         SparkMaxConfig steerConfig = RevChassisConstants.createSteerConfig(ports.steer(), angularOffset);
@@ -149,11 +150,8 @@ public class RevSwerveModule implements SwerveModuleIF {
 
         state = SwerveModuleState.optimize(desiredState, new Rotation2d(steerAngle));
 
-        // Calculate the drive output from the drive PID controller.
-        double driveOutput = drivePIDController.calculate(getVelocity(), state.speedMetersPerSecond);
-        driveOutput += driveFeedforward.calculate(state.speedMetersPerSecond);
-
-        setDriveVoltage(driveOutput);
+        double driveFF = driveFeedforward.calculate(state.speedMetersPerSecond);
+        drivePIDController.setReference(state.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity, 0, driveFF);
         steerPIDController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
     }
 

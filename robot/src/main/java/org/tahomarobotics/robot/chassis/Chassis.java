@@ -263,10 +263,25 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             velocity = ChassisSpeeds.fromFieldRelativeSpeeds(velocity, getPose().getRotation());
         }
 
-        var swerveModuleStates = swerveDriveKinematics.toSwerveModuleStates(velocity);
+        final double dT = 0.02;
 
+        // Correct for rotation while moving. Code taken from 254.
+        // https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/5
+        Pose2d velocityPose = new Pose2d(
+                velocity.vxMetersPerSecond * dT,
+                velocity.vyMetersPerSecond * dT,
+                Rotation2d.fromRadians(velocity.omegaRadiansPerSecond * dT)
+        );
+
+        Twist2d velocityTwist = new Pose2d().log(velocityPose);
+        ChassisSpeeds correctedVelocities = new ChassisSpeeds(
+                velocityTwist.dx / dT,
+                velocityTwist.dy / dT,
+                velocityTwist.dtheta / dT
+        );
+
+        var swerveModuleStates = swerveDriveKinematics.toSwerveModuleStates(correctedVelocities);
         SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, swerveConstants.maxAttainableMps());
-
         setSwerveStates(swerveModuleStates);
     }
 

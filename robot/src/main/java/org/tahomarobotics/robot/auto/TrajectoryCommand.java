@@ -11,7 +11,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class TrajectoryCommand extends SwerveControllerCommand {
+public class TrajectoryCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(TrajectoryCommand.class);
     private final Trajectory trajectory;
@@ -32,7 +32,7 @@ public class TrajectoryCommand extends SwerveControllerCommand {
             new String[]{"expected hdg", "actual hgd"});
     private final List<Pose2d> actualTrajectory = new ArrayList<>();
 
-    private final Timer timer;
+    private final Timer timer = new Timer();
 
     private final Chassis chassis = Chassis.getInstance();
 
@@ -71,16 +71,8 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 
     private final double turnDuration;
 
-    public TrajectoryCommand(String name, Trajectory trajectory) {
-        this(name, trajectory,getFinalTrajectoryHeading(trajectory));
-    }
-
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading) {
         this(name, trajectory, heading, 0d, 1d, false);
-    }
-
-    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity) {
-        this(name, trajectory, heading, 0d, 1d, hasEndVelocity);
     }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
@@ -96,34 +88,20 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     }
 
     private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, boolean hasEndVelocity, HolonomicDriveController controller) {
-        super(trajectory,
-                Chassis.getInstance()::getPose,
-                Chassis.getInstance().getSwerveDriveKinematics(),
-                controller,
-                headingSupplier,
-                Chassis.getInstance()::setSwerveStates,
-                Chassis.getInstance()
-        );
-
         this.name = name;
         this.trajectory = trajectory;
         this.controller = controller;
         this.heading = heading;
         this.hasEndVelocity = hasEndVelocity;
-        timer = new Timer();
         this.headingSupplier = headingSupplier;
         this.turnDuration = turnDuration;
-    }
 
-    private static Rotation2d getFinalTrajectoryHeading(Trajectory trajectory) {
-        var states = trajectory.getStates();
-        var finalPose = states.get(states.size() - 1).poseMeters;
-        return finalPose.getRotation();
+        addRequirements(Chassis.getInstance());
     }
 
     private static HolonomicDriveController createController() {
-        PIDController xController = new PIDController(5, 0, 0.5);
-        PIDController yController = new PIDController(4, 0, 0.5);
+        PIDController xController = new PIDController(5, 0, 0);
+        PIDController yController = new PIDController(5, 0, 0);
         ProfiledPIDController headingController = new ProfiledPIDController(2.5, 0, 0.25, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
         HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
 
@@ -168,8 +146,14 @@ public class TrajectoryCommand extends SwerveControllerCommand {
 //        log.info("TrajectoryCommand.execute - Pose: " + chassis.getPose());
 
         double time = timer.get();
+        Chassis chassis = Chassis.getInstance();
 
         Trajectory.State desiredPose = trajectory.sample(time);
+
+        var targetChassisSpeeds =
+                controller.calculate(chassis.getPose(), desiredPose, headingSupplier.get());
+
+        chassis.drive(targetChassisSpeeds, false);
 
         velData.addData(new double[]{time,
                 desiredPose.velocityMetersPerSecond,
@@ -189,8 +173,10 @@ public class TrajectoryCommand extends SwerveControllerCommand {
     @Override
     public boolean isFinished() {
         if (!timer.hasElapsed(trajectory.getTotalTimeSeconds())) return false;
-        return trajectory.getStates().get(trajectory.getStates().size() - 1)
-                .poseMeters.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(0.5) ||
+        Pose2d lastPose = trajectory.getStates().get(trajectory.getStates().size() - 1).poseMeters;
+
+        return (lastPose.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(0.5) &&
+                (Math.abs(lastPose.getRotation().getDegrees() - chassis.getPose().getRotation().getDegrees())) < 1) ||
                 timer.hasElapsed(trajectory.getTotalTimeSeconds() + 0.5);
     }
 
