@@ -1,4 +1,4 @@
-package org.tahomarobotics.robot.auto;
+package org.tahomarobotics.robot.auto.Loading;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,13 +13,15 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
+import org.tahomarobotics.robot.auto.AutonomousBase;
+import org.tahomarobotics.robot.auto.TrajectoryCommand;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.IngestCommand;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class PlaceCollectPlace extends AutonomousBase {
+public class LoadingPCP extends AutonomousBase {
 
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
@@ -40,7 +42,7 @@ public class PlaceCollectPlace extends AutonomousBase {
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
 
 
-    public PlaceCollectPlace(DriverStation.Alliance alliance) {
+    public LoadingPCP(DriverStation.Alliance alliance) {
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));

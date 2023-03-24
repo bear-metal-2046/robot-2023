@@ -1,4 +1,4 @@
-package org.tahomarobotics.robot.auto;
+package org.tahomarobotics.robot.auto.Loading;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,13 +13,16 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
+import org.tahomarobotics.robot.auto.AutonomousBase;
+import org.tahomarobotics.robot.auto.BalancedCommand;
+import org.tahomarobotics.robot.auto.TrajectoryCommand;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.IngestCommand;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class TwoPieceBalance extends AutonomousBase{
+public class LoadingPCPE extends AutonomousBase {
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
     private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 8.0),
@@ -48,7 +51,7 @@ public class TwoPieceBalance extends AutonomousBase{
     private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.0, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-    public TwoPieceBalance(DriverStation.Alliance alliance) {
+    public LoadingPCPE(DriverStation.Alliance alliance) {
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));

@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 public class TrajectoryCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(TrajectoryCommand.class);
+
+    public enum TurnDirection { COUNTER_CLOCKWISE, CLOCKWISE }
     private final Trajectory trajectory;
 
     private final ChartData velData = new ChartData("Path Motion", "Time (sec)", "Velocity",
@@ -52,10 +54,24 @@ public class TrajectoryCommand extends CommandBase {
 
         private final double turnStart;
 
-        public HeadingSupplier(Rotation2d endHeading, double turnStart) {
-            this.endHeading = endHeading;
-            this.turnStart = turnStart;
+        private final double dir;
+
+        private final Rotation2d midAngle;
+
+        public HeadingSupplier(Rotation2d endHeading, double turnStart, TurnDirection turnDirection) {
             initialize();
+            double endAngle = endHeading.getRadians();
+            this.turnStart = turnStart;
+            this.dir = turnDirection == TurnDirection.COUNTER_CLOCKWISE ? 1.0 : -1.0;
+
+            double midAngle = (endHeading.getRadians() + startHeading.getRadians())/2;
+            if (dir * midAngle < 0) {
+                midAngle += dir * Math.PI;
+                endAngle += dir * 2 * Math.PI;
+            }
+            this.midAngle = new Rotation2d(midAngle);
+            this.endHeading = new Rotation2d(endAngle);
+
         }
         public void initialize() {
             timer.restart();
@@ -63,7 +79,22 @@ public class TrajectoryCommand extends CommandBase {
         }
         @Override
         public Rotation2d get() {
-            return timer.hasElapsed(turnStart) ? endHeading : startHeading;
+
+            Rotation2d heading = startHeading;
+
+            // wait for start timing
+            if (timer.hasElapsed(turnStart)) {
+
+                double currentHeading = Chassis.getInstance().getPose().getRotation().getRadians();
+
+                // force heading in the direction requested
+                double diff = Math.abs(endHeading.getRadians() - currentHeading);
+
+                heading = diff >= Math.PI ? midAngle : endHeading;
+            }
+
+            // return ending heading
+            return heading;
         }
     }
 
@@ -71,16 +102,33 @@ public class TrajectoryCommand extends CommandBase {
 
     private final double turnDuration;
 
+    private static TurnDirection defaultTurn(Rotation2d heading) {
+        return heading.getRadians() < 0 ? TurnDirection.CLOCKWISE : TurnDirection.COUNTER_CLOCKWISE;
+    }
+
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading) {
-        this(name, trajectory, heading, 0d, 1d, false);
+        this(name, trajectory, heading, 0d, 1d, defaultTurn(heading), false);
+    }
+
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, TurnDirection turnDirection) {
+        this(name, trajectory, heading, 0d, 1d, turnDirection, false);
+    }
+
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity) {
+        this(name, trajectory, heading, 0d, 1d, defaultTurn(heading), hasEndVelocity);
     }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
-        this(name, trajectory, heading, turnStart, turnEnd, false);
+        this(name, trajectory, heading, turnStart, turnEnd, defaultTurn(heading), false);
     }
-    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, boolean hasEndVelocity) {
+
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection) {
+        this(name, trajectory, heading, turnStart, turnEnd, turnDirection, false);
+    }
+
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection, boolean hasEndVelocity) {
         this(name, trajectory,
-                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds()),
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
                 hasEndVelocity,
@@ -102,7 +150,7 @@ public class TrajectoryCommand extends CommandBase {
     private static HolonomicDriveController createController() {
         PIDController xController = new PIDController(5, 0, 0);
         PIDController yController = new PIDController(5, 0, 0);
-        ProfiledPIDController headingController = new ProfiledPIDController(2.5, 0, 0.25, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
+        ProfiledPIDController headingController = new ProfiledPIDController(5, 0, 0.25, new TrapezoidProfile.Constraints(Math.PI, Math.PI));
         HolonomicDriveController controller = new HolonomicDriveController(xController, yController, headingController);
 
         // TODO: HolonomicDriveController sets this to 0 to 2PI
