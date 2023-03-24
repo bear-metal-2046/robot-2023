@@ -135,16 +135,38 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         backVision = new Vision(this::visionCallback, Vision.PVCamera.BACK);
     }
 
-    private void visionCallback(Pose2d pose, double time, double distanceToTargets) {
-        Transform2d poseDiff = getPose().minus(pose);
-        double poseDiffHypot = Math.hypot(poseDiff.getX(), poseDiff.getY());
+    private void visionCallback(Vision.PVCameraResult result) {
+        Transform2d poseDiff = getPose().minus(result.poseMeters());
+        double distanceToTargets = result.distanceToTargets();
 
         // Only add vision measurements where the apriltags are close to the robot
         // Only add vision measurements close to where the robot currently thinks it is.
-        if (distanceToTargets < 10f && poseDiffHypot < VisionConstants.VISION_MEASUREMENT_THRESHOLD) {
-            poseEstimator.addVisionMeasurement(pose, time,
-                    new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.05 * distanceToTargets, 0.05 * distanceToTargets, 0.01)
+        if (poseDiff.getTranslation().getNorm() > VisionConstants.POSE_DIFFERENCE_THRESHOLD ||
+            poseDiff.getRotation().getDegrees() > VisionConstants.DEGREES_DIFFERENCE_THRESHOLD) {
+            return;
+        }
+
+        fieldPose.getObject("Vision Pose").setPose(result.poseMeters());
+
+        if (result.numTargets() > 1 && distanceToTargets < VisionConstants.TARGET_DISTANCE_THRESHOLD) {
+            // Multi-tag PnP provides very trustworthy data
+            var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
+                0.05 * distanceToTargets,
+                0.05 * distanceToTargets,
+                0.01
             );
+
+            poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
+        } else if (result.numTargets() == 1 && distanceToTargets < VisionConstants.SINGLE_TARGET_DISTANCE_THRESHOLD) {
+            // Single tag results are not very trustworthy. Do not use headings from them
+            Pose2d noHdgPose = new Pose2d(result.poseMeters().getTranslation(), getPose().getRotation());
+            var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
+                0.5 * distanceToTargets,
+                0.5 * distanceToTargets,
+                1
+            );
+
+            poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
         }
     }
 
