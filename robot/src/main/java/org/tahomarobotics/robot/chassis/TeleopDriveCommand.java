@@ -21,6 +21,7 @@ package org.tahomarobotics.robot.chassis;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.tahomarobotics.robot.util.SwerveRateLimiter;
 
@@ -39,12 +40,6 @@ public class TeleopDriveCommand extends CommandBase {
     private final double maxVelocity;
     private final double maxRotationalVelocity;
 
-    private static final double MIN_ACCELERATION = 2.0;
-    private static final double MAX_ACCELERATION = chassis.getSwerveConstants().accelerationLimit();
-
-    private static final double ACCELERATION_RANGE = MAX_ACCELERATION - MIN_ACCELERATION;
-
-
     public TeleopDriveCommand(DoubleSupplier x, DoubleSupplier y, DoubleSupplier rotation) {
         this.xSup = x;
         this.ySup = y;
@@ -56,27 +51,10 @@ public class TeleopDriveCommand extends CommandBase {
 
         rateLimiter = new SwerveRateLimiter(
                 constants.accelerationLimit(),
-                constants.angularAccelerationLimit()); /*{
+                constants.angularAccelerationLimit());
 
-            @Override
-            protected double getAccelerationLimit(ChassisSpeeds input) {
-
-                double level = Math.abs(Math.hypot(input.vxMetersPerSecond, input.vyMetersPerSecond))/constants.maxRotationalVelocity();
-
-                double limit =  MIN_ACCELERATION + level * ACCELERATION_RANGE;
-
-                SmartDashboard.putNumber("Limit", limit);
-
-                return limit;
-            }
-        };*/
-
-        maxVelocity = constants.maxRotationalVelocity();
+        maxVelocity = constants.maxAttainableMps();
         maxRotationalVelocity = constants.maxRotationalVelocity();
-    }
-
-    @Override
-    public void initialize() {
     }
 
     @Override

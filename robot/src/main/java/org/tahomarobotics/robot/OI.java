@@ -18,6 +18,7 @@
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -39,6 +40,7 @@ import java.util.concurrent.Executors;
 import static edu.wpi.first.wpilibj.XboxController.Button.*;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CONE;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CUBE;
+import static org.tahomarobotics.robot.auto.AutonomousBase.FIELD_LENGTH;
 
 public final class OI implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(OI.class);
@@ -48,13 +50,15 @@ public final class OI implements SubsystemIF {
     private static final int POV_SOUTH = 180;
     private static final int POV_WEST = 270;
     private static final int POV_NORTH = 0;
+    private static final double BLUE_COMMUNITY = Units.feetToMeters(10d);
+    private static final double RED_COMMUNITY = FIELD_LENGTH - BLUE_COMMUNITY;
 
     public static OI getInstance() {
         return INSTANCE;
     }
 
-    private static final double ROTATIONAL_SENSITIVITY = 3;
-    private static final double FORWARD_SENSITIVITY = 3;
+    private static final double ROTATIONAL_SENSITIVITY = 2;
+    private static final double FORWARD_SENSITIVITY = 1.1;
     private static final double DEAD_ZONE = 0.09;
     // If 9% does not fell responsive enough try 10.5%
 
@@ -163,10 +167,6 @@ public final class OI implements SubsystemIF {
         manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
     }
 
-    @Override
-    public void periodic() {
-    }
-
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {
             if (value > 0.0) {
@@ -190,7 +190,14 @@ public final class OI implements SubsystemIF {
      */
     private double desensitizePowerBased(double value, double power) {
         value = deadband(value);
-        return Math.pow(Math.abs(value), power - 1) * value;
+        var x = Chassis.getInstance().getPose().getTranslation().getX();
+
+        value *= Math.pow(Math.abs(value), power - 1);
+
+        if ((x < BLUE_COMMUNITY || x > RED_COMMUNITY) && !armMoveSelector.isStowed()) {
+            value /= 2;
+        }
+        return value;
     }
 
     private static final Executor rumbleExec = Executors.newFixedThreadPool(2,

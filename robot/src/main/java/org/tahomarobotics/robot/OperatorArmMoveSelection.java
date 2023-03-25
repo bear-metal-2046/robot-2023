@@ -167,6 +167,10 @@ public class OperatorArmMoveSelection {
         armPosition = ArmPosition.STOW;
     }
 
+    public boolean isStowed() {
+        return armPosition == ArmPosition.STOW;
+    }
+
     public enum ConeOrCube {CONE, CUBE}
 
     public enum ScoringLevel {
