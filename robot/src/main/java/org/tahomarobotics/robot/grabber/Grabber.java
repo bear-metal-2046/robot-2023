@@ -32,7 +32,8 @@ import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
 
-import static org.tahomarobotics.robot.grabber.GrabberConstants.*;
+import static org.tahomarobotics.robot.grabber.GrabberConstants.EJECT_SPEED;
+import static org.tahomarobotics.robot.grabber.GrabberConstants.RETAIN_SPEED;
 
 public class Grabber extends SubsystemBase implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(Grabber.class);
@@ -105,7 +106,7 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
             setGrabberSpeed(RETAIN_SPEED);
             retained = true;
         } else {
-            setGrabberSpeed(Math.max(RETAIN_SPEED, MAX_SPEED * speed));
+            setGrabberSpeed(Math.max(RETAIN_SPEED, speed));
         }
     }
 
@@ -116,7 +117,7 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
 
     public void score(double level) {
         state = MovementState.SCORE;
-        setGrabberSpeed(-level * MAX_SPEED);
+        setGrabberSpeed(-level);
     }
 
     public void eject() {

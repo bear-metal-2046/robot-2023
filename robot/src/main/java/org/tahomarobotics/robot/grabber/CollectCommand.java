@@ -22,11 +22,12 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.OI;
+import org.tahomarobotics.robot.OperatorArmMoveSelection;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import static org.tahomarobotics.robot.grabber.GrabberConstants.TRIGGER_DEAD_ZONE;
+import static org.tahomarobotics.robot.grabber.GrabberConstants.*;
 
 public class CollectCommand extends CommandBase {
     private static final Logger logger = LoggerFactory.getLogger(CollectCommand.class);
@@ -47,7 +48,9 @@ public class CollectCommand extends CommandBase {
 
     @Override
     public void execute() {
-        double ingest = driveLeftTrigger.getAsDouble();
+        double ingest = driveLeftTrigger.getAsDouble()
+                * ((OI.getInstance().getArmMoveSelector().getMode() == OperatorArmMoveSelection.ConeOrCube.CONE)
+                ? MAX_CONE_SPEED : MAX_CUBE_SPEED);
         double score = manipLeftTrigger.getAsDouble();
         boolean isEject = ejectButton.getAsBoolean();
         boolean isScore = score > TRIGGER_DEAD_ZONE;

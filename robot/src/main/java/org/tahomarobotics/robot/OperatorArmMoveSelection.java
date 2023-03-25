@@ -191,4 +191,7 @@ public class OperatorArmMoveSelection {
 
     private record CollectCommandKey(CollectLevel level, ConeOrCube mode, ArmPosition armPosition) {
     }
+    public ConeOrCube getMode() {
+        return mode;
+    }
 }
