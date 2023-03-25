@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import org.tahomarobotics.robot.OI;
+import org.tahomarobotics.robot.wrist.Wrist;
 
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class ArmShuffleboard {
 
     private final GenericEntry shoulderAngle;
     private final GenericEntry elbowAngle;
+    private final GenericEntry wristAngle;
     private final GenericEntry xPosition;
     private final GenericEntry yPosition;
 
@@ -37,9 +39,9 @@ public class ArmShuffleboard {
         // Display Angles and Positions
         var positionLayout = tab.getLayout("Arm Positions", BuiltInLayouts.kGrid)
                 .withPosition(4,0)
-                .withSize(4, 4)
+                .withSize(6, 4)
                 .withProperties(Map.of(
-                        "Number of columns", 2,
+                        "Number of columns", 3,
                         "Number of rows", 2,
                         "Label position", "BOTTOM"));
 
@@ -55,6 +57,13 @@ public class ArmShuffleboard {
                 .withWidget(BuiltInWidgets.kDial).withProperties(Map.of(
                         "min", -180.0,
                         "max", 0.0
+                )).getEntry();
+
+        wristAngle = positionLayout.add("Wrist Angle", 0)
+                .withPosition(2,0)
+                .withWidget(BuiltInWidgets.kDial).withProperties(Map.of(
+                        "min", 0.0,
+                        "max", 250.0
                 )).getEntry();
 
         xPosition = positionLayout.add("X Position", 0)
@@ -132,6 +141,9 @@ public class ArmShuffleboard {
         ArmState state = arm.getCurrentArmState();
         shoulderAngle.setDouble(Units.radiansToDegrees(state.shoulder.position()));
         elbowAngle.setDouble(Units.radiansToDegrees(state.elbow.position()));
+
+        double _wristAngle = Wrist.getInstance().getPosition();
+        wristAngle.setDouble(Units.radiansToDegrees(_wristAngle));
 
         Translation2d position = arm.getCurrentPosition();
         xPosition.setDouble(Units.metersToInches(position.getX()));
