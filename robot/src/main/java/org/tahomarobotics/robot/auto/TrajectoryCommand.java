@@ -49,33 +49,30 @@ public class TrajectoryCommand extends CommandBase {
 
         private final Timer timer = new Timer();
 
-        private Rotation2d startHeading;
-        private final Rotation2d endHeading;
+        private Rotation2d startHeading = new Rotation2d();
 
+        private final Rotation2d endHeading;
         private final double turnStart;
+        private final double finalStart;
 
         private final double dir;
 
-        private final Rotation2d midAngle;
+        private Rotation2d midAngle;
 
-        public HeadingSupplier(Rotation2d endHeading, double turnStart, TurnDirection turnDirection) {
-            initialize();
-            double endAngle = endHeading.getRadians();
+        public HeadingSupplier(Rotation2d endHeading, double turnStart, double finalStart, TurnDirection turnDirection) {
             this.turnStart = turnStart;
             this.dir = turnDirection == TurnDirection.COUNTER_CLOCKWISE ? 1.0 : -1.0;
-
-            double midAngle = (endHeading.getRadians() + startHeading.getRadians())/2;
-            if (dir * midAngle < 0) {
-                midAngle += dir * Math.PI;
-                endAngle += dir * 2 * Math.PI;
-            }
-            this.midAngle = new Rotation2d(midAngle);
-            this.endHeading = new Rotation2d(endAngle);
-
+            this.endHeading = endHeading;
+            this.finalStart=finalStart;
         }
         public void initialize() {
             timer.restart();
             startHeading = Chassis.getInstance().getPose().getRotation();
+            double midAngle = (endHeading.getRadians() + startHeading.getRadians())/2;
+            if ((midAngle - startHeading.getRadians()) * dir < 0) {
+                midAngle += dir * Math.PI;
+            }
+            this.midAngle = new Rotation2d(midAngle);
         }
         @Override
         public Rotation2d get() {
@@ -84,13 +81,7 @@ public class TrajectoryCommand extends CommandBase {
 
             // wait for start timing
             if (timer.hasElapsed(turnStart)) {
-
-                double currentHeading = Chassis.getInstance().getPose().getRotation().getRadians();
-
-                // force heading in the direction requested
-                double diff = Math.abs(endHeading.getRadians() - currentHeading);
-
-                heading = diff >= Math.PI ? midAngle : endHeading;
+                heading = timer.hasElapsed(finalStart) ? endHeading : midAngle;
             }
 
             // return ending heading
@@ -110,14 +101,6 @@ public class TrajectoryCommand extends CommandBase {
         this(name, trajectory, heading, 0d, 1d, defaultTurn(heading), false);
     }
 
-    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, TurnDirection turnDirection) {
-        this(name, trajectory, heading, 0d, 1d, turnDirection, false);
-    }
-
-    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, boolean hasEndVelocity) {
-        this(name, trajectory, heading, 0d, 1d, defaultTurn(heading), hasEndVelocity);
-    }
-
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
         this(name, trajectory, heading, turnStart, turnEnd, defaultTurn(heading), false);
     }
@@ -128,7 +111,7 @@ public class TrajectoryCommand extends CommandBase {
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection, boolean hasEndVelocity) {
         this(name, trajectory,
-                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), turnDirection),
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
                 hasEndVelocity,

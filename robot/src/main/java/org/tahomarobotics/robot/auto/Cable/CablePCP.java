@@ -104,7 +104,7 @@ public class CablePCP extends AutonomousBase {
                         )
                 ),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Collect to Second Place", allForOne, placeHeading,
+                        new TrajectoryCommand("Collect to Second Place", allForOne, placeHeading, 0, 1,
                                 Math.random() < 0.5 ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
