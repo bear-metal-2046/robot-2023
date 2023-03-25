@@ -22,7 +22,7 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class LoadingPCPE extends AutonomousBase {
+public class LoadingTwoPieceEngage extends AutonomousBase {
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
     private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 8.0),
@@ -51,7 +51,7 @@ public class LoadingPCPE extends AutonomousBase {
     private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.0, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-    public LoadingPCPE(DriverStation.Alliance alliance) {
+    public LoadingTwoPieceEngage(DriverStation.Alliance alliance) {
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));

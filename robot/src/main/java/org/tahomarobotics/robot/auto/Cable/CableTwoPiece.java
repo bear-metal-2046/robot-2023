@@ -20,7 +20,7 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class CablePCP extends AutonomousBase {
+public class CableTwoPiece extends AutonomousBase {
     private static final Pose2d START_POSE = new Pose2d(
             Units.inchesToMeters(70.563), Units.inchesToMeters(20.029),
             new Rotation2d(0)
@@ -70,7 +70,7 @@ public class CablePCP extends AutonomousBase {
     private static final TrajectoryConfig CONFIG_3 = new TrajectoryConfig(2, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setStartVelocity(0.75);
 
-    public CablePCP(DriverStation.Alliance alliance) {
+    public CableTwoPiece(DriverStation.Alliance alliance) {
         super(alliance, new Pose2d(START_POSE.getTranslation(), PLACE_HEADING));
 
 //        Trajectory startToBump = createTrajectory(START_POSE, BUMP_GOING, CONFIG_1);

@@ -12,13 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.arm.ArmMovements;
-import org.tahomarobotics.robot.auto.Cable.CablePCP;
+import org.tahomarobotics.robot.auto.Cable.CableTwoPiece;
 import org.tahomarobotics.robot.auto.Loading.*;
-import org.tahomarobotics.robot.auto.Mid.MidPE;
+import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Autonomous extends SubsystemBase implements SubsystemIF {
     /** Initialize this classes logger. */
@@ -45,26 +43,26 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
         addAuto(new OdometryStraightTest(), new OdometryStraightTest());
 
-        addAuto(new LoadingPT(DriverStation.Alliance.Blue),
-                new LoadingPT(DriverStation.Alliance.Red));
+        addAuto(new LoadingTaxi(DriverStation.Alliance.Blue),
+                new LoadingTaxi(DriverStation.Alliance.Red));
 
-        addAuto(new MidPE(DriverStation.Alliance.Blue),
-                new MidPE(DriverStation.Alliance.Red));
+        addAuto(new MidEngage(DriverStation.Alliance.Blue),
+                new MidEngage(DriverStation.Alliance.Red));
 
-        addAuto(new LoadingPCP(DriverStation.Alliance.Blue),
-                new LoadingPCP(DriverStation.Alliance.Red));
+        addAuto(new LoadingTwoPiece(DriverStation.Alliance.Blue),
+                new LoadingTwoPiece(DriverStation.Alliance.Red));
 
-        addAuto(new LoadingPCPE(DriverStation.Alliance.Blue),
-                new LoadingPCPE(DriverStation.Alliance.Red));
+        addAuto(new LoadingTwoPieceEngage(DriverStation.Alliance.Blue),
+                new LoadingTwoPieceEngage(DriverStation.Alliance.Red));
 
-        addAuto(new LoadingPCPC(DriverStation.Alliance.Blue),
-                new LoadingPCPC(DriverStation.Alliance.Red));
+        addAuto(new LoadingTwoPieceCollect(DriverStation.Alliance.Blue),
+                new LoadingTwoPieceCollect(DriverStation.Alliance.Red));
 
-        addAuto(new LoadingPC(DriverStation.Alliance.Blue),
-                new LoadingPC(DriverStation.Alliance.Red));
+        addAuto(new LoadingCollect(DriverStation.Alliance.Blue),
+                new LoadingCollect(DriverStation.Alliance.Red));
 
-        addAuto(new CablePCP(DriverStation.Alliance.Blue),
-                new CablePCP(DriverStation.Alliance.Red));
+        addAuto(new CableTwoPiece(DriverStation.Alliance.Blue),
+                new CableTwoPiece(DriverStation.Alliance.Red));
 
         selectionAutoChange(autoCommandChooser.getSelected());
 

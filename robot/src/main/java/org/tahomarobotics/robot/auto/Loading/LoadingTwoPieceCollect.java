@@ -21,7 +21,7 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class LoadingPCPC extends AutonomousBase {
+public class LoadingTwoPieceCollect extends AutonomousBase {
 
     //Place Points
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
@@ -51,7 +51,7 @@ public class LoadingPCPC extends AutonomousBase {
     private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.0, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-    public LoadingPCPC(DriverStation.Alliance alliance) {
+    public LoadingTwoPieceCollect(DriverStation.Alliance alliance) {
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));

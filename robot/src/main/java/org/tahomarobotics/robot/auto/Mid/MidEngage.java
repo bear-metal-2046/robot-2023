@@ -16,7 +16,7 @@ import org.tahomarobotics.robot.auto.TrajectoryCommand;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
-public class MidPE extends AutonomousBase {
+public class MidEngage extends AutonomousBase {
 
     private static final Pose2d FIRST_PLACE =
             new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(130.325), new Rotation2d(0));
@@ -38,7 +38,7 @@ public class MidPE extends AutonomousBase {
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
 
 
-    public MidPE(DriverStation.Alliance alliance){
+    public MidEngage(DriverStation.Alliance alliance){
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
