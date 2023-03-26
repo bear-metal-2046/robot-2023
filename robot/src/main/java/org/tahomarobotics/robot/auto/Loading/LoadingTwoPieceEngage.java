@@ -25,24 +25,24 @@ import java.util.List;
 public class LoadingTwoPieceEngage extends AutonomousBase {
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 8.0),
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
             new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 8.0),
-            new Rotation2d(Units.degreesToRadians(-45)));
+    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
+            new Rotation2d(Units.degreesToRadians(0)));
 
     //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 2.5),
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 20),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 2.5),
+    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 20),
             new Rotation2d(Units.degreesToRadians(180)));
 
-    private static final Pose2d ENGAGE = new Pose2d(Units.inchesToMeters(69.6 + 110.0), Units.inchesToMeters(135.0),
+    private static final Pose2d ENGAGE = new Pose2d(Units.inchesToMeters(69.6 + 110.0), Units.inchesToMeters(125.0),
             new Rotation2d(Units.degreesToRadians(0)));
 
     //Mid-Translations
-    private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 40.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Translation2d MID_PT_3 = new Translation2d(Units.inchesToMeters(69.6 + 12.0), Units.inchesToMeters(145.0));
+    private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 15.0));
+    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 80.0), Units.inchesToMeters(196.325 - 24));
+    private static final Translation2d MID_PT_3 = new Translation2d(Units.inchesToMeters(69.6 + 12.0), Units.inchesToMeters(125.0));
 
     private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
@@ -80,7 +80,7 @@ public class LoadingTwoPieceEngage extends AutonomousBase {
                         )
                 ),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.2, 0.7),
+                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.0, 0.5),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
                                 new WaitCommand(0.75),
@@ -89,7 +89,7 @@ public class LoadingTwoPieceEngage extends AutonomousBase {
                 ),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Place to 2nd Collect", engageTrajectory, placeHeading),
+                        new TrajectoryCommand("Place to Engage", engageTrajectory, placeHeading),
                         new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW)
                 ),
                 new BalancedCommand()

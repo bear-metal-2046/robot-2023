@@ -2,19 +2,21 @@ package org.tahomarobotics.robot.vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.*;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.photonvision.*;
-import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.PhotonUtils;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -131,6 +133,7 @@ public class Vision {
         if (validTargets.size() > 1 && photonPoseEstimator != null) {
             // Multi-tag PnP if more than one target is found
             PhotonPipelineResult correctedResult = new PhotonPipelineResult(result.getLatencyMillis(), validTargets);
+            correctedResult.setTimestampSeconds(result.getTimestampSeconds());
             Optional<EstimatedRobotPose> position = photonPoseEstimator.update(correctedResult);
 
             if (position.isEmpty()) return;

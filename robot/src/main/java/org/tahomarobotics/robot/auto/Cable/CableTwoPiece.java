@@ -93,7 +93,7 @@ public class CableTwoPiece extends AutonomousBase {
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to Collect", oneForAll, collectHeading, 0.0, 0.8,
-                                Math.random() < 0.5 ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new WaitCommand(1.0),

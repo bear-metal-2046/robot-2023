@@ -25,13 +25,13 @@ public class LoadingTwoPiece extends AutonomousBase {
 
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 10.0),
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 24.0),
             new Rotation2d(Units.degreesToRadians(180)));
-    private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 40.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+    private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 15.0));
+    private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 80.0), Units.inchesToMeters(196.325 - 24));
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 200.9), Units.inchesToMeters(196.325 - 5),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_2 = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 5),
+    private static final Pose2d FIRST_COLLECT_2 = new Pose2d(Units.inchesToMeters(69.6 + 200.9), Units.inchesToMeters(196.325 - 5),
             new Rotation2d(Units.degreesToRadians(180)));
     private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
