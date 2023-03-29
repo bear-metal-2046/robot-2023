@@ -45,6 +45,7 @@ import org.tahomarobotics.robot.vision.Vision;
 import org.tahomarobotics.robot.vision.VisionConstants;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import static edu.wpi.first.wpilibj.Timer.getFPGATimestamp;
@@ -88,6 +89,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private double lastUpdateTime = getFPGATimestamp();
 
     private double velocity = 0d;
+
+    private int largeDifferenceCount = 0;
 
     private Chassis() {
         // Configures the Chassis according to the current RobotID.
@@ -143,8 +146,15 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         // Only add vision measurements close to where the robot currently thinks it is.
         if (poseDiff.getTranslation().getNorm() > VisionConstants.POSE_DIFFERENCE_THRESHOLD ||
             poseDiff.getRotation().getDegrees() > VisionConstants.DEGREES_DIFFERENCE_THRESHOLD) {
-            return;
+
+            // accept large differences only if vision is confirming current position isn't good
+            if (++largeDifferenceCount < VisionConstants.LARGE_DIFFERENCE_COUNT_ACCEPTANCE) {
+                return;
+            } else {
+                logger.info("Large difference moved: {}x, {}y", poseDiff.getTranslation().getX(), poseDiff.getTranslation().getY());
+            }
         }
+        largeDifferenceCount = 0;
 
         fieldPose.getObject("Vision Pose").setPose(result.poseMeters());
 
@@ -156,7 +166,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 0.01
             );
 
-            poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
+            try {
+                poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
+            } catch (ConcurrentModificationException ignored) {}
         } else if (result.numTargets() == 1 && distanceToTargets < VisionConstants.SINGLE_TARGET_DISTANCE_THRESHOLD) {
             // Single tag results are not very trustworthy. Do not use headings from them
             Pose2d noHdgPose = new Pose2d(result.poseMeters().getTranslation(), getPose().getRotation());
@@ -166,7 +178,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 1
             );
 
-            poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
+            try {
+                poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
+            } catch (ConcurrentModificationException ignored) {}
         }
     }
 
