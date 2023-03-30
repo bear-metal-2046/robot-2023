@@ -20,6 +20,7 @@ package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
@@ -75,8 +76,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private final ChassisConstantsIF swerveConstants;
 
     private final SwerveDrivePoseEstimator poseEstimator;
-    // Shadow pose estimator to compare vision+odometry with odometry only
-    private final SwerveDrivePoseEstimator odometryPoseEstimator;
 
     private final Field2d fieldPose = new Field2d();
     private final List<Pose2d> actualPath = new ArrayList<>();
@@ -127,15 +126,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
         );
 
-        odometryPoseEstimator = new SwerveDrivePoseEstimator(
-                swerveDriveKinematics,
-                getGyroRotation(),
-                getSwerveModulePositions(),
-                new Pose2d(0.0, 0.0, new Rotation2d(0.0)),
-                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.02),
-                new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
-        );
-
         frontVision = new Vision(this::visionCallback, Vision.PVCamera.FRONT);
         backVision = new Vision(this::visionCallback, Vision.PVCamera.BACK);
     }
@@ -158,7 +148,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         }
         largeDifferenceCount = 0;
 
-        fieldPose.getObject("Vision Pose").setPose(result.poseMeters());
+        fieldPose.getObject(result.camera().cameraName).setPose(result.poseMeters());
 
         if (result.numTargets() > 1 && distanceToTargets < VisionConstants.TARGET_DISTANCE_THRESHOLD) {
             // Multi-tag PnP provides very trustworthy data
@@ -242,7 +232,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
         zeroGyro();
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
-        odometryPoseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
 
         SmartDashboard.putData("start to high", new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE));
         return this;
@@ -252,7 +241,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     public void periodic() {
         Pose2d prev = getPose();
         poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
-        odometryPoseEstimator.update(getGyroRotation(), getSwerveModulePositions());
         Pose2d current = getPose();
 
         // calculate velocity
@@ -267,10 +255,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         }
 
         fieldPose.setRobotPose(current);
-        fieldPose.getObject("shadowBot").setPose(odometryPoseEstimator.getEstimatedPosition());
 
         SmartDashboard.putString("Pose", getPose().toString());
-        SmartDashboard.putString("Odometry Only Pose", odometryPoseEstimator.getEstimatedPosition().toString());
     }
 
     public Pose2d getPose() {
@@ -326,7 +312,6 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     public void resetOdometry(Pose2d pose) {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
-        odometryPoseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
         logger.info("Reset Pose: " + pose);
     }
 

@@ -27,7 +27,7 @@ import java.util.Optional;
 public class Vision {
     private static final Logger logger = LoggerFactory.getLogger(Vision.class);
 
-    public record PVCameraResult(double timestamp, Pose2d poseMeters, double distanceToTargets, int numTargets) {}
+    public record PVCameraResult(PVCamera camera, double timestamp, Pose2d poseMeters, double distanceToTargets, int numTargets) {}
 
     public interface VisionListener {
         void addVisionMeasurement(PVCameraResult result);
@@ -106,6 +106,7 @@ public class Vision {
         );
 
         listener.addVisionMeasurement(new PVCameraResult(
+            cameraSettings,
             timestampSeconds, // Photonvision timestamp
             newRobotPose.toPose2d(),
             distance,
@@ -145,6 +146,7 @@ public class Vision {
             }
 
             listener.addVisionMeasurement(new PVCameraResult(
+                cameraSettings,
                 position.get().timestampSeconds, // Photonvision timestamp
                 position.get().estimatedPose.toPose2d(),
                 distances,
