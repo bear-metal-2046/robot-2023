@@ -9,9 +9,14 @@ import org.tahomarobotics.robot.chassis.Chassis;
 public class BalancedCommand extends CommandBase {
     private final Chassis chassis = Chassis.getInstance();
 
-    private static final double GAIN = 1.5;
+    private double gain = 1.5;
 
     private static final double ANGLE = Units.degreesToRadians(5.0);
+
+    public BalancedCommand() {}
+    public BalancedCommand(double gain) {
+        this.gain = gain;
+    }
 
     @Override
     public void initialize() {
@@ -21,7 +26,7 @@ public class BalancedCommand extends CommandBase {
     public void execute() {
         var angle = chassis.getPitch().getRadians();
         if (Math.abs(angle) > ANGLE) {
-            chassis.drive(new ChassisSpeeds((DriverStation.getAlliance() == DriverStation.Alliance.Blue ? GAIN : -GAIN) * angle,0,0));
+            chassis.drive(new ChassisSpeeds((DriverStation.getAlliance() == DriverStation.Alliance.Blue ? gain : -gain) * angle,0,0));
         } else {
             chassis.drive(new ChassisSpeeds());
         }

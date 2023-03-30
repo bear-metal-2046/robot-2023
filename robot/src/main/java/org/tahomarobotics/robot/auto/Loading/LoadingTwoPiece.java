@@ -55,12 +55,18 @@ public class LoadingTwoPiece extends AutonomousBase {
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
         Rotation2d placeHeading = createRotation(PLACE_HEADING);
 
+        TrajectoryCommand.TurnDirection turnDirection1 = alliance == DriverStation.Alliance.Blue ?
+                TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE;
+
+        TrajectoryCommand.TurnDirection turnDirection2 = alliance == DriverStation.Alliance.Blue ?
+                TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE;
+
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8),
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8, turnDirection1),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(
@@ -70,7 +76,7 @@ public class LoadingTwoPiece extends AutonomousBase {
                         )
                 ),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.2, 0.7),
+                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.2, 0.7, turnDirection2),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
                                 new WaitCommand(1),

@@ -161,8 +161,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         if (result.numTargets() > 1 && distanceToTargets < VisionConstants.TARGET_DISTANCE_THRESHOLD) {
             // Multi-tag PnP provides very trustworthy data
             var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.05 * distanceToTargets,
-                0.05 * distanceToTargets,
+                0.01 * distanceToTargets,
+                0.01 * distanceToTargets,
                 0.01
             );
 

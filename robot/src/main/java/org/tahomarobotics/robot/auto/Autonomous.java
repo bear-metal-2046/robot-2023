@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.Cable.CableTwoPiece;
+import org.tahomarobotics.robot.auto.Cable.CableTwoPieceEngage;
 import org.tahomarobotics.robot.auto.Loading.*;
 import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
@@ -63,6 +64,9 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         addAuto(new CableTwoPiece(DriverStation.Alliance.Blue),
                 new CableTwoPiece(DriverStation.Alliance.Red));
+
+        addAuto(new CableTwoPieceEngage(DriverStation.Alliance.Blue),
+                new CableTwoPieceEngage(DriverStation.Alliance.Red));
 
         selectionAutoChange(autoCommandChooser.getSelected());
 

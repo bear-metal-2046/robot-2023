@@ -19,7 +19,7 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class CableTwoPiece extends AutonomousBase {
+public class CableTwoPieceEngage extends AutonomousBase {
     private static final Pose2d START_POSE = new Pose2d(
             Units.inchesToMeters(70.563), Units.inchesToMeters(20.029),
             new Rotation2d(0)
@@ -44,17 +44,32 @@ public class CableTwoPiece extends AutonomousBase {
             new Rotation2d(Math.PI)
     );
 
+    private static final Pose2d SECOND_PLACE_MIRRORED = new Pose2d(
+            Units.inchesToMeters(68.563), Units.inchesToMeters(42.029 + 8),
+            new Rotation2d(0)
+    );
+
+    private static final Translation2d ENGAGE_MID = new Translation2d(
+            Units.inchesToMeters(80), Units.inchesToMeters(60 + 8)
+    );
+
+    private static final Pose2d ENGAGE = new Pose2d(
+            Units.inchesToMeters(166.75), Units.inchesToMeters(85 + 8),
+            new Rotation2d(0)
+    );
+
     private static final Rotation2d PLACE_HEADING = new Rotation2d(Math.PI);
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(0));
 
     private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-    public CableTwoPiece(DriverStation.Alliance alliance) {
+    public CableTwoPieceEngage(DriverStation.Alliance alliance) {
         super(alliance, new Pose2d(START_POSE.getTranslation(), PLACE_HEADING));
 
         Trajectory oneForAll = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
         Trajectory allForOne = createTrajectory(FIRST_COLLECT_MIRRORED, List.of(BUMP_GOING_REV.getTranslation()), SECOND_PLACE, CONFIG);
+        Trajectory engage = createTrajectory(SECOND_PLACE_MIRRORED, List.of(ENGAGE_MID), ENGAGE, CONFIG);
 
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
         Rotation2d placeHeading = createRotation(PLACE_HEADING);
@@ -91,7 +106,11 @@ public class CableTwoPiece extends AutonomousBase {
                         )
                 ),
                 new ScoreCommand(0.25),
-                new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW)
+                new ParallelCommandGroup(
+                    new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW),
+                    new TrajectoryCommand("Engage", engage, placeHeading)
+                ),
+                new BalancedCommand(1.25)
         );
     }
 }

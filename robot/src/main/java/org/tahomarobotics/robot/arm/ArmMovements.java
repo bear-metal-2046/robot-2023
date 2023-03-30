@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ArmMovements {
@@ -64,6 +65,7 @@ public class ArmMovements {
     //Pole scoring positions
     private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(33.1), Units.inchesToMeters(18));
     private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50), Units.inchesToMeters(29));
+    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(20.51), Units.inchesToMeters(20.91));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
@@ -88,7 +90,7 @@ public class ArmMovements {
             new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(STOW, UP), SLOW_SPEED),
             WristPosition.STOW);
     public static final ArmMove START_TO_HIGH_POLE = new ArmMove("Start to High-Pole",
-            new ArmTrajectory(new Pose2d(START, UP), NONE, new Pose2d(HIGH_POLE, FWD), NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(START, UP), List.of(START_TO_HIGH_MID_PT), new Pose2d(HIGH_POLE, FWD), NORMAL_SPEED),
             WristPosition.HIGH_POLE_PLACE);
 
     public static ProxyCommand createPositionToStowCommand() {

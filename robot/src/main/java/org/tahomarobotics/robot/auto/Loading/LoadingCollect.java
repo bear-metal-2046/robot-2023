@@ -48,12 +48,15 @@ public class LoadingCollect extends AutonomousBase {
         // alliance converted rotations
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
 
+        TrajectoryCommand.TurnDirection turnDirection = alliance == DriverStation.Alliance.Blue ?
+                TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE;
+
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9),
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9, turnDirection),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(

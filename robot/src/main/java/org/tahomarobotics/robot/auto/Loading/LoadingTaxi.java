@@ -44,13 +44,16 @@ public class LoadingTaxi extends AutonomousBase {
         // alliance converted rotations
         Rotation2d taxiHeading = createRotation(TAXI_HEADING);
 
+        TrajectoryCommand.TurnDirection turnDirection = alliance == DriverStation.Alliance.Blue ?
+                TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE;
+
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
 
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Reverse-to-Taxi", taxiTrajectory, taxiHeading, 0.3, 0.9),
+                        new TrajectoryCommand("Reverse-to-Taxi", taxiTrajectory, taxiHeading, 0.3, 0.9, turnDirection),
                         new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
                 )
         );
