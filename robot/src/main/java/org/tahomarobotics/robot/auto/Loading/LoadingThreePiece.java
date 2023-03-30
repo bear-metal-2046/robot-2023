@@ -21,46 +21,49 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class LoadingTwoPieceCollect extends AutonomousBase {
+public class LoadingThreePiece extends AutonomousBase {
 
     //Place Points
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(73.6), Units.inchesToMeters(196.325 - 32.0),
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 24.0),
             new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
+    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 24.0),
             new Rotation2d(Units.degreesToRadians(0)));
 
     //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 22),
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 12),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 22),
+    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 12),
             new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 63),
+    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 220.9), Units.inchesToMeters(196.325 - 70),
             new Rotation2d(Units.degreesToRadians(-35)));
+    private static final Pose2d SECOND_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 220.9), Units.inchesToMeters(196.325 - 70),
+            new Rotation2d(Units.degreesToRadians(145)));
 
     //Mid-Translations
     private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 15.0));
     private static final Translation2d MID_PT_2 = new Translation2d(Units.inchesToMeters(69.6 + 80.0), Units.inchesToMeters(196.325 - 24));
-    private static final Translation2d MID_PT_3 = new Translation2d(Units.inchesToMeters(109), Units.inchesToMeters(183));
-    private static final Translation2d MID_PT_4 = new Translation2d(Units.inchesToMeters(206), Units.inchesToMeters(183));
+    private static final Translation2d MID_PT_3 = new Translation2d(Units.inchesToMeters(109), Units.inchesToMeters(177));
+    private static final Translation2d MID_PT_4 = new Translation2d(Units.inchesToMeters(206), Units.inchesToMeters(177));
 
     private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
     private static final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-40));
 
-    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.25, 3)
+    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.5, 2.5)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
-    public LoadingTwoPieceCollect(DriverStation.Alliance alliance) {
+    public LoadingThreePiece(DriverStation.Alliance alliance) {
 
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
-        Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT_PT_2, List.of(MID_PT_2), SECOND_PLACE, CONFIG);
+        Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT_PT_2, List.of(MID_PT_4, MID_PT_3), SECOND_PLACE, CONFIG);
         Trajectory secondCollectTrajectory = createTrajectory(SECOND_PLACE_PT_2, List.of(MID_PT_3, MID_PT_4), SECOND_COLLECT, CONFIG);
+        Trajectory secondPlaceTrajectory = createTrajectory(SECOND_COLLECT_PT_2, List.of(MID_PT_4, MID_PT_3), SECOND_PLACE, CONFIG);
 
         // alliance converted rotations
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
@@ -72,38 +75,59 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8,
+                        new TrajectoryCommand("Start to collect",
+                                collectTrajectory,
+                                collectHeading,
+                                0.0, 0.5,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(
                                         new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
-                                        new IngestCommand(1.5)
+                                        new IngestCommand(1.2)
                                 )
                         )
                 ),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.0, 0.5,
+                        new TrajectoryCommand("Collect to Place",
+                                placeTrajectory,
+                                placeHeading,
+                                0.0, 0.5,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
-                                new WaitCommand(0.5),
+                                new WaitCommand(0.2),
                                 new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_BOX),
-                                new ScoreCommand(0.25)
+                                new ScoreCommand(0.1)
                         )
                 ),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Place to 2nd Collect", secondCollectTrajectory, secondCollectHeading,
-                                0.3, 0.9,
+                        new TrajectoryCommand("Place to 2nd Collect",
+                                secondCollectTrajectory,
+                                secondCollectHeading,
+                                0.0, 0.5,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW),
                                 new ParallelCommandGroup(
                                         new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
-                                        new IngestCommand(1.5)
+                                        new IngestCommand(1.25)
                                 )
                         )
-                )
+                ),
+                new ParallelCommandGroup(
+                        new TrajectoryCommand("Second Collect to Second Place",
+                                secondPlaceTrajectory,
+                                placeHeading,
+                                0.0, 0.5,
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
+                        new SequentialCommandGroup(
+                                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
+                                new WaitCommand(0.35),
+                                new ArmMoveCommand(ArmMovements.STOW_TO_MID_BOX)
+                        )
+                ),
+                new ScoreCommand(0.1)
         );
     }
 }

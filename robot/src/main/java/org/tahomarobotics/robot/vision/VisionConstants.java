@@ -25,7 +25,7 @@ public class VisionConstants {
     );
 
     public static final double POSE_DIFFERENCE_THRESHOLD = 2;
-    public static final double DEGREES_DIFFERENCE_THRESHOLD = 20;
+    public static final double DEGREES_DIFFERENCE_THRESHOLD = 60;
     public static final double TARGET_DISTANCE_THRESHOLD = 10;
     public static final double SINGLE_TARGET_DISTANCE_THRESHOLD = 4;
     public static final int LARGE_DIFFERENCE_COUNT_ACCEPTANCE = 3;

@@ -37,6 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
+import org.tahomarobotics.robot.arm.ArmMoveCommand;
+import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.mk4i.MK4iChassisConstants;
 import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
 import org.tahomarobotics.robot.ident.RobotIdentity;
@@ -173,9 +175,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             // Single tag results are not very trustworthy. Do not use headings from them
             Pose2d noHdgPose = new Pose2d(result.poseMeters().getTranslation(), getPose().getRotation());
             var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.5 * distanceToTargets,
-                0.5 * distanceToTargets,
-                1
+                0.25 * distanceToTargets,
+                0.25 * distanceToTargets,
+                0.5
             );
 
             try {
@@ -242,6 +244,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
         odometryPoseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
 
+        SmartDashboard.putData("start to high", new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE));
         return this;
     }
 

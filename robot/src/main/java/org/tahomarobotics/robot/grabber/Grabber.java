@@ -112,6 +112,7 @@ public class Grabber extends SubsystemBase implements SubsystemIF {
 
     public void retain() {
         state = MovementState.RETAIN;
+        logger.info("Went into retain");
         setGrabberSpeed(RETAIN_SPEED);
     }
 

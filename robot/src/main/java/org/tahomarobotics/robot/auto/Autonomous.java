@@ -17,7 +17,9 @@ import org.tahomarobotics.robot.auto.Cable.CableTwoPieceEngage;
 import org.tahomarobotics.robot.auto.Loading.*;
 import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Autonomous extends SubsystemBase implements SubsystemIF {
     /** Initialize this classes logger. */
@@ -58,6 +60,9 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         addAuto(new LoadingTwoPieceCollect(DriverStation.Alliance.Blue),
                 new LoadingTwoPieceCollect(DriverStation.Alliance.Red));
+
+        addAuto(new LoadingThreePiece(DriverStation.Alliance.Blue),
+                new LoadingThreePiece(DriverStation.Alliance.Red));
 
         addAuto(new LoadingCollect(DriverStation.Alliance.Blue),
                 new LoadingCollect(DriverStation.Alliance.Red));
