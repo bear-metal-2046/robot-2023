@@ -80,6 +80,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private final ArmFeedForward feedForward = new ArmFeedForward();
     private record ArmMechanism (Mechanism2d mech, MechanismLigament2d upperArm, MechanismLigament2d foreArm) {}
     private final ArmMechanism armMechanism;
+    private final double tolerance = Units.degreesToRadians(1);
 
     private ArmState desiredState = null;
 
@@ -241,6 +242,11 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         elbowMotor.setVoltage(ffVoltages.elbow() + elbowFeedbackVoltage);
     }
 
+    @Override
+    public boolean isAtPosition() {
+        return Math.abs(shoulderPIDController.getPositionError()) <= tolerance
+                && Math.abs(elbowPIDController.getPositionError()) <= tolerance;
+    }
     /**
      * Calibration of the arm is accomplished by:
      *   1) Initiate calibration mode

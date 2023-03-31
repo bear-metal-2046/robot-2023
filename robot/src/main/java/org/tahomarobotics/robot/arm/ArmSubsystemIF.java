@@ -35,5 +35,7 @@ public interface ArmSubsystemIF extends SubsystemIF {
 
     default void calibration(CalibrationAction calibrationAction) {}
 
+    default boolean isAtPosition() {return true;}
+
     default ArmElectricalInfo getArmElectricalInfo() { return new ArmElectricalInfo(0,0,0,0);}
 }

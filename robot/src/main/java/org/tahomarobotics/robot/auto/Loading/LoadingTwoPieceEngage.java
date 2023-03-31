@@ -25,18 +25,8 @@ import java.util.List;
 public class LoadingTwoPieceEngage extends AutonomousBase {
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
-            new Rotation2d(Units.degreesToRadians(0)));
 
-    //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 20),
-            new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 20),
-            new Rotation2d(Units.degreesToRadians(180)));
-
-    private static final Pose2d ENGAGE = new Pose2d(Units.inchesToMeters(69.6 + 110.0), Units.inchesToMeters(125.0),
+    private static final Pose2d ENGAGE = new Pose2d(Units.inchesToMeters(69.6 + 90.0), Units.inchesToMeters(125.0),
             new Rotation2d(Units.degreesToRadians(0)));
 
     //Mid-Translations
@@ -54,6 +44,16 @@ public class LoadingTwoPieceEngage extends AutonomousBase {
     public LoadingTwoPieceEngage(DriverStation.Alliance alliance) {
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+
+        //Collect Points
+        Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 16 - (alliance == DriverStation.Alliance.Blue ? 6 : 0)),
+                new Rotation2d(Units.degreesToRadians(-35)));
+        Pose2d FIRST_COLLECT_PT_2 = new Pose2d(FIRST_COLLECT.getTranslation(), new Rotation2d(Math.PI));
+
+
+        Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 24.0 - (alliance == DriverStation.Alliance.Blue ? 10 : 0)),
+                new Rotation2d(Units.degreesToRadians(180)));
+        Pose2d SECOND_PLACE_PT_2 = new Pose2d(SECOND_PLACE.getTranslation(), new Rotation2d(0));
 
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
@@ -75,7 +75,7 @@ public class LoadingTwoPieceEngage extends AutonomousBase {
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
                                 new ParallelCommandGroup(
                                         new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
-                                        new IngestCommand(1.5)
+                                        new IngestCommand(2)
                                 )
                         )
                 ),

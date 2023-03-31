@@ -124,6 +124,9 @@ public class ArmMoveCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        return canceled || timer.hasElapsed(trajectory.getTotalTimeSeconds());
+        double time = trajectory.getTotalTimeSeconds();
+        return canceled
+                || (timer.hasElapsed(time) && arm.isAtPosition())
+                || timer.hasElapsed(time + 0.5);
     }
 }

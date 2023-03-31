@@ -64,7 +64,7 @@ public class ArmMovements {
     //Pole scoring positions
     private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(32.5), Units.inchesToMeters(20.0));
     private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50.25), Units.inchesToMeters(29.5));
-    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(20.91));
+    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(10.91));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();

@@ -41,8 +41,6 @@ public class TrajectoryCommand extends CommandBase {
     private final HolonomicDriveController controller;
     private final Rotation2d heading;
 
-    private final boolean hasEndVelocity;
-
     private final String name;
 
     private static class HeadingSupplier implements Supplier<Rotation2d> {
@@ -61,18 +59,22 @@ public class TrajectoryCommand extends CommandBase {
 
         public HeadingSupplier(Rotation2d endHeading, double turnStart, double finalStart, TurnDirection turnDirection) {
             this.turnStart = turnStart;
-            this.dir = turnDirection == TurnDirection.COUNTER_CLOCKWISE ? 1.0 : -1.0;
+            this.dir = turnDirection == null ? Double.NaN : (turnDirection == TurnDirection.COUNTER_CLOCKWISE ? 1.0 : -1.0);
             this.endHeading = endHeading;
             this.finalStart=finalStart;
         }
         public void initialize() {
             timer.restart();
             startHeading = Chassis.getInstance().getPose().getRotation();
-            double midAngle = (endHeading.getRadians() + startHeading.getRadians())/2;
-            if ((midAngle - startHeading.getRadians()) * dir < 0) {
-                midAngle += dir * Math.PI;
+            if (Double.isNaN(dir)) {
+                this.midAngle = endHeading;
+            } else {
+                double midAngle = (endHeading.getRadians() + startHeading.getRadians()) / 2;
+                if ((midAngle - startHeading.getRadians()) * dir < 0) {
+                    midAngle += dir * Math.PI;
+                }
+                this.midAngle = new Rotation2d(midAngle);
             }
-            this.midAngle = new Rotation2d(midAngle);
         }
         @Override
         public Rotation2d get() {
@@ -93,37 +95,29 @@ public class TrajectoryCommand extends CommandBase {
 
     private final double turnDuration;
 
-    private static TurnDirection defaultTurn(Rotation2d heading) {
-        return heading.getRadians() < 0 ? TurnDirection.CLOCKWISE : TurnDirection.COUNTER_CLOCKWISE;
-    }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading) {
-        this(name, trajectory, heading, 0d, 1d, defaultTurn(heading), false);
+        this(name, trajectory, heading, 0d, 1d, null);
     }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
-        this(name, trajectory, heading, turnStart, turnEnd, defaultTurn(heading), false);
+        this(name, trajectory, heading, turnStart, turnEnd, null);
     }
+
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection) {
-        this(name, trajectory, heading, turnStart, turnEnd, turnDirection, false);
-    }
-
-    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection, boolean hasEndVelocity) {
         this(name, trajectory,
                 new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
-                hasEndVelocity,
                 createController());
     }
 
-    private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, boolean hasEndVelocity, HolonomicDriveController controller) {
+    private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, HolonomicDriveController controller) {
         this.name = name;
         this.trajectory = trajectory;
         this.controller = controller;
         this.heading = heading;
-        this.hasEndVelocity = hasEndVelocity;
         this.headingSupplier = headingSupplier;
         this.turnDuration = turnDuration;
 
@@ -217,11 +211,8 @@ public class TrajectoryCommand extends CommandBase {
         SmartDashboard.putRaw("Vel", velData.serialize());
         SmartDashboard.putRaw("Hdg", hdgData.serialize());
         chassis.updateActualTrajectory(actualTrajectory);
-        if (!hasEndVelocity)
-            chassis.drive(new ChassisSpeeds());
+        chassis.drive(new ChassisSpeeds());
         timer.stop();
         logger.info(name + "Trajectory has completed with velocity: " + trajectory.sample(trajectory.getTotalTimeSeconds()).velocityMetersPerSecond);
     }
-
-
 }
