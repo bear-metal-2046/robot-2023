@@ -45,7 +45,7 @@ public class ArmMovements {
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(10.5), Units.inchesToMeters(-2.1));
-    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(11.0), Units.inchesToMeters(3.4));
+    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(11.0), Units.inchesToMeters(0.0));
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
@@ -53,8 +53,8 @@ public class ArmMovements {
     private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(22.5), Units.inchesToMeters(-10.5));
     private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
-    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.1));
-    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.1));
+    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(28.1));
+    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.85));
 
 
     //Box scoring positions
