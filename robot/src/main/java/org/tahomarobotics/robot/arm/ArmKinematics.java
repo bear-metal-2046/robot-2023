@@ -185,42 +185,46 @@ public class ArmKinematics {
          */
 
         for(Trajectory.State a : trajectory.getStates()) {
-
-            if ( ! inRange(a.poseMeters.getY(), ArmConstants.VERTICAL_LIMITS) ) {
-                logger.error("Trajectory failed validation: y value out of range");
-                return false;
-            }
-
-            if ( ! inRange(a.poseMeters.getX(), ArmConstants.HORIZONTAL_LIMITS) ) {
-                logger.error("Trajectory failed validation: x value out of range");
-                return false;
-            }
-
-            if ( inRange(a.poseMeters.getY(), ArmConstants.TOWER_EXCLUSION_VERTICAL) && inRange(a.poseMeters.getX(), ArmConstants.TOWER_EXCLUSION_HORIZONTAl)) {
-                logger.error("Trajectory failed validation: within tower exclusion");
-                return false;
-            }
-
-            try {
-
-                ArmState armState = inverseKinematics(a.timeSeconds, a.poseMeters);
-
-                if (! inRange(armState.shoulder.position(), ArmConstants.SHOULDER_LIMITS)) {
-                    logger.error("Trajectory failed validation: shoulder angle out of range");
-                    return false;
-                }
-                if (! inRange(armState.elbow.position(), ArmConstants.ELBOW_LIMITS)) {
-                    logger.error("Trajectory failed validation: elbow angle out of range");
-                    return false;
-                }
-
-            } catch (KinematicsException e) {
-                logger.error("Trajectory failed validation", e);
-                return false;
-            }
+            if ( !validateArmPosition(a.poseMeters.getTranslation())) return false;
         }
         return true;
     }
 
+    public boolean validateArmPosition(Translation2d p) {
+        if ( ! inRange(p.getY(), ArmConstants.VERTICAL_LIMITS) ) {
+            logger.error("Trajectory failed validation: y value out of range");
+            return false;
+        }
+
+        if ( ! inRange(p.getX(), ArmConstants.HORIZONTAL_LIMITS) ) {
+            logger.error("Trajectory failed validation: x value out of range");
+            return false;
+        }
+
+        if ( inRange(p.getY(), ArmConstants.TOWER_EXCLUSION_VERTICAL) && inRange(p.getX(), ArmConstants.TOWER_EXCLUSION_HORIZONTAl)) {
+            logger.error("Trajectory failed validation: within tower exclusion");
+            return false;
+        }
+
+        try {
+            ArmState armState = inverseKinematics(0, p);
+
+            if (! inRange(armState.shoulder.position(), ArmConstants.SHOULDER_LIMITS)) {
+                logger.error("Trajectory failed validation: shoulder angle out of range");
+                return false;
+            }
+            if (! inRange(armState.elbow.position(), ArmConstants.ELBOW_LIMITS)) {
+                logger.error("Trajectory failed validation: elbow angle out of range");
+                return false;
+            }
+
+        } catch (KinematicsException e) {
+            logger.error("Position failed validation", e);
+            return false;
+        }
+        return true;
+    }
 
 }
+
+

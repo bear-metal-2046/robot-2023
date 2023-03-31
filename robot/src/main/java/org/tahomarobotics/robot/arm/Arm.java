@@ -89,6 +89,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
             new ArmState.JointState(Units.degreesToRadians(36.3), 0, 0),
             new ArmState.JointState(Units.degreesToRadians(-136.7), 0, 0));
 
+    private ArmFeedForward.FeedForwardVoltages ffVoltages = new ArmFeedForward.FeedForwardVoltages(0,0);
+
     private Arm() {
 
         // Shoulder Motor
@@ -162,6 +164,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     @Override
     public ArmSubsystemIF initialize() {
         //shuffleboard.initialize();
+        SmartDashboard.putData(new DetermineGravityFeedforward());
         return this;
     }
 
@@ -191,6 +194,9 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
     @Override
     public ArmElectricalInfo getArmElectricalInfo() {
+        if (Robot.isSimulation()) {
+            return new ArmElectricalInfo(ffVoltages.shoulder(), ffVoltages.elbow(), 0,0);
+        }
         return new ArmElectricalInfo(
                 shoulderMotor.getBusVoltage() * shoulderMotor.getAppliedOutput(),
                 elbowMotor.getBusVoltage() * elbowMotor.getAppliedOutput(),
@@ -219,7 +225,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
         // calculate feed-forward voltages
         ArmState currentState = getCurrentArmState();
-        ArmFeedForward.FeedForwardVoltages ffVoltages = feedForward.calculate(desiredState, currentState);
+        ffVoltages = feedForward.calculate(desiredState, currentState);
 
         // calculate and limit feed-back voltages
         // BUT DO NOT ALLOW FULL VOLTAGE to be applied to motor if there are large errors

@@ -54,6 +54,7 @@ public class ArmConstants {
                                 Units.inchesToMeters(11.86),
                                 10d / 64d * 24d / 78d * 12d / 48d, false, false),
 
+
                         new ArmLinkPhysicalProperties(
                                 Units.inchesToMeters(32),
                                 Units.lbsToKilograms(6.967),
@@ -87,7 +88,7 @@ public class ArmConstants {
     private static SparkMaxConfig createArmMotorConfig(boolean inverted, PIDGains pidGains) {
         SparkMaxConfig cfg = new SparkMaxConfig();
         cfg.motorInverted = inverted;
-        cfg.currentLimit = 42;
+        cfg.currentLimit = 60;
         cfg.positionConversionFactor = 1;
         cfg.velocityConversionFactor = 1;
         cfg.idleBrake = CANSparkMax.IdleMode.kBrake;

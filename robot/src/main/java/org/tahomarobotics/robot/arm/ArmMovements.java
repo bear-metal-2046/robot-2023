@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ArmMovements {
@@ -40,32 +39,32 @@ public class ArmMovements {
 
     //Trajectory Configurations
     private static final TrajectoryConfig NORMAL_SPEED =
-            new TrajectoryConfig(3, 3);
+            new TrajectoryConfig(4, 4);
     private static final TrajectoryConfig SLOW_SPEED =
             new TrajectoryConfig(0.5, 1);
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(10.5), Units.inchesToMeters(-2.1));
-    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(18.0), Units.inchesToMeters(-0.7));
+    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(11.0), Units.inchesToMeters(3.4));
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
-    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(23.85), Units.inchesToMeters(-10.85));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23.85), Units.inchesToMeters(-10.85));
-    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(16.9), Units.inchesToMeters(10.9)); // TODO change this to inches
-    private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(16.9), Units.inchesToMeters(10.9)); // and this
-    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(27.75));
-    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(23.5), Units.inchesToMeters(27.75));
+    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(22.5), Units.inchesToMeters(-10.5));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(22.5), Units.inchesToMeters(-10.5));
+    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
+    private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
+    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.1));
+    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.1));
 
 
     //Box scoring positions
-    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(42.5), Units.inchesToMeters(20.0));
-    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(55), Units.inchesToMeters(29.5));
+    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(33.8), Units.inchesToMeters(16.1));
+    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(54.4), Units.inchesToMeters(30.6));
 
     //Pole scoring positions
-    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(33.1), Units.inchesToMeters(18));
-    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50), Units.inchesToMeters(29));
-    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(20.51), Units.inchesToMeters(20.91));
+    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(32.5), Units.inchesToMeters(20.0));
+    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50.25), Units.inchesToMeters(29.5));
+    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(20.91));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
@@ -96,7 +95,7 @@ public class ArmMovements {
     public static ProxyCommand createPositionToStowCommand() {
         return new ProxyCommand(() -> new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW));
     }
-    static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
+    public static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
         Translation2d delta = position.minus(desired);
         double norm = delta.getNorm();
         if (norm < MIN_DISTANCE) {

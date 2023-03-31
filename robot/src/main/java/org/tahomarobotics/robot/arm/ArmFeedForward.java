@@ -49,9 +49,14 @@ public class ArmFeedForward {
 
     // gravity acceleration
     private static final double g =  9.80665;
+    private static final double k_m1glc1_m2gl1 = 18.39845800340516;
+    private static final double k_m2glc2 = 20.375856190104;
+    private static final double k_m2lc2 = k_m2glc2 / g;
 
-    private final DCMotor MOTOR_SHOULDER = DCMotor.getNEO(2);
-    private final DCMotor MOTOR_ELBOW = DCMotor.getNEO(1);
+
+    static final DCMotor MOTOR_SHOULDER = DCMotor.getNEO(2);
+    static final DCMotor MOTOR_ELBOW = DCMotor.getNEO(1);
+
 
     public record FeedForwardVoltages(double shoulder, double elbow) {}
 
@@ -97,7 +102,7 @@ public class ArmFeedForward {
         //        a torque on the second joint when the elbow joint is at
         //        an angle.
         double sin_t2 = Math.sin(t2);
-        double h = m2 * lc2 * sin_t2;
+        double h = k_m2lc2 * sin_t2;
         double w1 = desiredArmState.shoulder.velocity();
         double w2 = desiredArmState.elbow.velocity();
         double torqueCentrifugal1 = - h * w2 * w2;
@@ -108,16 +113,19 @@ public class ArmFeedForward {
 
         // update gravity torques
         // ------------------------------------------------------------
+        //   G2 - moment associated with the acceleration of gravity
+        //        the forearm link mass about the elbow joint.
+        double G2 = k_m2glc2 * cos_t1_t2; //  m2 * g * lc2 * cos_t1_t2;
+
+        // ------------------------------------------------------------
         //   G1 - moment associated with the acceleration of gravity
         //        both link masses about the shoulder joint.  Upper-arm
         //        link mass times horizontal distance from shoulder joint.
         //        Forearm link mass times horizontal distance to the same joint.
-        double G1 = m1 * g * lc1 * cos_t1 + m2 * g * (l1 * cos_t1 + lc2 * cos_t1_t2);
+        double G1 = G2 + k_m1glc1_m2gl1 * cos_t1; // m1 * g * lc1 * cos_t1 + m2 * g * (l1 * cos_t1 + lc2 * cos_t1_t2);
 
-        // ------------------------------------------------------------
-        //   G2 - moment associated with the acceleration of gravity
-        //        the forearm link mass about the elbow joint.
-        double G2 = m2 * g * lc2 * cos_t1_t2;
+
+
 
         // calculate shoulder motor voltage
         double torque1 = torqueInertial1 + torqueCentrifugal1 + torqueCoriolis1 + G1;
