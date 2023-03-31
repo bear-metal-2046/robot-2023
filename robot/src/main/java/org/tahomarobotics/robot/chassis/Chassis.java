@@ -158,9 +158,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 0.01
             );
 
-            try {
-                poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
-            } catch (ConcurrentModificationException ignored) {}
+            synchronized (poseEstimator) {
+                try {
+                    poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
+                } catch (ConcurrentModificationException ignored) {}
+            }
         } else if (result.numTargets() == 1 && distanceToTargets < VisionConstants.SINGLE_TARGET_DISTANCE_THRESHOLD) {
             // Single tag results are not very trustworthy. Do not use headings from them
             Pose2d noHdgPose = new Pose2d(result.poseMeters().getTranslation(), getPose().getRotation());
@@ -170,9 +172,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 0.5
             );
 
-            try {
-                poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
-            } catch (ConcurrentModificationException ignored) {}
+            synchronized (poseEstimator) {
+                try {
+                    poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
+                } catch (ConcurrentModificationException ignored) {}
+            }
         }
     }
 
@@ -231,7 +235,12 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         SmartDashboard.putData("Align Swerves", new AlignSwerveCommand());
 
         zeroGyro();
-        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), new Pose2d(0.0, 0.0, new Rotation2d(0.0)));
+        var gyro = getGyroRotation();
+        var modules = getSwerveModulePositions();
+        var zeroPose = new Pose2d(0.0, 0.0, new Rotation2d(0.0));
+        synchronized (poseEstimator) {
+            poseEstimator.resetPosition(gyro, modules, zeroPose);
+        }
 
         SmartDashboard.putData("start to high", new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE));
         return this;
@@ -240,7 +249,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void periodic() {
         Pose2d prev = getPose();
-        poseEstimator.update(getGyroRotation(), getSwerveModulePositions());
+        var gyro = getGyroRotation();
+        var modules = getSwerveModulePositions();
+        synchronized (poseEstimator) {
+            poseEstimator.update(gyro, modules);
+        }
         Pose2d current = getPose();
 
         // calculate velocity
@@ -311,7 +324,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     }
 
     public void resetOdometry(Pose2d pose) {
-        poseEstimator.resetPosition(getGyroRotation(), getSwerveModulePositions(), pose);
+        var gyro = getGyroRotation();
+        var modules = getSwerveModulePositions();
+        synchronized (poseEstimator) {
+            poseEstimator.resetPosition(gyro, modules, pose);
+        }
         logger.info("Reset Pose: " + pose);
     }
 
