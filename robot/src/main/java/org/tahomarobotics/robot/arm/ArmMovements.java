@@ -77,8 +77,11 @@ public class ArmMovements {
 
     public record ArmMove(String name, ArmTrajectory trajectory, WristPosition wristPosition) {}
 
+//    private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
+//            5, 0.5, 0.15, 0.1, Units.degreesToRadians(-138.5),
+//            Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
     private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
-            5, 0.5, 0.15, 0.1, Units.degreesToRadians(-138.5),
+            4.5, 0.5, 0.15, 0.15, Units.degreesToRadians(-138.5),
             Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
     public static final ArmMove STOW_TO_CLIMB = new ArmMove("Stow To Climb",
             new ArmTrajectory(STOW, PRE_CLIMB, SLOW_SPEED),

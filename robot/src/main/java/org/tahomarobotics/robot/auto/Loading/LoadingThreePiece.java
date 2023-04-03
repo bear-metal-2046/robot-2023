@@ -32,13 +32,12 @@ public class LoadingThreePiece extends AutonomousBase {
             new Rotation2d(Units.degreesToRadians(0)));
 
     //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 12),
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 16),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 12),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 220.9), Units.inchesToMeters(196.325 - 70),
+    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(FIRST_COLLECT.getTranslation(), new Rotation2d(Math.PI));
+    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 214.9), Units.inchesToMeters(196.325 - 72),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d SECOND_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 220.9), Units.inchesToMeters(196.325 - 70),
+    private static final Pose2d SECOND_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 214.9), Units.inchesToMeters(196.325 - 72),
             new Rotation2d(Units.degreesToRadians(145)));
 
     //Mid-Translations
@@ -51,7 +50,7 @@ public class LoadingThreePiece extends AutonomousBase {
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
     private static final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-40));
 
-    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.5, 2.5)
+    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.75, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
     public LoadingThreePiece(DriverStation.Alliance alliance) {
@@ -92,7 +91,7 @@ public class LoadingThreePiece extends AutonomousBase {
                         new TrajectoryCommand("Collect to Place",
                                 placeTrajectory,
                                 placeHeading,
-                                0.0, 0.5,
+                                0.0, 0.4,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
@@ -119,15 +118,15 @@ public class LoadingThreePiece extends AutonomousBase {
                         new TrajectoryCommand("Second Collect to Second Place",
                                 secondPlaceTrajectory,
                                 placeHeading,
-                                0.0, 0.5,
+                                0.0, 0.4,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
                                 new WaitCommand(0.35),
-                                new ArmMoveCommand(ArmMovements.STOW_TO_MID_BOX)
+                                new ArmMoveCommand(ArmMovements.STOW_TO_MID_BOX),
+                                new ScoreCommand(0.1)
                         )
-                ),
-                new ScoreCommand(0.1)
+                )
         );
     }
 }

@@ -26,17 +26,15 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
     //Place Points
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(73.6), Units.inchesToMeters(196.325 - 32.0),
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 32.0),
             new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325 - 32.0),
-            new Rotation2d(Units.degreesToRadians(0)));
+    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(SECOND_PLACE.getTranslation(), new Rotation2d(0));
 
     //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 22),
+    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 16),
             new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 22),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 195.9), Units.inchesToMeters(196.325 - 63),
+    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(FIRST_COLLECT.getTranslation(), new Rotation2d(Math.PI));
+    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 214.9), Units.inchesToMeters(196.325 - 72),
             new Rotation2d(Units.degreesToRadians(-35)));
 
     //Mid-Translations
@@ -57,6 +55,7 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
+
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
         Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT_PT_2, List.of(MID_PT_2), SECOND_PLACE, CONFIG);
@@ -72,7 +71,7 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
                 new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.8,
+                        new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.7,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
@@ -94,7 +93,7 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
                 ),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Place to 2nd Collect", secondCollectTrajectory, secondCollectHeading,
-                                0.3, 0.9,
+                                0.0, 0.6,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
                                 new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW),

@@ -14,7 +14,10 @@ import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.Cable.CableTwoPiece;
 import org.tahomarobotics.robot.auto.Cable.CableTwoPieceEngage;
-import org.tahomarobotics.robot.auto.Loading.*;
+import org.tahomarobotics.robot.auto.Loading.LoadingThreePiece;
+import org.tahomarobotics.robot.auto.Loading.LoadingTwoPiece;
+import org.tahomarobotics.robot.auto.Loading.LoadingTwoPieceCollect;
+import org.tahomarobotics.robot.auto.Loading.LoadingTwoPieceEngage;
 import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
 import java.util.EnumSet;
@@ -44,10 +47,10 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         shuffleboard = new AutoShuffleboard(autoCommandChooser);
 
         addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
-        addAuto(new OdometryStraightTest(), new OdometryStraightTest());
+//        addAuto(new OdometryStraightTest(), new OdometryStraightTest());
 
-        addAuto(new LoadingTaxi(DriverStation.Alliance.Blue),
-                new LoadingTaxi(DriverStation.Alliance.Red));
+//        addAuto(new LoadingTaxi(DriverStation.Alliance.Blue),
+//                new LoadingTaxi(DriverStation.Alliance.Red));
 
         addAuto(new MidEngage(DriverStation.Alliance.Blue),
                 new MidEngage(DriverStation.Alliance.Red));
@@ -64,8 +67,8 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         addAuto(new LoadingThreePiece(DriverStation.Alliance.Blue),
                 new LoadingThreePiece(DriverStation.Alliance.Red));
 
-        addAuto(new LoadingCollect(DriverStation.Alliance.Blue),
-                new LoadingCollect(DriverStation.Alliance.Red));
+//        addAuto(new LoadingCollect(DriverStation.Alliance.Blue),
+//                new LoadingCollect(DriverStation.Alliance.Red));
 
         addAuto(new CableTwoPiece(DriverStation.Alliance.Blue),
                 new CableTwoPiece(DriverStation.Alliance.Red));

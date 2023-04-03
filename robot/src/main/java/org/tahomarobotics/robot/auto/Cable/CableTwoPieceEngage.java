@@ -70,7 +70,7 @@ public class CableTwoPieceEngage extends AutonomousBase {
 
         Pose2d SECOND_PLACE_MIRRORED = new Pose2d(
                 SECOND_PLACE.getTranslation(),
-                new Rotation2d(Math.PI)
+                new Rotation2d(0)
         );
 
         Trajectory oneForAll = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
