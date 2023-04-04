@@ -47,10 +47,9 @@ public class DetermineGravityFeedforward extends CommandBase {
 
             testPoint = stepTestPoint(testPoint);
 
-            executingCommand = new ArmMoveCommand(
-                    new ArmMovements.ArmMove("testPoint["+index+"]",
+            executingCommand = new ArmMovements.ArmMove("testPoint["+index+"]",
                             createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), testPoint.arm),
-                            testPoint.wrist));
+                            testPoint.wrist).createArmWristMoveCommand();
             executingCommand.schedule();
             count = 3;
 

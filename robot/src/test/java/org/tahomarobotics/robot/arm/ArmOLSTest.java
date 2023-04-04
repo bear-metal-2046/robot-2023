@@ -8,8 +8,7 @@ import org.tahomarobotics.robot.util.OrdinaryLeastSquares;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.tahomarobotics.robot.arm.ArmConstants.ARM_PHYSICAL_PROPERTIES;
-import static org.tahomarobotics.robot.arm.ArmFeedForward.MOTOR_ELBOW;
-import static org.tahomarobotics.robot.arm.ArmFeedForward.MOTOR_SHOULDER;
+import static org.tahomarobotics.robot.arm.ArmFeedForward.*;
 
 public class ArmOLSTest {
 
@@ -70,16 +69,11 @@ public class ArmOLSTest {
         double g = 9.80665;
 
         var g1 = olsG1.calculate();
-        double m1 = ARM_PHYSICAL_PROPERTIES.upperArm().mass();
-        double lc1 = ARM_PHYSICAL_PROPERTIES.upperArm().locationCenterMass();
-        double l1 = ARM_PHYSICAL_PROPERTIES.upperArm().length();
 
         var g2 = olsG2.calculate();
-        double m2 = ARM_PHYSICAL_PROPERTIES.foreArm().mass();
-        double lc2 = ARM_PHYSICAL_PROPERTIES.foreArm().locationCenterMass();
 
-        double expected1 = g * (m1 * lc1 + m2 * l1);
-        double expected2 = m2 * g * lc2;
+        double expected1 = k_m1glc1_m2gl1;
+        double expected2 = k_m2glc2;
 
         System.out.printf("G1: %7.3f, (%7.3f) G2: %7.3f  (%7.3f)%n", g1[0], expected1, g2[0], expected2);
 

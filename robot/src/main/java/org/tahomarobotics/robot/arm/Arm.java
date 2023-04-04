@@ -44,6 +44,8 @@ import org.tahomarobotics.robot.util.CTREPheonixHelper;
 import org.tahomarobotics.robot.util.CalibrationAction;
 import org.tahomarobotics.robot.util.CalibrationData;
 import org.tahomarobotics.robot.util.SparkMaxHelper;
+import org.tahomarobotics.robot.wrist.Wrist;
+import org.tahomarobotics.robot.wrist.WristPosition;
 
 import java.io.Serializable;
 
@@ -78,7 +80,7 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
     private final PIDController shoulderPIDController;
     private final PIDController elbowPIDController;
     private final ArmFeedForward feedForward = new ArmFeedForward();
-    private record ArmMechanism (Mechanism2d mech, MechanismLigament2d upperArm, MechanismLigament2d foreArm) {}
+    private record ArmMechanism (Mechanism2d mech, MechanismLigament2d upperArm, MechanismLigament2d foreArm, MechanismLigament2d grabber) {}
     private final ArmMechanism armMechanism;
     private final double tolerance = Units.degreesToRadians(1);
 
@@ -157,9 +159,13 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
                 ArmConstants.ARM_PHYSICAL_PROPERTIES.foreArm().length(), -90, 6,
                 new Color8Bit(Color.kPurple)));
 
+        MechanismLigament2d grabber = foreArm.append(new MechanismLigament2d("grabber",
+                Units.inchesToMeters(12.8 + 0.938), 90, 12,
+                new Color8Bit(Color.kRed)));
+
         SmartDashboard.putData("Arm", mech);
 
-        return new ArmMechanism(mech, upperArm, foreArm);
+        return new ArmMechanism(mech, upperArm, foreArm, grabber);
     }
 
     @Override
@@ -272,8 +278,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
 
             // set and save the offsets to the negated reading from this calibration
             case Finalize -> setAngularOffsets(calibrationData.set(new EncoderOffsets(
-                    shoulderEncoder.getAbsolutePosition() * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
-                    elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))),
+                            shoulderEncoder.getAbsolutePosition() * (shoulderEncoder.configGetSensorDirection() ? 1d : -1d),
+                            elbowEncoder.getAbsolutePosition() * (elbowEncoder.configGetSensorDirection() ? 1d : -1d))),
                     CANSparkMax.IdleMode.kBrake);
         }
     }
@@ -292,5 +298,8 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         ArmState currentState = getCurrentArmState();
         armMechanism.upperArm.setAngle(Units.radiansToDegrees(currentState.shoulder.position()));
         armMechanism.foreArm.setAngle(Units.radiansToDegrees(currentState.elbow.position()));
+        double wristPosition = Wrist.getInstance().getPosition();
+        armMechanism.grabber.setAngle(Units.radiansToDegrees(wristPosition) - 115);
     }
 }
+

@@ -49,12 +49,12 @@ public class LoadingTaxi extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_POLE),
+                ArmMovements.STOW_TO_HIGH_POLE.createArmWristMoveCommand(),
                 new ScoreCommand(0.25),
 
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Reverse-to-Taxi", taxiTrajectory, taxiHeading, 0.3, 0.9, turnDirection),
-                        new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
+                        ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand()
                 )
         );
     }

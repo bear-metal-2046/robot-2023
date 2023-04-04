@@ -24,9 +24,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tahomarobotics.robot.wrist.WristMoveCommand;
 import org.tahomarobotics.robot.wrist.WristPosition;
 
 import java.util.List;
@@ -75,7 +78,19 @@ public class ArmMovements {
     private static final Rotation2d FWD = new Rotation2d(Units.degreesToRadians(0));
     private static final Rotation2d REV = new Rotation2d(Units.degreesToRadians(180));
 
-    public record ArmMove(String name, ArmTrajectory trajectory, WristPosition wristPosition) {}
+    public record ArmMove(String name, ArmTrajectory trajectory, WristPosition wristPosition) {
+        public CommandBase createArmWristMoveCommand() {
+            CommandBase cmd = new ArmMoveCommand(name, trajectory);
+
+            if (trajectory.isValid()) {
+                var total = trajectory.getTotalTimeSeconds();
+                var waitTime = 0.25 * total;
+                var wristTime = 0.5 * total;
+                cmd = cmd.alongWith(new WaitCommand(waitTime).andThen(new WristMoveCommand(wristPosition, wristTime)));
+            }
+            return cmd;
+        }
+    }
 
 //    private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
 //            5, 0.5, 0.15, 0.1, Units.degreesToRadians(-138.5),
@@ -96,7 +111,9 @@ public class ArmMovements {
             WristPosition.HIGH_POLE_PLACE);
 
     public static ProxyCommand createPositionToStowCommand() {
-        return new ProxyCommand(() -> new ArmMoveCommand("Pos To Stow", createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW));
+        return new ProxyCommand(() -> new ArmMove("Pos To Stow",
+                createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW)
+                .createArmWristMoveCommand());
     }
     public static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
         Translation2d delta = position.minus(desired);

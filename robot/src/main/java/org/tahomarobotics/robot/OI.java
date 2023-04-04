@@ -130,7 +130,7 @@ public final class OI implements SubsystemIF {
 
         // Pre-Clmb
         JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
-        preClimb.onTrue(new ArmMoveCommand(ArmMovements.STOW_TO_CLIMB));
+        preClimb.onTrue(ArmMovements.STOW_TO_CLIMB.createArmWristMoveCommand());
 
         // Move to arm to collecting
         JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);

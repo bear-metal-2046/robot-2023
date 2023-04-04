@@ -114,10 +114,10 @@ public class OperatorArmMoveSelection {
             Command cmd = switch (armPosition) {
                 // Stowed position, so move to score
                 case STOW ->
-                        new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)))
+                        scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.SCORE)).createArmWristMoveCommand()
                                 .andThen(new InstantCommand(() -> {
                                     armPosition = ArmPosition.SCORE;
-                                    stowCommand = new ArmMoveCommand(scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW))); // set stow command for next stow
+                                    stowCommand = scoreCommands.get(new ScoreCommandKey(scoreLevel, mode, ArmPosition.STOW)).createArmWristMoveCommand(); // set stow command for next stow
                                 }));
 
                 // Collect position, stow first then move to score
@@ -141,10 +141,10 @@ public class OperatorArmMoveSelection {
             Command cmd = switch (armPosition) {
                 // Stowed position, so move to score
                 case STOW ->
-                        new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.COLLECT)))
+                        collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.COLLECT)).createArmWristMoveCommand()
                                 .andThen(new InstantCommand(() -> {
                                     armPosition = ArmPosition.COLLECT;
-                                    stowCommand = new ArmMoveCommand(collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.STOW))); // set stow command for next stow
+                                    stowCommand = collectCommands.get(new CollectCommandKey(collectLevel, mode, ArmPosition.STOW)).createArmWristMoveCommand(); // set stow command for next stow
                                 }));
 
                 // Collect position, stow first then move to score

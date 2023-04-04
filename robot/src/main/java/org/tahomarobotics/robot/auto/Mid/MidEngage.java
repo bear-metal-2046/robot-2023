@@ -55,12 +55,12 @@ public class MidEngage extends AutonomousBase {
 
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
 
-                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
+                ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
                 new ScoreCommand(0.25),
 
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Mid-to-Engage", place2Engage, placeHeading),
-                        new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW)
+                        ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand()
                 ),
 
                 new TrajectoryCommand("Engage-to-Taxi", engage2Taxi, placeHeading),

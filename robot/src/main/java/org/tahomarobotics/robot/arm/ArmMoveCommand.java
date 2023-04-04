@@ -23,12 +23,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.util.ChartData;
-import org.tahomarobotics.robot.wrist.WristMoveCommand;
-import org.tahomarobotics.robot.wrist.WristPosition;
 
 public class ArmMoveCommand extends CommandBase {
 
@@ -47,16 +44,10 @@ public class ArmMoveCommand extends CommandBase {
 
     private final ArmSubsystemIF arm = Arm.getInstance();
     private final ArmTrajectory trajectory;
-    private final WristPosition wristPosition;
 
-    public ArmMoveCommand(ArmMovements.ArmMove armMove) {
-        this(armMove.name(), armMove.trajectory(), armMove.wristPosition());
-    }
-
-    public ArmMoveCommand(String name, ArmTrajectory trajectory, WristPosition wristPosition) {
+    public ArmMoveCommand(String name, ArmTrajectory trajectory) {
         setName(name);
         this.trajectory = trajectory;
-        this.wristPosition = wristPosition;
         if (!trajectory.isValid()) {
             canceled = true;
         }
@@ -70,11 +61,6 @@ public class ArmMoveCommand extends CommandBase {
         chartData.clear();
         angleChart.clear();
         angluarVelocityChart.clear();
-        if (trajectory.isValid()) {
-            double waitTime = 0.25 * trajectory.getTotalTimeSeconds();
-            double wristTime = 0.5 * trajectory.getTotalTimeSeconds();
-            Commands.waitSeconds(waitTime).andThen(new WristMoveCommand(wristPosition, wristTime)).schedule();
-        }
     }
 
     @Override

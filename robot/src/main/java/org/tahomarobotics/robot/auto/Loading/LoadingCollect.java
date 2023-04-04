@@ -53,20 +53,20 @@ public class LoadingCollect extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
+                ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.9, turnDirection),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
+                                ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
-                                        new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
+                                        ArmMovements.STOW_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                         new IngestCommand(1)
                                 )
                         )
                 ),
                 new WaitCommand(0.25),
-                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW)
+                ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand()
         );
     }
 }

@@ -242,7 +242,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             poseEstimator.resetPosition(gyro, modules, zeroPose);
         }
 
-        SmartDashboard.putData("start to high", new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE));
+        SmartDashboard.putData("start to high", ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand());
         return this;
     }
 

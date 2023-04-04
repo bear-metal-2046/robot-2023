@@ -68,15 +68,15 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
+                ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to collect", collectTrajectory, collectHeading, 0.3, 0.7,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
+                                ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
-                                        new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
+                                        ArmMovements.STOW_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                         new IngestCommand(1.5)
                                 )
                         )
@@ -85,9 +85,9 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
                         new TrajectoryCommand("Collect to Place", placeTrajectory, placeHeading, 0.0, 0.5,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
+                                ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand(),
                                 new WaitCommand(0.5),
-                                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_BOX),
+                                ArmMovements.STOW_TO_HIGH_BOX.createArmWristMoveCommand(),
                                 new ScoreCommand(0.25)
                         )
                 ),
@@ -96,9 +96,9 @@ public class LoadingTwoPieceCollect extends AutonomousBase {
                                 0.0, 0.6,
                                 alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW),
+                                ArmMovements.HIGH_BOX_TO_STOW.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
-                                        new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
+                                        ArmMovements.STOW_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                         new IngestCommand(1.5)
                                 )
                         )

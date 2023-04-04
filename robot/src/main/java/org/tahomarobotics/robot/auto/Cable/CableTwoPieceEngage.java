@@ -88,15 +88,15 @@ public class CableTwoPieceEngage extends AutonomousBase {
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
-                new ArmMoveCommand(ArmMovements.START_TO_HIGH_POLE),
+                ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to Collect", oneForAll, collectHeading, 0.0, 0.5,
                                 turnDirection1),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.HIGH_POLE_TO_STOW),
+                                ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
-                                        new ArmMoveCommand(ArmMovements.STOW_TO_CUBE_COLLECT),
+                                        ArmMovements.STOW_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                         new IngestCommand(2)
                                 )
                         )
@@ -105,14 +105,14 @@ public class CableTwoPieceEngage extends AutonomousBase {
                         new TrajectoryCommand("Collect to Second Place", allForOne, placeHeading, 0.0, 0.6,
                                 turnDirection2),
                         new SequentialCommandGroup(
-                                new ArmMoveCommand(ArmMovements.CUBE_COLLECT_TO_STOW),
+                                ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand(),
                                 new WaitCommand(1),
-                                new ArmMoveCommand(ArmMovements.STOW_TO_HIGH_BOX)
+                                ArmMovements.STOW_TO_HIGH_BOX.createArmWristMoveCommand()
                         )
                 ),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
-                    new ArmMoveCommand(ArmMovements.HIGH_BOX_TO_STOW),
+                    ArmMovements.HIGH_BOX_TO_STOW.createArmWristMoveCommand(),
                     new TrajectoryCommand("Engage", engage, placeHeading)
                 ),
                 new BalancedCommand(1.25)
