@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.AutonomousBase;
 import org.tahomarobotics.robot.auto.TrajectoryCommand;
@@ -26,19 +25,13 @@ public class LoadingThreePiece extends AutonomousBase {
     //Place Points
     private static final Pose2d FIRST_PLACE = new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325),
             new Rotation2d(0));
-    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 24.0),
-            new Rotation2d(Units.degreesToRadians(180)));
-    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 24.0),
-            new Rotation2d(Units.degreesToRadians(0)));
 
-    //Collect Points
-    private static final Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 16),
-            new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d FIRST_COLLECT_PT_2 = new Pose2d(FIRST_COLLECT.getTranslation(), new Rotation2d(Math.PI));
-    private static final Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 214.9), Units.inchesToMeters(196.325 - 72),
-            new Rotation2d(Units.degreesToRadians(-35)));
-    private static final Pose2d SECOND_COLLECT_PT_2 = new Pose2d(Units.inchesToMeters(69.6 + 214.9), Units.inchesToMeters(196.325 - 72),
-            new Rotation2d(Units.degreesToRadians(145)));
+    private static final Pose2d SECOND_PLACE = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 28.0),
+            new Rotation2d(Units.degreesToRadians(180)));
+    private static final Pose2d SECOND_PLACE_PT_2 = new Pose2d(SECOND_PLACE.getTranslation(), new Rotation2d(Units.degreesToRadians(0)));
+    private static final Pose2d SECOND_PLACE_PT_3 = new Pose2d(Units.inchesToMeters(71.6), Units.inchesToMeters(196.325 - 20.0),
+            new Rotation2d(Units.degreesToRadians(180)));
+
 
     //Mid-Translations
     private static final Translation2d MID_PT = new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 15.0));
@@ -47,10 +40,13 @@ public class LoadingThreePiece extends AutonomousBase {
     private static final Translation2d MID_PT_4 = new Translation2d(Units.inchesToMeters(206), Units.inchesToMeters(177));
 
     private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
+    private static final Rotation2d SECOND_PLACE_HEADING = new Rotation2d(Units.degreesToRadians(190));
     private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-35));
     private static final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(-40));
 
-    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.75, 3)
+    private static final TrajectoryConfig CONFIG = new TrajectoryConfig(2.8, 3)
+            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+    private static final TrajectoryConfig PLZ_MAKE_IT_BACK_CONFIG = new TrajectoryConfig(3.5, 3)
             .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
     public LoadingThreePiece(DriverStation.Alliance alliance) {
@@ -58,16 +54,28 @@ public class LoadingThreePiece extends AutonomousBase {
         // alliance converted start pose
         super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
+        Pose2d FIRST_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 11
+                - (alliance == DriverStation.Alliance.Blue ? 8 : 3)),
+                new Rotation2d(Units.degreesToRadians(-35)));
+
+        Pose2d FIRST_COLLECT_PT_2 = new Pose2d(FIRST_COLLECT.getTranslation(), new Rotation2d(Math.PI));
+
+        Pose2d SECOND_COLLECT = new Pose2d(Units.inchesToMeters(69.6 + 210.9), Units.inchesToMeters(196.325 - 67
+                - (alliance == DriverStation.Alliance.Blue ? 4 : -5)),
+                new Rotation2d(Units.degreesToRadians(-35)));
+
+        Pose2d SECOND_COLLECT_PT_2 = new Pose2d(SECOND_COLLECT.getTranslation(), new Rotation2d(Units.degreesToRadians(145)));
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);
         Trajectory placeTrajectory = createTrajectory(FIRST_COLLECT_PT_2, List.of(MID_PT_4, MID_PT_3), SECOND_PLACE, CONFIG);
         Trajectory secondCollectTrajectory = createTrajectory(SECOND_PLACE_PT_2, List.of(MID_PT_3, MID_PT_4), SECOND_COLLECT, CONFIG);
-        Trajectory secondPlaceTrajectory = createTrajectory(SECOND_COLLECT_PT_2, List.of(MID_PT_4, MID_PT_3), SECOND_PLACE, CONFIG);
+        Trajectory secondPlaceTrajectory = createTrajectory(SECOND_COLLECT_PT_2, List.of(MID_PT_4, MID_PT_3), SECOND_PLACE_PT_3, PLZ_MAKE_IT_BACK_CONFIG);
 
         // alliance converted rotations
         Rotation2d collectHeading = createRotation(COLLECT_HEADING);
         Rotation2d secondCollectHeading = createRotation(SECOND_COLLECT_HEADING);
         Rotation2d placeHeading = createRotation(PLACE_HEADING);
+        Rotation2d secondPlaceHeading = createRotation(SECOND_PLACE_HEADING);
 
         addCommands(
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
@@ -78,7 +86,8 @@ public class LoadingThreePiece extends AutonomousBase {
                                 collectTrajectory,
                                 collectHeading,
                                 0.0, 0.5,
-                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE,
+                                0.0),
                         new SequentialCommandGroup(
                                 ArmMovements.HIGH_POLE_TO_STOW.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
@@ -92,10 +101,11 @@ public class LoadingThreePiece extends AutonomousBase {
                                 placeTrajectory,
                                 placeHeading,
                                 0.0, 0.4,
-                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE,
+                                0.0),
                         new SequentialCommandGroup(
                                 ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand(),
-                                new WaitCommand(0.2),
+                                new WaitCommand(0.125),
                                 ArmMovements.STOW_TO_HIGH_BOX.createArmWristMoveCommand(),
                                 new ScoreCommand(0.1)
                         )
@@ -105,28 +115,34 @@ public class LoadingThreePiece extends AutonomousBase {
                                 secondCollectTrajectory,
                                 secondCollectHeading,
                                 0.0, 0.5,
-                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE),
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE : TrajectoryCommand.TurnDirection.CLOCKWISE,
+                                0.0),
                         new SequentialCommandGroup(
-                                ArmMovements.HIGH_BOX_TO_STOW.createArmWristMoveCommand(),
+                                ArmMovements.HIGH_BOX_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                 new ParallelCommandGroup(
-                                        ArmMovements.STOW_TO_CUBE_COLLECT.createArmWristMoveCommand(),
-                                        new IngestCommand(1.25)
+                                        new IngestCommand(1.2)
                                 )
                         )
                 ),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Second Collect to Second Place",
                                 secondPlaceTrajectory,
-                                placeHeading,
+                                secondPlaceHeading,
                                 0.0, 0.4,
-                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE),
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE,
+                                0.0),
                         new SequentialCommandGroup(
                                 ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand(),
-                                new WaitCommand(0.35),
-                                ArmMovements.STOW_TO_MID_BOX.createArmWristMoveCommand(),
-                                new ScoreCommand(0.1)
+                                new ParallelCommandGroup(
+                                        ArmMovements.STOW_TO_MID_BOX.createArmWristMoveCommand(),
+                                        new SequentialCommandGroup(
+                                                new WaitCommand(1.2),
+                                                new ScoreCommand(0.1)
+                                        )
+                                )
                         )
-                )
+                ),
+                ArmMovements.MID_BOX_TO_STOW.createArmWristMoveCommand()
         );
     }
 }

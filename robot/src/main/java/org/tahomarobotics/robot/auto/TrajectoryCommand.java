@@ -94,6 +94,7 @@ public class TrajectoryCommand extends CommandBase {
     private final HeadingSupplier headingSupplier;
 
     private final double turnDuration;
+    private final double timeout;
 
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading) {
@@ -104,22 +105,29 @@ public class TrajectoryCommand extends CommandBase {
         this(name, trajectory, heading, turnStart, turnEnd, null);
     }
 
-
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection) {
         this(name, trajectory,
                 new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
-                createController());
+                createController(), 0.5);
+    }
+    public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection, double timeout) {
+        this(name, trajectory,
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
+                heading,
+                (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
+                createController(), timeout);
     }
 
-    private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, HolonomicDriveController controller) {
+    private TrajectoryCommand(String name, Trajectory trajectory, HeadingSupplier headingSupplier, Rotation2d heading, double turnDuration, HolonomicDriveController controller, double timeout) {
         this.name = name;
         this.trajectory = trajectory;
         this.controller = controller;
         this.heading = heading;
         this.headingSupplier = headingSupplier;
         this.turnDuration = turnDuration;
+        this.timeout = timeout;
 
         addRequirements(Chassis.getInstance());
     }
@@ -202,7 +210,7 @@ public class TrajectoryCommand extends CommandBase {
 
         return (lastPose.getTranslation().getDistance(chassis.getPose().getTranslation()) < Units.inchesToMeters(0.5) &&
                 (Math.abs(lastPose.getRotation().getDegrees() - chassis.getPose().getRotation().getDegrees())) < 1) ||
-                timer.hasElapsed(trajectory.getTotalTimeSeconds() + 0.5);
+                timer.hasElapsed(trajectory.getTotalTimeSeconds() + timeout);
     }
 
     @Override

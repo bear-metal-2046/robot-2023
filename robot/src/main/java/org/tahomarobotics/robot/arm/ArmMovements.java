@@ -203,6 +203,10 @@ public class ArmMovements {
             new ArmTrajectory(HIGH_BOX, STOW, NORMAL_SPEED),
             WristPosition.STOW);
 
+    public static final ArmMove HIGH_BOX_TO_CUBE_COLLECT = new ArmMove("High-Box Cube",
+            new ArmTrajectory(new Pose2d(HIGH_BOX, REV), NONE, new Pose2d(CUBE_COLLECT, DOWN), NORMAL_SPEED),
+            WristPosition.STOW);
+
     public static final ArmMove MID_POLE_TO_STOW = new ArmMove("Mid-Pole Stow",
             new ArmTrajectory(MID_POLE, STOW, NORMAL_SPEED),
             WristPosition.STOW);
