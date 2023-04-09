@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -25,7 +26,12 @@ public class TrajectoryCommand extends CommandBase {
 
     private static final Logger logger = LoggerFactory.getLogger(TrajectoryCommand.class);
 
-    public enum TurnDirection { COUNTER_CLOCKWISE, CLOCKWISE }
+    public enum TurnDirection {
+        COUNTER_CLOCKWISE, CLOCKWISE;
+        public TurnDirection reverseIfRed(DriverStation.Alliance alliance) {
+            return alliance == DriverStation.Alliance.Red ? this == COUNTER_CLOCKWISE ? CLOCKWISE : COUNTER_CLOCKWISE : this;
+        }
+    }
     private final Trajectory trajectory;
 
     private final ChartData velData = new ChartData("Path Motion", "Time (sec)", "Velocity",

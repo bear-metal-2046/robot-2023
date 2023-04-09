@@ -20,7 +20,6 @@ package org.tahomarobotics.robot.chassis;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 import edu.wpi.first.math.MatBuilder;
-import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.*;
@@ -38,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.RobotMap;
 import org.tahomarobotics.robot.SubsystemIF;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.mk4i.MK4iChassisConstants;
 import org.tahomarobotics.robot.chassis.rev.RevChassisConstants;
@@ -92,6 +90,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     private double velocity = 0d;
 
     private int largeDifferenceCount = 0;
+    private int frontUpdateCount = 0;
+    private int backUpdateCount = 0;
 
     private Chassis() {
         // Configures the Chassis according to the current RobotID.
@@ -138,13 +138,13 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         // Only add vision measurements close to where the robot currently thinks it is.
         if (poseDiff.getTranslation().getNorm() > VisionConstants.POSE_DIFFERENCE_THRESHOLD ||
             poseDiff.getRotation().getDegrees() > VisionConstants.DEGREES_DIFFERENCE_THRESHOLD) {
-
-            // accept large differences only if vision is confirming current position isn't good
-            if (++largeDifferenceCount < VisionConstants.LARGE_DIFFERENCE_COUNT_ACCEPTANCE) {
                 return;
-            } else {
-                logger.info("Large difference moved: {}x, {}y", poseDiff.getTranslation().getX(), poseDiff.getTranslation().getY());
-            }
+//            // accept large differences only if vision is confirming current position isn't good
+//            if (++largeDifferenceCount < VisionConstants.LARGE_DIFFERENCE_COUNT_ACCEPTANCE) {
+//                return;
+//            } else {
+//                logger.info("Large difference moved: {}x, {}y", poseDiff.getTranslation().getX(), poseDiff.getTranslation().getY());
+//            }
         }
         largeDifferenceCount = 0;
 
@@ -161,6 +161,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             synchronized (poseEstimator) {
                 try {
                     poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
+
+                    if (DriverStation.isAutonomousEnabled()) {
+                        if ("Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
+                    }
                 } catch (ConcurrentModificationException ignored) {}
             }
         } else if (result.numTargets() == 1 && distanceToTargets < VisionConstants.SINGLE_TARGET_DISTANCE_THRESHOLD) {
@@ -175,6 +179,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             synchronized (poseEstimator) {
                 try {
                     poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
+
+                    if (DriverStation.isAutonomousEnabled()) {
+                        if ("Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
+                    }
                 } catch (ConcurrentModificationException ignored) {}
             }
         }
@@ -400,5 +408,15 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void onDisabledInit() {
         swerveModules.forEach(s -> s.setDriveVoltage(0));
+        logger.info("Front Cam Updates: {}\tBack Cam Updates: {}", frontUpdateCount, backUpdateCount);
+        frontUpdateCount = 0;
+        backUpdateCount = 0;
+    }
+
+    @Override
+    public void onTeleopInit() {
+        logger.info("Front Cam Updates: {}\tBack Cam Updates: {}", frontUpdateCount, backUpdateCount);
+        frontUpdateCount = 0;
+        backUpdateCount = 0;
     }
 }

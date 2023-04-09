@@ -9,6 +9,7 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,20 +43,42 @@ public abstract class AutonomousBase extends SequentialCommandGroup implements A
 
     private final Function<Pose2d, Translation2d> RED_TRANSLATE = (Pose2d p) -> new Translation2d(FIELD_LENGTH - p.getX(), p.getY());
     private final Function<Translation2d, Translation2d> RED_ORIGIN = (Translation2d t) -> new Translation2d(FIELD_LENGTH - t.getX(), t.getY());
-    private Pose2d  convertToRed(Pose2d pose) {
+    private Pose2d convertToRed(Pose2d pose) {
         return new Pose2d(
                 RED_TRANSLATE.apply(pose),
                 RED_ROTATION.minus(pose.getRotation()));
     }
     private List<Translation2d>  convertToRed(List<Translation2d> interiorWaypoints) {
-        return interiorWaypoints.stream().map(w -> RED_ORIGIN.apply(w))
+        return interiorWaypoints.stream().map(RED_ORIGIN)
                 .collect(Collectors.toList());
     }
 
+    private Pose2d checkPoseFudge(Pose2d pose) {
+        if (pose instanceof FudgeablePose fpose) {
+            return fpose.getPose(alliance);
+        }
+        return pose;
+    }
+
+    private Translation2d checkTranslationFudge(Translation2d translation) {
+        if (translation instanceof FudgeableTranslation ftrans) {
+            return ftrans.getTranslation(alliance);
+        }
+        return translation;
+    }
+
+
     protected Trajectory createTrajectory(Pose2d start, Pose2d end, TrajectoryConfig config) {
+        start = checkPoseFudge(start);
+        end = checkPoseFudge(end);
+
         return createTrajectory(start, List.of(), end, config);
     }
     protected Trajectory createTrajectory(Pose2d start, List<Translation2d> interiorWaypoints, Pose2d end, TrajectoryConfig config) {
+        start = checkPoseFudge(start);
+        end = checkPoseFudge(end);
+        interiorWaypoints = interiorWaypoints.stream().map(this::checkTranslationFudge).collect(Collectors.toList());
+
         Trajectory trajectory =  alliance == DriverStation.Alliance.Blue ?
 
                 // blue has no conversion
@@ -88,5 +111,9 @@ public abstract class AutonomousBase extends SequentialCommandGroup implements A
             pose = new Pose2d(x, pose.getY(), theta);
         }
         return pose;
+    }
+
+    protected static TrajectoryConfig createConfig(double v, double a) {
+        return new TrajectoryConfig(v, a).setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
     }
 }

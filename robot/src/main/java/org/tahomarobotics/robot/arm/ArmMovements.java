@@ -45,6 +45,8 @@ public class ArmMovements {
             new TrajectoryConfig(4, 4);
     private static final TrajectoryConfig SLOW_SPEED =
             new TrajectoryConfig(0.5, 1);
+    private static final TrajectoryConfig FAST_SPEED =
+            new TrajectoryConfig(5, 5);
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(10.5), Units.inchesToMeters(-2.1));
@@ -95,6 +97,9 @@ public class ArmMovements {
 //    private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
 //            5, 0.5, 0.15, 0.1, Units.degreesToRadians(-138.5),
 //            Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
+//    private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
+//            5, 0.5, 0.15, 0.1, Units.degreesToRadians(-138.5),
+//            Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
     private static ArmTrajectory CLIMB_SWING_TRAJ = ClimbSwingGenerator.generateTrajectory(
             4.5, 0.5, 0.15, 0.15, Units.degreesToRadians(-138.5),
             Units.degreesToRadians(76.4), Units.degreesToRadians(118), Units.degreesToRadians(138));
@@ -108,6 +113,9 @@ public class ArmMovements {
             WristPosition.STOW);
     public static final ArmMove START_TO_HIGH_POLE = new ArmMove("Start to High-Pole",
             new ArmTrajectory(new Pose2d(START, UP), List.of(START_TO_HIGH_MID_PT), new Pose2d(HIGH_POLE, FWD), NORMAL_SPEED),
+            WristPosition.HIGH_POLE_PLACE);
+    public static final ArmMove START_TO_HIGH_POLE_FAST = new ArmMove("Start to High-Pole Fast",
+            new ArmTrajectory(new Pose2d(START, UP), List.of(START_TO_HIGH_MID_PT), new Pose2d(HIGH_POLE, FWD), FAST_SPEED),
             WristPosition.HIGH_POLE_PLACE);
 
     public static ProxyCommand createPositionToStowCommand() {
@@ -133,6 +141,10 @@ public class ArmMovements {
 
     public static final ArmMove STOW_TO_CUBE_COLLECT = new ArmMove("Cube Collect",
             new ArmTrajectory(new Pose2d(STOW, FWD), NONE, new Pose2d(CUBE_COLLECT, DOWN), NORMAL_SPEED),
+            WristPosition.CUBE_COLLECT);
+
+    public static final ArmMove STOW_TO_CUBE_COLLECT_FAST = new ArmMove("Cube Collect Fast",
+            new ArmTrajectory(new Pose2d(STOW, FWD), NONE, new Pose2d(CUBE_COLLECT, DOWN), FAST_SPEED),
             WristPosition.CUBE_COLLECT);
 
     public static final ArmMove STOW_TO_CONE_COLLECT = new ArmMove("Cone Collect",
@@ -179,6 +191,10 @@ public class ArmMovements {
             new ArmTrajectory(new Pose2d(CUBE_COLLECT, UP), NONE, new Pose2d(STOW, REV), NORMAL_SPEED),
             WristPosition.STOW);
 
+    public static final ArmMove CUBE_COLLECT_TO_STOW_FAST = new ArmMove("Cube Collect Stow Fast",
+            new ArmTrajectory(new Pose2d(CUBE_COLLECT, UP), NONE, new Pose2d(STOW, REV), FAST_SPEED),
+            WristPosition.STOW);
+
     public static final ArmMove CONE_FEEDER_COLLECT_TO_STOW = new ArmMove("Feeder Collect Stow",
             new ArmTrajectory(CONE_FEEDER_COLLECT, STOW, NORMAL_SPEED),
             WristPosition.STOW);
@@ -215,4 +231,11 @@ public class ArmMovements {
             new ArmTrajectory(new Pose2d(HIGH_POLE, REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
+    public static final ArmMove HIGH_POLE_TO_CUBE_COLLECT = new ArmMove("High-Pole Cube Collect Fast",
+            new ArmTrajectory(new Pose2d(HIGH_POLE, REV), NONE, new Pose2d(CUBE_COLLECT, DOWN), NORMAL_SPEED),
+            WristPosition.CUBE_COLLECT);
+
+    public static final ArmMove CUBE_COLLECT_TO_HIGH_POLE_FAST = new ArmMove("Cube Collect High-Pole Fast",
+            new ArmTrajectory(new Pose2d(CUBE_COLLECT, UP), NONE, new Pose2d(HIGH_POLE, FWD), FAST_SPEED),
+            WristPosition.HIGH_POLE_PLACE);
 }
