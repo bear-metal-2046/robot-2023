@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.DebugChartData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +35,8 @@ public class TrajectoryCommand extends CommandBase {
     }
     private final Trajectory trajectory;
 
-    private final ChartData velData = new ChartData("Path Motion", "Time (sec)", "Velocity",
-            new String[]{"expected vel", "actual vel"});
-    private final ChartData hdgData = new ChartData("Path Motion", "Time (sec)", "Angle",
-            new String[]{"expected hdg", "actual hgd"});
+    private ChartData velData;
+    private ChartData hdgData;
     private final List<Pose2d> actualTrajectory = new ArrayList<>();
 
     private final Timer timer = new Timer();
@@ -136,6 +135,13 @@ public class TrajectoryCommand extends CommandBase {
         this.timeout = timeout;
 
         addRequirements(Chassis.getInstance());
+
+        if (DebugChartData.isEnabled()) {
+            velData = new ChartData("Path Motion", "Time (sec)", "Velocity",
+                    new String[]{"expected vel", "actual vel"});
+            hdgData = new ChartData("Path Motion", "Time (sec)", "Angle",
+                    new String[]{"expected hdg", "actual hgd"});
+        }
     }
 
     private static HolonomicDriveController createController() {
@@ -170,8 +176,10 @@ public class TrajectoryCommand extends CommandBase {
         headingSupplier.initialize();
         super.initialize();
         timer.restart();
-        velData.clear();
-        hdgData.clear();
+        if (DebugChartData.isEnabled()) {
+            velData.clear();
+            hdgData.clear();
+        }
         actualTrajectory.clear();
         actualTrajectory.add(chassis.getPose());
 
@@ -194,15 +202,16 @@ public class TrajectoryCommand extends CommandBase {
 
         chassis.drive(targetChassisSpeeds, false);
 
-        velData.addData(new double[]{time,
-                desiredPose.velocityMetersPerSecond,
-                Chassis.getInstance().getVelocity()
-        });
-        hdgData.addData(new double[]{time,
-                desiredPose.poseMeters.getRotation().getDegrees(),
-                Chassis.getInstance().getPose().getRotation().getDegrees(),
-        });
-
+        if (DebugChartData.isEnabled()) {
+            velData.addData(new double[]{time,
+                    desiredPose.velocityMetersPerSecond,
+                    Chassis.getInstance().getVelocity()
+            });
+            hdgData.addData(new double[]{time,
+                    desiredPose.poseMeters.getRotation().getDegrees(),
+                    Chassis.getInstance().getPose().getRotation().getDegrees(),
+            });
+        }
 
         // update actual path
         actualTrajectory.add(chassis.getPose());
@@ -222,8 +231,10 @@ public class TrajectoryCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         super.end(interrupted);
-        SmartDashboard.putRaw("Vel", velData.serialize());
-        SmartDashboard.putRaw("Hdg", hdgData.serialize());
+        if (DebugChartData.isEnabled()) {
+            SmartDashboard.putRaw("Vel", velData.serialize());
+            SmartDashboard.putRaw("Hdg", hdgData.serialize());
+        }
         chassis.updateActualTrajectory(actualTrajectory);
         chassis.drive(new ChassisSpeeds());
         timer.stop();

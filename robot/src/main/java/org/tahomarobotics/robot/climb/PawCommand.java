@@ -29,6 +29,7 @@ import org.tahomarobotics.robot.motion.MotionProfile;
 import org.tahomarobotics.robot.motion.MotionState;
 import org.tahomarobotics.robot.motion.SCurveMotionProfile;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.DebugChartData;
 
 public class PawCommand extends CommandBase {
     private static final Logger logger = LoggerFactory.getLogger(PawCommand.class);
@@ -43,22 +44,24 @@ public class PawCommand extends CommandBase {
     private boolean failedSetup = false;
     private double commandEndTime;
     private final double commandTimeOut = 0.5;
-    private final ChartData velocityData;
-    private final ChartData angleData;
+    private ChartData velocityData;
+    private ChartData angleData;
 
     public PawCommand(Paw paw, double desiredPos, double maxVelocity) {
         this.paw = paw;
         this.desiredPos = desiredPos;
         this.maxVelocity = maxVelocity;
 
-        velocityData = new ChartData(paw.getName() + " Velocity", "Time", "Velocity", new String[]{
-                "Expected Velocity",
-                "Actual Velocity"
-        });
-        angleData = new ChartData(paw.getName() + " Angle", "Time", "Degrees", new String[]{
-                "Expected Angle",
-                "Actual Angle"
-        });
+        if (DebugChartData.isEnabled()) {
+            velocityData = new ChartData(paw.getName() + " Velocity", "Time", "Velocity", new String[]{
+                    "Expected Velocity",
+                    "Actual Velocity"
+            });
+            angleData = new ChartData(paw.getName() + " Angle", "Time", "Degrees", new String[]{
+                    "Expected Angle",
+                    "Actual Angle"
+            });
+        }
     }
 
     @Override
@@ -67,8 +70,10 @@ public class PawCommand extends CommandBase {
         timer = new Timer();
         timer.start();
 
-        velocityData.clear();
-        angleData.clear();
+        if (DebugChartData.isEnabled()) {
+            velocityData.clear();
+            angleData.clear();
+        }
 
         double maxAcceleration = maxVelocity / accelFactor;
         double maxJerk = maxAcceleration / jerkFactor;
@@ -88,20 +93,22 @@ public class PawCommand extends CommandBase {
         motionProfile.getSetpoint(time, motionState);
         paw.setGoal(motionState);
 
-        //Chart data stuff
-        double[] velocities = {time,
-                motionState.velocity,
-                paw.getVelocity()
-        };
+        if (DebugChartData.isEnabled()) {
+            //Chart data stuff
+            double[] velocities = {time,
+                    motionState.velocity,
+                    paw.getVelocity()
+            };
 
-        velocityData.addData(velocities);
+            velocityData.addData(velocities);
 
-        double[] angles = {time,
-                Units.radiansToDegrees(motionState.position),
-                Units.radiansToDegrees(paw.getPos())
-        };
+            double[] angles = {time,
+                    Units.radiansToDegrees(motionState.position),
+                    Units.radiansToDegrees(paw.getPos())
+            };
 
-        angleData.addData(angles);
+            angleData.addData(angles);
+        }
     }
 
     @Override
@@ -112,8 +119,10 @@ public class PawCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        SmartDashboard.putRaw("Paw Velocities", velocityData.serialize());
-        SmartDashboard.putRaw("Paw Degrees", angleData.serialize());
+        if (DebugChartData.isEnabled()) {
+            SmartDashboard.putRaw("Paw Velocities", velocityData.serialize());
+            SmartDashboard.putRaw("Paw Degrees", angleData.serialize());
+        }
         logger.info(paw.getName() + " command to position "+ desiredPos +" complete");
     }
 }

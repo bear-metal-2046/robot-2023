@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.DebugChartData;
 
 public class ArmMoveCommand extends CommandBase {
 
@@ -34,13 +35,9 @@ public class ArmMoveCommand extends CommandBase {
 
     Timer timer = new Timer();
 
-    ChartData chartData = new ChartData("Electrical", "Time", "Voltage/Current",
-            new String[] { "Shoulder Voltage", "Elbow Voltage", "Shoulder Current", "Elbow Current"});
-    ChartData angleChart = new ChartData("Angles", "Time", "Degrees",
-            new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
-
-    ChartData angluarVelocityChart = new ChartData("Angular Velocity", "Time", "deg/sec",
-            new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
+    private ChartData chartData;
+    private ChartData angleChart;
+    private ChartData angluarVelocityChart;
 
     private final ArmSubsystemIF arm = Arm.getInstance();
     private final ArmTrajectory trajectory;
@@ -52,15 +49,26 @@ public class ArmMoveCommand extends CommandBase {
             canceled = true;
         }
         addRequirements(arm);
+
+        if (DebugChartData.isEnabled()) {
+            chartData = new ChartData("Electrical", "Time", "Voltage/Current",
+                    new String[] { "Shoulder Voltage", "Elbow Voltage", "Shoulder Current", "Elbow Current"});
+            angleChart = new ChartData("Angles", "Time", "Degrees",
+                    new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
+            angluarVelocityChart = new ChartData("Angular Velocity", "Time", "deg/sec",
+                    new String[] { "Expected Shoulder", "Expected Elbow", "Actual Shoulder", "Actual Elbow"});
+        }
     }
 
     @Override
     public void initialize() {
-        timer.reset();
-        timer.start();
-        chartData.clear();
-        angleChart.clear();
-        angluarVelocityChart.clear();
+        timer.restart();
+
+        if (DebugChartData.isEnabled()) {
+            chartData.clear();
+            angleChart.clear();
+            angluarVelocityChart.clear();
+        }
     }
 
     @Override
@@ -73,28 +81,31 @@ public class ArmMoveCommand extends CommandBase {
         ArmState desiredState = trajectory.sample(time);
         arm.setArmState(desiredState);
 
-        var armState = arm.getCurrentArmState();
-        var elec = arm.getArmElectricalInfo();
+        if (DebugChartData.isEnabled()) {
 
-        double[] data = {timer.get(), elec.shoulderVoltage(), elec.elbowVoltage(), elec.shoulderCurrent(), elec.elbowCurrent()};
-        chartData.addData(data);
+            var armState = arm.getCurrentArmState();
+            var elec = arm.getArmElectricalInfo();
 
-        double[] speedData = {timer.get(),
-                Units.radiansToDegrees(desiredState.shoulder.velocity()),
-                Units.radiansToDegrees(desiredState.elbow.velocity()),
-                Units.radiansToDegrees(armState.shoulder.velocity()),
-                Units.radiansToDegrees(armState.elbow.velocity())};
+            double[] data = {timer.get(), elec.shoulderVoltage(), elec.elbowVoltage(), elec.shoulderCurrent(), elec.elbowCurrent()};
+            chartData.addData(data);
 
-        angluarVelocityChart.addData(speedData);
+            double[] speedData = {timer.get(),
+                    Units.radiansToDegrees(desiredState.shoulder.velocity()),
+                    Units.radiansToDegrees(desiredState.elbow.velocity()),
+                    Units.radiansToDegrees(armState.shoulder.velocity()),
+                    Units.radiansToDegrees(armState.elbow.velocity())};
 
-        // expected arm position vs real position
-        double[] angleData = {timer.get(),
-                Units.radiansToDegrees(desiredState.shoulder.position()),
-                Units.radiansToDegrees(desiredState.elbow.position()),
-                Units.radiansToDegrees(armState.shoulder.position()),
-                Units.radiansToDegrees(armState.elbow.position())};
+            angluarVelocityChart.addData(speedData);
 
-        angleChart.addData(angleData);
+            // expected arm position vs real position
+            double[] angleData = {timer.get(),
+                    Units.radiansToDegrees(desiredState.shoulder.position()),
+                    Units.radiansToDegrees(desiredState.elbow.position()),
+                    Units.radiansToDegrees(armState.shoulder.position()),
+                    Units.radiansToDegrees(armState.elbow.position())};
+
+            angleChart.addData(angleData);
+        }
     }
 
     @Override
@@ -102,9 +113,13 @@ public class ArmMoveCommand extends CommandBase {
         if (canceled) return;
         arm.setArmState(trajectory.getFinalState());
         timer.stop();
-        SmartDashboard.putRaw("Arm Chart", chartData.serialize());
-        SmartDashboard.putRaw("Velocity Chart", angluarVelocityChart.serialize());
-        SmartDashboard.putRaw("Angle Chart", angleChart.serialize());
+
+        if (DebugChartData.isEnabled()) {
+            SmartDashboard.putRaw("Arm Chart", chartData.serialize());
+            SmartDashboard.putRaw("Velocity Chart", angluarVelocityChart.serialize());
+            SmartDashboard.putRaw("Angle Chart", angleChart.serialize());
+        }
+
         logger.info("ArmMove [" + getName() + "] complete");
     }
 

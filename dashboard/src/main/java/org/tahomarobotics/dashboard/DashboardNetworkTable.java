@@ -21,6 +21,7 @@ package org.tahomarobotics.dashboard;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.openfx.Dashboard;
 
 /**
@@ -47,6 +48,10 @@ public enum DashboardNetworkTable {
         this.host = host;
         netTable.stopClient();
         netTable.startClient(host);
+
+        netTable.getTable("SmartDashboard")
+                .getEntry("Bear Scope Enabled")
+                .setBoolean(true);
     }
 
     public NetworkTable getSmartDashboard() {

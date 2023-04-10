@@ -2,6 +2,7 @@ package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.DebugChartData;
 import org.tahomarobotics.robot.util.SystemLogger;
 
 public class Main {
@@ -24,7 +25,9 @@ public class Main {
 
         try {
 
-            initializeSerializeWorkaround();
+            if (DebugChartData.isEnabled()) {
+                initializeSerializeWorkaround();
+            }
 
             RobotBase.startRobot(() -> {
                 try {

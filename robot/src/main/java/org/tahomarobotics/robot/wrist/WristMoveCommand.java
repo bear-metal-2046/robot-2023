@@ -29,6 +29,7 @@ import org.tahomarobotics.robot.motion.MotionProfile;
 import org.tahomarobotics.robot.motion.MotionState;
 import org.tahomarobotics.robot.motion.SCurveMotionProfile;
 import org.tahomarobotics.robot.util.ChartData;
+import org.tahomarobotics.robot.util.DebugChartData;
 
 
 public class WristMoveCommand extends CommandBase {
@@ -41,22 +42,24 @@ public class WristMoveCommand extends CommandBase {
     private final double time;
     private final MotionState motionState = new MotionState();
 
-    private final ChartData velocityData;
-    private final ChartData angleData;
+    private ChartData velocityData;
+    private ChartData angleData;
     public WristMoveCommand(WristPosition position, double time) {
         this.angle = position.angle;
         this.time = time;
         timer = new Timer();
         addRequirements(wrist);
 
-        velocityData = new ChartData(" Velocity", "Time", "Velocity", new String[]{
-                "Expected Velocity",
-                "Actual Velocity"
-        });
-        angleData = new ChartData(" Angle", "Time", "Degrees", new String[]{
-                "Expected Angle",
-                "Actual Angle"
-        });
+        if (DebugChartData.isEnabled()) {
+            velocityData = new ChartData(" Velocity", "Time", "Velocity", new String[]{
+                    "Expected Velocity",
+                    "Actual Velocity"
+            });
+            angleData = new ChartData(" Angle", "Time", "Degrees", new String[]{
+                    "Expected Angle",
+                    "Actual Angle"
+            });
+        }
     }
 
     private SCurveMotionProfile generateMotion(double startTime, double startAngle, double endAngle, double time) {
@@ -80,8 +83,10 @@ public class WristMoveCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        velocityData.clear();
-        angleData.clear();
+        if (DebugChartData.isEnabled()) {
+            velocityData.clear();
+            angleData.clear();
+        }
         timer.restart();
         motionProf = generateMotion(timer.get(), wrist.getPosition(), angle, time);
     }
@@ -94,19 +99,21 @@ public class WristMoveCommand extends CommandBase {
             wrist.setPosition(motionState.position);
         }
 
-        double[] velData = {currentTime,
-            motionState.velocity,
-            wrist.getVelocity()
-        };
+        if (DebugChartData.isEnabled()) {
+            double[] velData = {currentTime,
+                    motionState.velocity,
+                    wrist.getVelocity()
+            };
 
-        velocityData.addData(velData);
+            velocityData.addData(velData);
 
-        double[] posData = {currentTime,
-            Units.radiansToDegrees(motionState.position),
-            Units.radiansToDegrees(wrist.getPosition())
-        };
+            double[] posData = {currentTime,
+                    Units.radiansToDegrees(motionState.position),
+                    Units.radiansToDegrees(wrist.getPosition())
+            };
 
-        angleData.addData(posData);
+            angleData.addData(posData);
+        }
     }
 
     @Override
@@ -115,8 +122,11 @@ public class WristMoveCommand extends CommandBase {
             wrist.setPosition(motionProf.getEndPosition());
         }
         timer.stop();
-        SmartDashboard.putRaw("Wrist Velocity", velocityData.serialize());
-        SmartDashboard.putRaw("Wrist Degrees", angleData.serialize());
+
+        if (DebugChartData.isEnabled()) {
+            SmartDashboard.putRaw("Wrist Velocity", velocityData.serialize());
+            SmartDashboard.putRaw("Wrist Degrees", angleData.serialize());
+        }
     }
 
     @Override
