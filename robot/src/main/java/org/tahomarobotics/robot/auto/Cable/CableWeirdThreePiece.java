@@ -22,37 +22,37 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 import java.util.List;
 
 public class CableWeirdThreePiece extends AutonomousBase {
-    // Poses
-    private static final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
-
-    private static final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 38, 0)
-            .withYFudgeInches(-5, -3).withXFudgeInches(6,0);
-
-    private static final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
-            .withYFudgeInches(6, 6).withXFudgeInches(0, -20);
-
-    private static final FudgeablePose PRE_BUMP = FudgeablePose.newWithInches(190, 26, Math.PI).withXFudgeInches(8,0);
-
-    private static final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
-            .withYFudgeInches(-12, 0);
-
-
-    // Midpoints
-    private static final FudgeableTranslation SECOND_COLLECT_MID = FudgeableTranslation.newWithInches(220, 40);
-
-    // Headings
-    private static final Rotation2d SHOOT_HEADING_1 = new Rotation2d(Math.PI);
-    private static final Rotation2d SHOOT_HEADING_2 = new Rotation2d(Math.PI * 0.95);
-    private static final Rotation2d COLLECT_HEADING = new Rotation2d(0);
-    private static final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Math.PI / 6);
-
-    // Config(s)
-    private static final TrajectoryConfig CONFIG = createConfig(4, 2);
-    private static final TrajectoryConfig NOT_AS_FAST_CONFIG = createConfig(4, 3);
-    private static final TrajectoryConfig FAST_CONFIG = createConfig(5, 4.5);
-
     public CableWeirdThreePiece(DriverStation.Alliance alliance) {
-        super(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), SHOOT_HEADING_1));
+        // Poses
+        final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
+
+        final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 38, 0)
+                .withYFudgeInches(-5, -3).withXFudgeInches(6,0);
+
+        final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
+                .withYFudgeInches(6, 6).withXFudgeInches(0, -20);
+
+        final FudgeablePose PRE_BUMP = FudgeablePose.newWithInches(190, 26, Math.PI).withXFudgeInches(8,0);
+
+        final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
+                .withYFudgeInches(-12, 0);
+
+
+        // Midpoints
+        final FudgeableTranslation SECOND_COLLECT_MID = FudgeableTranslation.newWithInches(220, 40);
+
+        // Headings
+        final Rotation2d SHOOT_HEADING_1 = new Rotation2d(Math.PI);
+        final Rotation2d SHOOT_HEADING_2 = new Rotation2d(Math.PI * 0.95);
+        final Rotation2d COLLECT_HEADING = new Rotation2d(0);
+        final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Math.PI / 6);
+
+        // Config(s)
+        final TrajectoryConfig CONFIG = createConfig(4, 2);
+        final TrajectoryConfig FAST_CONFIG = createConfig(5, 4.5);
+
+        /////////////////////////
+        initialize(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), SHOOT_HEADING_1));
 
         Trajectory placeToCollect = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
         Trajectory collectToShoot = createTrajectory(FIRST_COLLECT.getMirrored(), PRE_BUMP, FAST_CONFIG);

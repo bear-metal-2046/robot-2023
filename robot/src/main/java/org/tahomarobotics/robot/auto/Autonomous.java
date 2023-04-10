@@ -1,5 +1,6 @@
 package org.tahomarobotics.robot.auto;
 
+import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.networktables.NetworkTableEvent;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringSubscriber;
@@ -24,8 +25,22 @@ import org.tahomarobotics.robot.auto.Mid.MidEngage;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class Autonomous extends SubsystemBase implements SubsystemIF {
+    static class AutonomousOption {
+        String name;
+        Function<DriverStation.Alliance, Command> supplier;
+
+        public AutonomousOption(
+                String name,
+                Function<DriverStation.Alliance, Command> supplier
+        ) {
+            this.name = name;
+            this.supplier = supplier;
+        }
+    }
+
     /** Initialize this classes logger. */
     private static final Logger logger = LoggerFactory.getLogger(Autonomous.class);
 
@@ -36,9 +51,8 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         return INSTANCE;
     }
 
-    private final Map<String, Command> autoCommands = new HashMap<>();
-    private final SendableChooser<Command> autoCommandChooser = new SendableChooser<>();
-    private final Command defaultCommand = new NoOperation(DriverStation.Alliance.Blue);
+    private final Map<String, AutonomousOption> autoCommands = new HashMap<>();
+    private final SendableChooser<AutonomousOption> autoCommandChooser = new SendableChooser<>();
     private Command autonomousCommand;
     private AutoShuffleboard shuffleboard;
 
@@ -47,41 +61,18 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     public Autonomous initialize(){
         shuffleboard = new AutoShuffleboard(autoCommandChooser);
 
-        addAuto(defaultCommand, new NoOperation(DriverStation.Alliance.Red));
-//        addAuto(new OdometryStraightTest(), new OdometryStraightTest());
+        addAuto("No Operation", NoOperation::new);
 
-//        addAuto(new LoadingTaxi(DriverStation.Alliance.Blue),
-//                new LoadingTaxi(DriverStation.Alliance.Red));
+        addAuto("Mid Engage", MidEngage::new);
 
-        addAuto(new MidEngage(DriverStation.Alliance.Blue),
-                new MidEngage(DriverStation.Alliance.Red));
+        addAuto("Loading Two Piece", LoadingTwoPiece::new);
+        addAuto("Loading Two Piece Engage", LoadingTwoPieceEngage::new);
+        addAuto("Loading Two Piece Collect", LoadingTwoPieceCollect::new);
+        addAuto("Loading Three Piece", LoadingThreePiece::new);
 
-        addAuto(new LoadingTwoPiece(DriverStation.Alliance.Blue),
-                new LoadingTwoPiece(DriverStation.Alliance.Red));
-
-        addAuto(new LoadingTwoPieceEngage(DriverStation.Alliance.Blue),
-                new LoadingTwoPieceEngage(DriverStation.Alliance.Red));
-
-        addAuto(new LoadingTwoPieceCollect(DriverStation.Alliance.Blue),
-                new LoadingTwoPieceCollect(DriverStation.Alliance.Red));
-
-        addAuto(new LoadingThreePiece(DriverStation.Alliance.Blue),
-                new LoadingThreePiece(DriverStation.Alliance.Red));
-
-//        addAuto(new LoadingCollect(DriverStation.Alliance.Blue),
-//                new LoadingCollect(DriverStation.Alliance.Red));
-
-        addAuto(new CableTwoPiece(DriverStation.Alliance.Blue),
-                new CableTwoPiece(DriverStation.Alliance.Red));
-
-        addAuto(new CableTwoPieceEngage(DriverStation.Alliance.Blue),
-                new CableTwoPieceEngage(DriverStation.Alliance.Red));
-
-//        addAuto(new CableTwoPieceCollect(DriverStation.Alliance.Blue),
-//                new CableTwoPieceCollect(DriverStation.Alliance.Red));
-
-        addAuto(new CableWeirdThreePiece(DriverStation.Alliance.Blue),
-                new CableWeirdThreePiece(DriverStation.Alliance.Red));
+        addAuto("Cable Two Piece", CableTwoPiece::new);
+        addAuto("Cable Two Piece Engage", CableTwoPieceEngage::new);
+        addAuto("Cable Three Piece", CableWeirdThreePiece::new);
 
         selectionAutoChange(autoCommandChooser.getSelected());
 
@@ -89,6 +80,11 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         StringSubscriber subscriber = netInstance.getTable("Shuffleboard").getSubTable("Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
         netInstance.addListener(subscriber, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
             selectionAutoChange(autoCommands.get((String) e.valueData.value.getValue()));
+        });
+
+        BooleanSubscriber allianceChange = netInstance.getTable("FMSInfo").getBooleanTopic("IsRedAlliance").subscribe(true);
+        netInstance.addListener(allianceChange, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
+            selectionAutoChange(autoCommandChooser.getSelected());
         });
 
         return this;
@@ -99,37 +95,30 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         shuffleboard.update();
     }
 
-    private Map<Command, Command> blueToRed = new HashMap<>();
+    private void addAuto(String name, Function<DriverStation.Alliance, Command> commandSup) {
+        AutonomousOption opt = new AutonomousOption(name, commandSup);
+        autoCommands.put(name, opt);
 
-    private void addAuto(Command command, Command red) {
-        blueToRed.put(command, red);
-        autoCommands.put(command.getName(), command);
-
-        if (command == defaultCommand) {
-            autoCommandChooser.setDefaultOption(command.getName(), command);
+        if (name.equals("No Operation")) {
+            autoCommandChooser.setDefaultOption(name, opt);
         } else {
-            autoCommandChooser.addOption(command.getName(), command);
+            autoCommandChooser.addOption(name, opt);
         }
     }
 
     /**
      * Listener for "AutonomousChooser/selected" change.
      */
-    private void selectionAutoChange(Command command) {
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-            command = blueToRed.get(command);
-        }
+    private void selectionAutoChange(AutonomousOption opt) {
+        if (opt == null) return;
+        Command command = opt.supplier.apply(DriverStation.getAlliance());
         if (command instanceof AutonomousCommandIF) {
             ((AutonomousCommandIF) command).onSelection();
         }
     }
 
     private Command getSelectedCommand() {
-        var command = autoCommandChooser.getSelected();
-        if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
-            command = blueToRed.get(command);
-        }
-        return command;
+        return autoCommandChooser.getSelected().supplier.apply(DriverStation.getAlliance());
     }
 
     @Override

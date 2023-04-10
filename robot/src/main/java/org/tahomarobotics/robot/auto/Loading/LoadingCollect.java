@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.AutonomousBase;
 import org.tahomarobotics.robot.auto.TrajectoryCommand;
@@ -22,25 +21,22 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 import java.util.List;
 
 public class LoadingCollect extends AutonomousBase {
-
-    private static final Pose2d FIRST_PLACE =
-            new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325), new Rotation2d(0));
-    private static final Translation2d MID_PT =
-            new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
-    private static final Pose2d FIRST_COLLECT =
-            new Pose2d(Units.inchesToMeters(69.6 + 190.9), Units.inchesToMeters(196.325), new Rotation2d(0));
-    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(-179));
-    private static final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(0));
-
-    private static final TrajectoryConfig CONFIG =
-            new TrajectoryConfig(2.5, 3)
-            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
-
-
     public LoadingCollect(DriverStation.Alliance alliance) {
+        final Pose2d FIRST_PLACE =
+                new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(196.325), new Rotation2d(0));
+        final Translation2d MID_PT =
+                new Translation2d(Units.inchesToMeters(69.6 + 84.0), Units.inchesToMeters(196.325 - 8.0));
+        final Pose2d FIRST_COLLECT =
+                new Pose2d(Units.inchesToMeters(69.6 + 190.9), Units.inchesToMeters(196.325), new Rotation2d(0));
+        final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(-179));
+        final Rotation2d COLLECT_HEADING = new Rotation2d(Units.degreesToRadians(0));
 
-        // alliance converted start pose
-        super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+        final TrajectoryConfig CONFIG =
+                new TrajectoryConfig(2.5, 3)
+                        .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+
+        /////////////////////////
+        initialize(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
         // alliance converted trajectories
         Trajectory collectTrajectory = createTrajectory(FIRST_PLACE, List.of(MID_PT), FIRST_COLLECT, CONFIG);

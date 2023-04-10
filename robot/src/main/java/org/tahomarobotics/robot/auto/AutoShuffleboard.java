@@ -7,11 +7,9 @@ import edu.wpi.first.wpilibj.shuffleboard.ComplexWidget;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj2.command.Command;
 import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class AutoShuffleboard {
     ShuffleboardTab tab;
@@ -19,7 +17,7 @@ public class AutoShuffleboard {
     ComplexWidget fieldView;
     GenericEntry poseX, poseY, poseRot;
 
-    public AutoShuffleboard(SendableChooser<Command> chooser) {
+    public AutoShuffleboard(SendableChooser<Autonomous.AutonomousOption> chooser) {
 
         tab = Shuffleboard.getTab("Auto");
 

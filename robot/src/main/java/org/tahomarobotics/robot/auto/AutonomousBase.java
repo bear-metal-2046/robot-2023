@@ -20,15 +20,14 @@ public abstract class AutonomousBase extends SequentialCommandGroup implements A
 
     protected final List<Trajectory> trajectories = new ArrayList<>();
 
-    protected final Pose2d startPose;
+    protected Pose2d startPose;
 
-    private final DriverStation.Alliance alliance;
+    private DriverStation.Alliance alliance;
 
-    public AutonomousBase(DriverStation.Alliance alliance, Pose2d blueStartPose) {
+    public void initialize(DriverStation.Alliance alliance, Pose2d blueStartPose) {
         this.alliance = alliance;
         startPose = createPose(blueStartPose);
     }
-
     @Override
     public List<Trajectory> getTrajectories() {
         return trajectories;

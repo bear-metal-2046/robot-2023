@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.*;
 import org.tahomarobotics.robot.chassis.Chassis;
@@ -19,28 +18,30 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 import java.util.List;
 
 public class CableTwoPieceEngage extends AutonomousBase {
-    private static final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
-
-    private static final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 36, 0)
-            .withYFudgeInches(-7, 0);
-
-    private static final FudgeablePose SECOND_PLACE = FudgeablePose.newWithInches(63.6, 38.029, Math.PI)
-            .withYFudgeInches(0, 10);
-
-    private static final FudgeablePose BUMP_GOING_REV = FudgeablePose.newWithInches(133.10, 24.029, Math.PI);
-
-    private static final FudgeableTranslation ENGAGE_MID = FudgeableTranslation.newWithInches(90, 80);
-
-    private static final FudgeablePose ENGAGE = FudgeablePose.newWithInches(166.75, 89, 0);
-
-    private static final Rotation2d PLACE_HEADING = new Rotation2d(Math.PI);
-    private static final Rotation2d COLLECT_HEADING = new Rotation2d(0);
-
-    private static final TrajectoryConfig CONFIG = createConfig(3, 1.5);
-    private static final TrajectoryConfig VROOM__CONFIG = createConfig(4, 4);
-
     public CableTwoPieceEngage(DriverStation.Alliance alliance) {
-        super(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), PLACE_HEADING));
+        // Points
+        final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
+
+        final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 36, 0)
+                .withYFudgeInches(-7, 0);
+
+        final FudgeablePose SECOND_PLACE = FudgeablePose.newWithInches(63.6, 38.029, Math.PI)
+                .withYFudgeInches(0, 10);
+
+        final FudgeablePose BUMP_GOING_REV = FudgeablePose.newWithInches(133.10, 24.029, Math.PI);
+
+        final FudgeableTranslation ENGAGE_MID = FudgeableTranslation.newWithInches(90, 80);
+
+        final FudgeablePose ENGAGE = FudgeablePose.newWithInches(166.75, 89, 0);
+
+        final Rotation2d PLACE_HEADING = new Rotation2d(Math.PI);
+        final Rotation2d COLLECT_HEADING = new Rotation2d(0);
+
+        final TrajectoryConfig CONFIG = createConfig(3, 1.5);
+        final TrajectoryConfig VROOM__CONFIG = createConfig(4, 4);
+
+        ////////////////////////////////////
+        initialize(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), PLACE_HEADING));
 
         Trajectory placeToCollect = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
         Trajectory collectToPlace = createTrajectory(FIRST_COLLECT.getMirrored(), List.of(BUMP_GOING_REV.getTranslation()), SECOND_PLACE, CONFIG);

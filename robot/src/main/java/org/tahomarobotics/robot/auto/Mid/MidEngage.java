@@ -8,7 +8,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.AutonomousBase;
 import org.tahomarobotics.robot.auto.BalancedCommand;
@@ -17,31 +16,28 @@ import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 public class MidEngage extends AutonomousBase {
-
-    private static final Pose2d FIRST_PLACE =
-            new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(130.325), new Rotation2d(0));
-
-    private static final Pose2d ENGAGE =
-            new Pose2d(Units.inchesToMeters(69.6 + 84.1), Units.inchesToMeters(130.325), new Rotation2d(0));
-
-    private static final Pose2d TAXI =
-            new Pose2d(Units.inchesToMeters(69.6 + 172.9), Units.inchesToMeters(130.325), new Rotation2d(0));
-
-    private static final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180d));
-
-    private static final TrajectoryConfig FWD_CONFIG =
-            new TrajectoryConfig(1, 2)
-            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
-
-    private static final TrajectoryConfig REV_CONFIG =
-            new TrajectoryConfig(1, 2)
-            .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
-
-
     public MidEngage(DriverStation.Alliance alliance){
+        final Pose2d FIRST_PLACE =
+                new Pose2d(Units.inchesToMeters(69.6), Units.inchesToMeters(130.325), new Rotation2d(0));
 
-        // alliance converted start pose
-        super(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
+        final Pose2d ENGAGE =
+                new Pose2d(Units.inchesToMeters(69.6 + 84.1), Units.inchesToMeters(130.325), new Rotation2d(0));
+
+        final Pose2d TAXI =
+                new Pose2d(Units.inchesToMeters(69.6 + 172.9), Units.inchesToMeters(130.325), new Rotation2d(0));
+
+        final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180d));
+
+        final TrajectoryConfig FWD_CONFIG =
+                new TrajectoryConfig(1, 2)
+                        .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
+
+        final TrajectoryConfig REV_CONFIG =
+                new TrajectoryConfig(1, 2)
+                        .setKinematics(Chassis.getInstance().getSwerveDriveKinematics()).setReversed(true);
+
+        ///////////////////////////
+        initialize(alliance, new Pose2d(FIRST_PLACE.getTranslation(), PLACE_HEADING));
 
         // alliance converted trajectories
         Trajectory place2Engage = createTrajectory(FIRST_PLACE, ENGAGE, FWD_CONFIG);

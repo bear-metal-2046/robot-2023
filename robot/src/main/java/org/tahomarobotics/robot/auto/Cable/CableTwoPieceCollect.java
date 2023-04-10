@@ -6,10 +6,15 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.*;
-import org.tahomarobotics.robot.arm.ArmMoveCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
-import org.tahomarobotics.robot.auto.*;
+import org.tahomarobotics.robot.auto.AutonomousBase;
+import org.tahomarobotics.robot.auto.FudgeablePose;
+import org.tahomarobotics.robot.auto.FudgeableTranslation;
+import org.tahomarobotics.robot.auto.TrajectoryCommand;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.IngestCommand;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
@@ -17,33 +22,34 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 import java.util.List;
 
 public class CableTwoPieceCollect extends AutonomousBase {
-    // Poses
-    private static final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
-
-    private static final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 36, 0)
-            .withYFudgeInches(0, 0);
-
-    private static final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
-            .withYFudgeInches(0, 0).withXFudgeInches(0, -20);
-
-    private static final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
-            .withYFudgeInches(0, 0);
-
-
-    // Midpoints
-    private static final FudgeableTranslation BUMP_GOING_REV = FudgeableTranslation.newWithInches(133.10, 24.029);
-    private static final FudgeableTranslation SECOND_COLLECT_MID = FudgeableTranslation.newWithInches(220, 40);
-
-    // Headings
-    private static final Rotation2d PLACE_HEADING = new Rotation2d(Math.PI);
-    private static final Rotation2d COLLECT_HEADING = new Rotation2d(0);
-    private static final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Math.PI / 4);
-
-    // Config(s)
-    private static final TrajectoryConfig CONFIG = createConfig(3, 2.5);
-
     public CableTwoPieceCollect(DriverStation.Alliance alliance) {
-        super(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), PLACE_HEADING));
+        // Poses
+        final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
+
+        final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 36, 0)
+                .withYFudgeInches(0, 0);
+
+        final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
+                .withYFudgeInches(0, 0).withXFudgeInches(0, -20);
+
+        final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
+                .withYFudgeInches(0, 0);
+
+
+        // Midpoints
+        final FudgeableTranslation BUMP_GOING_REV = FudgeableTranslation.newWithInches(133.10, 24.029);
+        final FudgeableTranslation SECOND_COLLECT_MID = FudgeableTranslation.newWithInches(220, 40);
+
+        // Headings
+        final Rotation2d PLACE_HEADING = new Rotation2d(Math.PI);
+        final Rotation2d COLLECT_HEADING = new Rotation2d(0);
+        final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Math.PI / 4);
+
+        // Config(s)
+        final TrajectoryConfig CONFIG = createConfig(3, 2.5);
+
+        ///////////////////////////
+        initialize(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), PLACE_HEADING));
 
         Trajectory placeToCollect = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
         Trajectory collectToPlace = createTrajectory(FIRST_COLLECT.getMirrored(), List.of(BUMP_GOING_REV), CUBE_PLACE, CONFIG);
