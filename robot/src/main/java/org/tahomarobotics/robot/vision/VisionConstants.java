@@ -6,13 +6,22 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 
 public class VisionConstants {
-    public static final Transform3d FRONT_CAM_OFFSET = new Transform3d(
-        new Translation3d(
-            Units.inchesToMeters(-3.514), Units.inchesToMeters(-9.638), Units.inchesToMeters(23.616)
-        ),
-        new Rotation3d(
-            0, 0, Units.degreesToRadians(-15)
-        )
+    public static final Transform3d LEFT_FRONT_CAM_OFFSET = new Transform3d(
+            new Translation3d(
+                    Units.inchesToMeters(-3.514), Units.inchesToMeters(9.638), Units.inchesToMeters(23.616)
+            ),
+            new Rotation3d(
+                    0, 0, Units.degreesToRadians(15)
+            )
+    );
+
+    public static final Transform3d RIGHT_FRONT_CAM_OFFSET = new Transform3d(
+            new Translation3d(
+                    Units.inchesToMeters(-3.514), Units.inchesToMeters(-9.638), Units.inchesToMeters(23.616)
+            ),
+            new Rotation3d(
+                    0, 0, Units.degreesToRadians(-15)
+            )
     );
 
     public static final Transform3d BACK_CAM_OFFSET = new Transform3d(

@@ -82,8 +82,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private final CalibrationData<Double[]> swerveCalibration;
 
-    private             Vision frontVision;
-    private  Vision backVision;
+    private Vision lFrontVision;
+    private Vision rFrontVision;
+    private Vision backVision;
 
     private double lastUpdateTime = getFPGATimestamp();
 
@@ -126,7 +127,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                 new MatBuilder<>(Nat.N3(), Nat.N1()).fill(0.1, 0.1, 0.01)
         );
 
-        frontVision = new Vision(this::visionCallback, Vision.PVCamera.FRONT);
+        lFrontVision = new Vision(this::visionCallback, Vision.PVCamera.LEFT_FRONT);
+        rFrontVision = new Vision(this::visionCallback, Vision.PVCamera.RIGHT_FRONT);
         backVision = new Vision(this::visionCallback, Vision.PVCamera.BACK);
     }
 

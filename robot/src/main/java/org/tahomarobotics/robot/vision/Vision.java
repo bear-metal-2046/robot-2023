@@ -34,7 +34,8 @@ public class Vision {
     }
 
     public enum PVCamera {
-        FRONT(VisionConstants.FRONT_CAM_OFFSET, "Front"),
+        LEFT_FRONT(VisionConstants.LEFT_FRONT_CAM_OFFSET, "Left Front"),
+        RIGHT_FRONT(VisionConstants.RIGHT_FRONT_CAM_OFFSET, "Right Front"),
         BACK(VisionConstants.BACK_CAM_OFFSET, "Back");
 
         public final Transform3d offset;
