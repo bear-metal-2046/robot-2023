@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,15 +78,24 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         selectionAutoChange(autoCommandChooser.getSelected());
 
         NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
-        StringSubscriber subscriber = netInstance.getTable("Shuffleboard").getSubTable("Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
-        netInstance.addListener(subscriber, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
-            selectionAutoChange(autoCommands.get((String) e.valueData.value.getValue()));
-        });
-
+        StringSubscriber subscriber = netInstance.getTable("Shuffleboard/Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
         BooleanSubscriber allianceChange = netInstance.getTable("FMSInfo").getBooleanTopic("IsRedAlliance").subscribe(true);
-        netInstance.addListener(allianceChange, EnumSet.of(NetworkTableEvent.Kind.kValueAll), e -> {
-            selectionAutoChange(autoCommandChooser.getSelected());
-        });
+
+        netInstance.addListener(
+                subscriber,
+                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
+                e -> new InstantCommand(
+                        () -> selectionAutoChange(autoCommands.get(e.valueData.value.getString()))
+                ).ignoringDisable(true).schedule()
+        );
+
+        netInstance.addListener(
+                allianceChange,
+                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
+                e -> new InstantCommand(() ->
+                        selectionAutoChange(autoCommandChooser.getSelected())
+                ).ignoringDisable(true).schedule()
+        );
 
         return this;
     }

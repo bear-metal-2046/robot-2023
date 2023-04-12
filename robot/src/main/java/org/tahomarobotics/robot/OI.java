@@ -200,7 +200,11 @@ public final class OI implements SubsystemIF {
     }
 
     private static final Executor rumbleExec = Executors.newFixedThreadPool(2,
-            r -> new Thread(r, "RumbleThread")
+            r -> {
+                Thread t = new Thread(r, "RumbleThread");
+                t.setDaemon(true);
+                return t;
+            }
     );
 
     private static final long RUMBLE_TIMEOUT_MS = 300;
