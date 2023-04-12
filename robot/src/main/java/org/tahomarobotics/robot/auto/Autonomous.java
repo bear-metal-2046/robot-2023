@@ -16,10 +16,7 @@ import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.Cable.CableTwoPiece;
 import org.tahomarobotics.robot.auto.Cable.CableTwoPieceEngage;
 import org.tahomarobotics.robot.auto.Cable.CableWeirdThreePiece;
-import org.tahomarobotics.robot.auto.Loading.LoadingThreePiece;
-import org.tahomarobotics.robot.auto.Loading.LoadingTwoPiece;
-import org.tahomarobotics.robot.auto.Loading.LoadingTwoPieceCollect;
-import org.tahomarobotics.robot.auto.Loading.LoadingTwoPieceEngage;
+import org.tahomarobotics.robot.auto.Loading.*;
 import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
 import java.util.EnumSet;
@@ -63,12 +60,15 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         addAuto("No Operation", NoOperation::new);
 
+        addAuto("Turning Test", TurningTest::new);
+
         addAuto("Mid Engage", MidEngage::new);
 
         addAuto("Loading Two Piece", LoadingTwoPiece::new);
         addAuto("Loading Two Piece Engage", LoadingTwoPieceEngage::new);
         addAuto("Loading Two Piece Collect", LoadingTwoPieceCollect::new);
         addAuto("Loading Three Piece", LoadingThreePiece::new);
+        addAuto("Loading No Turn 3", LoadingNoTurn3::new);
 
         addAuto("Cable Two Piece", CableTwoPiece::new);
         addAuto("Cable Two Piece Engage", CableTwoPieceEngage::new);

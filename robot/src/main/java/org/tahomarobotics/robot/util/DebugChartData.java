@@ -1,7 +1,6 @@
 package org.tahomarobotics.robot.util;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DebugChartData {
 
@@ -10,7 +9,7 @@ public class DebugChartData {
     private static boolean _isEnabled() {
         return NetworkTableInstance.getDefault().getTable("SmartDashboard")
                 .getEntry("Bear Scope Enabled")
-                .getBoolean(true);
+                .getBoolean(false);
     }
 
     private static final boolean enabled = _isEnabled();

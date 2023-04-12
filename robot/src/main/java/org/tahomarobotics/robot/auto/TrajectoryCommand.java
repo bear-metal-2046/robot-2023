@@ -20,8 +20,9 @@ import org.tahomarobotics.robot.util.ChartData;
 import org.tahomarobotics.robot.util.DebugChartData;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class TrajectoryCommand extends CommandBase {
 
@@ -29,10 +30,14 @@ public class TrajectoryCommand extends CommandBase {
 
     public enum TurnDirection {
         COUNTER_CLOCKWISE, CLOCKWISE;
+
         public TurnDirection reverseIfRed(DriverStation.Alliance alliance) {
             return alliance == DriverStation.Alliance.Red ? this == COUNTER_CLOCKWISE ? CLOCKWISE : COUNTER_CLOCKWISE : this;
         }
     }
+
+    public record MidRotation(double time, Rotation2d rotation) {}
+
     private final Trajectory trajectory;
 
     private ChartData velData;
@@ -48,10 +53,7 @@ public class TrajectoryCommand extends CommandBase {
 
     private final String name;
 
-    private static class HeadingSupplier implements Supplier<Rotation2d> {
-
-        private final Timer timer = new Timer();
-
+    private static class HeadingSupplier implements Function<Double, Rotation2d> {
         private Rotation2d startHeading = new Rotation2d();
 
         private final Rotation2d endHeading;
@@ -66,10 +68,10 @@ public class TrajectoryCommand extends CommandBase {
             this.turnStart = turnStart;
             this.dir = turnDirection == null ? Double.NaN : (turnDirection == TurnDirection.COUNTER_CLOCKWISE ? 1.0 : -1.0);
             this.endHeading = endHeading;
-            this.finalStart=finalStart;
+            this.finalStart = finalStart;
         }
+
         public void initialize() {
-            timer.restart();
             startHeading = Chassis.getInstance().getPose().getRotation();
             if (Double.isNaN(dir)) {
                 this.midAngle = endHeading;
@@ -81,14 +83,14 @@ public class TrajectoryCommand extends CommandBase {
                 this.midAngle = new Rotation2d(midAngle);
             }
         }
-        @Override
-        public Rotation2d get() {
 
+        @Override
+        public Rotation2d apply(Double time) {
             Rotation2d heading = startHeading;
 
             // wait for start timing
-            if (timer.hasElapsed(turnStart)) {
-                heading = timer.hasElapsed(finalStart) ? endHeading : midAngle;
+            if (time >= turnStart) {
+                heading = time >= finalStart ? endHeading : midAngle;
             }
 
             // return ending heading
@@ -96,7 +98,7 @@ public class TrajectoryCommand extends CommandBase {
         }
     }
 
-    private final HeadingSupplier headingSupplier;
+    private final Function<Double, Rotation2d> headingSupplier;
 
     private final double turnDuration;
     private final double timeout;
@@ -106,20 +108,57 @@ public class TrajectoryCommand extends CommandBase {
         this(name, trajectory, heading, 0d, 1d, null);
     }
 
+    public TrajectoryCommand(String name, Trajectory trajectory, List<MidRotation> rotations) {
+        this(name, trajectory, rotations, 0.5);
+    }
+
+    public TrajectoryCommand(String name, Trajectory trajectory, List<MidRotation> rotations, double timeout) {
+        var sortedRotations = rotations.stream()
+                .sorted(Comparator.comparing(MidRotation::time))
+                .map(p -> new MidRotation(p.time * trajectory.getTotalTimeSeconds(), p.rotation)).toList();
+
+        this.headingSupplier = new Function<>() {
+            private final List<MidRotation> midpoints = sortedRotations;
+
+            @Override
+            public Rotation2d apply(Double time) {
+                for (int i = midpoints.size() - 1; i >= 0; i--)
+                    if (midpoints.get(i).time() <= time) {
+                        var target = midpoints.get(i < midpoints.size() - 1 ? i + 1 : i);
+                        double turnDuration = target.time() - midpoints.get(i).time();
+                        if (turnDuration > 0)
+                            controller.getThetaController().setConstraints(createHeadingChangeConstraintsDos(turnDuration, midpoints.get(i).rotation, target.rotation));
+                        return target.rotation();
+                    }
+                return midpoints.get(0).rotation();
+            }
+        };
+
+        this.name = name;
+        this.trajectory = trajectory;
+        this.controller = createController();
+        this.heading = sortedRotations.get(sortedRotations.size()-1).rotation();
+        this.turnDuration = sortedRotations.get(sortedRotations.size()-1).time() - sortedRotations.get(0).time() * trajectory.getTotalTimeSeconds();
+        this.timeout = timeout;
+
+        addRequirements(Chassis.getInstance());
+    }
+
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd) {
         this(name, trajectory, heading, turnStart, turnEnd, null);
     }
 
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection) {
         this(name, trajectory,
-                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart + turnEnd) / 2 * trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
                 createController(), 0.5);
     }
+
     public TrajectoryCommand(String name, Trajectory trajectory, Rotation2d heading, double turnStart, double turnEnd, TurnDirection turnDirection, double timeout) {
         this(name, trajectory,
-                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart+turnEnd)/2*trajectory.getTotalTimeSeconds(), turnDirection),
+                new HeadingSupplier(heading, turnStart * trajectory.getTotalTimeSeconds(), (turnStart + turnEnd) / 2 * trajectory.getTotalTimeSeconds(), turnDirection),
                 heading,
                 (turnEnd - turnStart) * trajectory.getTotalTimeSeconds(),
                 createController(), timeout);
@@ -168,12 +207,23 @@ public class TrajectoryCommand extends CommandBase {
         return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
     }
 
+    /**
+     * Calculates the velocity and acceleration such that the heading change completes in 90% of the trajectory move.
+     */
+    private static TrapezoidProfile.Constraints createHeadingChangeConstraintsDos(double turnDuration, Rotation2d start, Rotation2d end) {
+        double tv = 0.5 * turnDuration;
+        double ta = 0.2 * turnDuration;
+        double maxVelocity = Math.abs(end.minus(start).getRadians()) / (tv + ta);
+        double maxAcceleration = maxVelocity / ta;
+        return new TrapezoidProfile.Constraints(maxVelocity, maxAcceleration);
+    }
 
 
     @Override
     public void initialize() {
         controller.getThetaController().reset(Chassis.getInstance().getPose().getRotation().getRadians());
-        headingSupplier.initialize();
+        if (headingSupplier instanceof HeadingSupplier supplier)
+            supplier.initialize();
         super.initialize();
         timer.restart();
         if (DebugChartData.isEnabled()) {
@@ -198,7 +248,7 @@ public class TrajectoryCommand extends CommandBase {
         Trajectory.State desiredPose = trajectory.sample(time);
 
         var targetChassisSpeeds =
-                controller.calculate(chassis.getPose(), desiredPose, headingSupplier.get());
+                controller.calculate(chassis.getPose(), desiredPose, headingSupplier.apply(time));
 
         chassis.drive(targetChassisSpeeds, false);
 

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -100,6 +101,10 @@ public abstract class AutonomousBase extends SequentialCommandGroup implements A
             angle = RED_ROTATION.minus(angle);
         }
         return angle;
+    }
+
+    protected List<TrajectoryCommand.MidRotation> createRotationPath(TrajectoryCommand.MidRotation... rotations) {
+        return Arrays.stream(rotations).map(r -> new TrajectoryCommand.MidRotation(r.time(), createRotation(r.rotation()))).toList();
     }
 
     protected Pose2d createPose(Pose2d pose) {
