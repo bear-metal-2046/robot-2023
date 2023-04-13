@@ -19,11 +19,11 @@
  */
 package org.tahomarobotics.robot.climb;
 
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.*;
 import org.tahomarobotics.robot.arm.ArmMoveCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
+import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.DriveForwardCommand;
 
 public class ClimbSequence extends SequentialCommandGroup {
@@ -43,9 +43,17 @@ public class ClimbSequence extends SequentialCommandGroup {
 
                         new SequentialCommandGroup(
                                 new WaitCommand(0.85),
-                                new ParallelCommandGroup(
-                                        new DriveForwardCommand(-1, 3.0),
-                                        new BeacherCommand(3.0, -0.5)
+                                new ProxyCommand(() -> {
+                                        double rotation = Chassis.getInstance().getPose().getRotation().getDegrees();
+                                        if (rotation > 180) {
+                                            rotation -= 360;
+                                        }
+                                        double multiplier = Math.signum(rotation);
+                                        return new ParallelCommandGroup(
+                                                new DriveForwardCommand(-1 * multiplier, 3.0),
+                                                new BeacherCommand(3.0, -0.75)
+                                        );
+                                }
                                 )
                         ),
                         new SequentialCommandGroup(
