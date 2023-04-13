@@ -22,27 +22,25 @@ import org.tahomarobotics.robot.grabber.ScoreCommand;
 
 import java.util.List;
 
-public class LoadingNoTurn3 extends AutonomousBase {
+public class Loading3Engage extends AutonomousBase {
 
-    public LoadingNoTurn3(DriverStation.Alliance alliance) {
+    public Loading3Engage(DriverStation.Alliance alliance) {
         //Place Points
         final FudgeablePose FIRST_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(69.6, 196.325, 0);
 
         final FudgeablePose SECOND_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(71.6, 196.325 - 24.0, 180)
                 .withYFudgeInches(0, 0);
         final FudgeablePose SECOND_PLACE_MIRRORED = SECOND_PLACE.getMirrored();
+        final FudgeablePose ENGAGE = FudgeablePose.newWithInchesAndDegreesForZach(69.6 + 40.0, 125.0, 180);
 
         //Mid-Translations
         final FudgeableTranslation FIRST_GOING_OUT = FudgeableTranslation.newWithInches(153.6, 186.325);
-        final FudgeableTranslation FIRST_GOING_AROUND = FudgeableTranslation.newWithInches(264, 220.6);
-        final FudgeableTranslation FIRST_GOING_AROUND_2 = FudgeableTranslation.newWithInches(294, 206);
-        final FudgeableTranslation FIRST_GOING_COLLECT = FudgeableTranslation.newWithInches(264, 180);
+        final FudgeableTranslation FIRST_GOING_AROUND = FudgeableTranslation.newWithInches(267, 220.6);
+        final FudgeableTranslation FIRST_GOING_AROUND_2 = FudgeableTranslation.newWithInches(297, 206);
+        final FudgeableTranslation FIRST_GOING_COLLECT = FudgeableTranslation.newWithInches(267, 180);
 
         final FudgeableTranslation SECOND_GOING_AROUND = FudgeableTranslation.newWithInches(276, 177);
         final FudgeableTranslation SECOND_GOING_COLLECT = FudgeableTranslation.newWithInches(271, 130);
-        final FudgeableTranslation SECOND_GOING_BACK = FudgeableTranslation.newWithInches(205, 177);
-        final FudgeableTranslation SECOND_GOING_BACK_2 = FudgeableTranslation.newWithInches(115, 177);
-
 
         final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
 
@@ -56,7 +54,7 @@ public class LoadingNoTurn3 extends AutonomousBase {
 
         // alliance converted trajectories
         Trajectory collectTrajectory1 = createTrajectory(FIRST_PLACE, List.of(FIRST_GOING_OUT, FIRST_GOING_AROUND, FIRST_GOING_AROUND_2, FIRST_GOING_COLLECT, FIRST_GOING_OUT), SECOND_PLACE, CONFIG_GOING);
-        Trajectory collectTrajectory2 = createTrajectory(SECOND_PLACE_MIRRORED, List.of(FIRST_GOING_OUT, SECOND_GOING_AROUND, SECOND_GOING_COLLECT, SECOND_GOING_BACK, SECOND_GOING_BACK_2), SECOND_PLACE, CONFIG_GOING);
+        Trajectory collectAndBalance = createTrajectory(SECOND_PLACE_MIRRORED, List.of(FIRST_GOING_OUT, SECOND_GOING_AROUND, SECOND_GOING_COLLECT), ENGAGE, CONFIG_GOING);
 
         Timer t = new Timer();
 
@@ -70,7 +68,7 @@ public class LoadingNoTurn3 extends AutonomousBase {
                                 collectTrajectory1,
                                 createRotationPath(
                                         new TrajectoryCommand.MidRotation(.35d, Rotation2d.fromDegrees(180d)),
-                                        new TrajectoryCommand.MidRotation(.50d, Rotation2d.fromDegrees(235d)),
+                                        new TrajectoryCommand.MidRotation(.55d, Rotation2d.fromDegrees(225d)),
                                         new TrajectoryCommand.MidRotation(.75d, Rotation2d.fromDegrees(180d))
                                 ),
                                 0.0),
@@ -88,23 +86,27 @@ public class LoadingNoTurn3 extends AutonomousBase {
                 ),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Second Collect",
-                                collectTrajectory2,
+                                collectAndBalance,
                                 createRotationPath(
                                         new TrajectoryCommand.MidRotation(.25d, Rotation2d.fromDegrees(180d)),
-                                        new TrajectoryCommand.MidRotation(.40d, Rotation2d.fromDegrees(240d)),
-                                        new TrajectoryCommand.MidRotation(.75d, Rotation2d.fromDegrees(180d))
+                                        new TrajectoryCommand.MidRotation(.60d, Rotation2d.fromDegrees(235d)),
+                                        new TrajectoryCommand.MidRotation(.80d, Rotation2d.fromDegrees(180d))
                                 ),
                                 0.0),
                         new SequentialCommandGroup(
                                 ArmMovements.HIGH_BOX_TO_CUBE_COLLECT.createArmWristMoveCommand(),
                                 new IngestCommand(1.5),
                                 ArmMovements.CUBE_COLLECT_TO_STOW.createArmWristMoveCommand(),
-                                ArmMovements.STOW_TO_MID_BOX.createArmWristMoveCommand(),
-                                new ScoreCommand(0.1),
                                 new InstantCommand(() -> {
                                     DriverStation.reportError("Time taken: " + t.get(), false);
                                 }),
-                                ArmMovements.MID_BOX_TO_STOW.createArmWristMoveCommand()
+                                new ParallelCommandGroup(
+                                    ArmMovements.STOW_TO_HIGH_POLE.createArmWristMoveCommand(),
+                                    new SequentialCommandGroup(
+                                            new WaitCommand(0.5),
+                                            new ScoreCommand(0.25)
+                                    )
+                                )
                         )
                 ),
                 new InstantCommand(() -> {

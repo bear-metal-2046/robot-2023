@@ -61,8 +61,6 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         addAuto("No Operation", NoOperation::new);
 
-        addAuto("Turning Test", TurningTest::new);
-
         addAuto("Mid Engage", MidEngage::new);
 
         addAuto("Loading Two Piece", LoadingTwoPiece::new);
