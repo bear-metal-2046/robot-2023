@@ -123,7 +123,7 @@ public class ArmMovements {
                 createPositionToStowTrajectory(Arm.getInstance().getCurrentPosition(), STOW), WristPosition.STOW)
                 .createArmWristMoveCommand());
     }
-    public static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
+    public static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired, TrajectoryConfig config) {
         Translation2d delta = position.minus(desired);
         double norm = delta.getNorm();
         if (norm < MIN_DISTANCE) {
@@ -136,7 +136,11 @@ public class ArmMovements {
             position = moved;
         }
 
-        return new ArmTrajectory(position, desired, SLOW_SPEED);
+        return new ArmTrajectory(position, desired, config);
+    }
+
+    public static ArmTrajectory createPositionToStowTrajectory(Translation2d position, Translation2d desired) {
+        return createPositionToStowTrajectory(position, desired, SLOW_SPEED);
     }
 
     public static final ArmMove STOW_TO_CUBE_COLLECT = new ArmMove("Cube Collect",

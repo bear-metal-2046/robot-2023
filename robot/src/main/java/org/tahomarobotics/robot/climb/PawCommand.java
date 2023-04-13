@@ -62,13 +62,15 @@ public class PawCommand extends CommandBase {
                     "Actual Angle"
             });
         }
+
+        addRequirements(paw);
     }
 
     @Override
     public void initialize() {
 
         timer = new Timer();
-        timer.start();
+        timer.restart();
 
         if (DebugChartData.isEnabled()) {
             velocityData.clear();

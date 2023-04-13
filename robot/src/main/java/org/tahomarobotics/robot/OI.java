@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.chassis.TeleopDriveCommand;
+import org.tahomarobotics.robot.climb.ResetClimbSequence;
 import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
@@ -160,12 +161,12 @@ public final class OI implements SubsystemIF {
         climb.onTrue(new ClimbSequence());
 
         // Pre-Clmb
-        JoystickButton preClimb = new JoystickButton(driveController, kBack.value);
+        JoystickButton preClimb = new JoystickButton(driveController, kRightBumper.value);
         preClimb.onTrue(ArmMovements.STOW_TO_CLIMB.createArmWristMoveCommand());
 
-        // Move to arm to collecting
-        JoystickButton driveRB = new JoystickButton(driveController, kRightBumper.value);
-        driveRB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.FEEDER));
+        // Cancel the climb sequence
+        JoystickButton cancelClimb = new JoystickButton(driveController, kBack.value);
+        cancelClimb.onTrue(new ResetClimbSequence());
 
         JoystickButton driveLB = new JoystickButton(driveController, kLeftBumper.value);
         driveLB.onTrue(armMoveSelector.toggleCollecting(OperatorArmMoveSelection.CollectLevel.LOW));
