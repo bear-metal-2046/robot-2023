@@ -18,7 +18,9 @@
  */
 package org.tahomarobotics.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -33,6 +35,9 @@ import org.tahomarobotics.robot.climb.ClimbSequence;
 import org.tahomarobotics.robot.grabber.CollectCommand;
 import org.tahomarobotics.robot.grabber.Grabber;
 
+import java.sql.Driver;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -40,6 +45,7 @@ import static edu.wpi.first.wpilibj.XboxController.Button.*;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CONE;
 import static org.tahomarobotics.robot.OperatorArmMoveSelection.ConeOrCube.CUBE;
 import static org.tahomarobotics.robot.auto.AutonomousBase.FIELD_LENGTH;
+import static org.tahomarobotics.robot.auto.AutonomousBase.FIELD_WIDTH;
 
 public final class OI implements SubsystemIF {
     private static final Logger logger = LoggerFactory.getLogger(OI.class);
@@ -51,23 +57,20 @@ public final class OI implements SubsystemIF {
     private static final int POV_NORTH = 0;
     private static final double BLUE_COMMUNITY = Units.feetToMeters(10d);
     private static final double RED_COMMUNITY = FIELD_LENGTH - BLUE_COMMUNITY;
-
-    public static OI getInstance() {
-        return INSTANCE;
-    }
-
+    private static final double LOADING_Y = Units.inchesToMeters(FIELD_WIDTH - 97.5);
     private static final double ROTATIONAL_SENSITIVITY = 2;
     private static final double FORWARD_SENSITIVITY = 1.1;
     private static final double DEAD_ZONE = 0.09;
+    private static final Executor rumbleExec = Executors.newFixedThreadPool(2,
+            r -> {
+                Thread t = new Thread(r, "RumbleThread");
+                t.setDaemon(true);
+                return t;
+            }
+    );
     // If 9% does not fell responsive enough try 10.5%
-
-
+    private static final long RUMBLE_TIMEOUT_MS = 300;
     private final OperatorArmMoveSelection armMoveSelector = new OperatorArmMoveSelection();
-
-    public OperatorArmMoveSelection getArmMoveSelector() {
-        return armMoveSelector;
-    }
-
     private XboxController driveController = new XboxController(0);
     private XboxController manipController = new XboxController(1);
 
@@ -75,12 +78,41 @@ public final class OI implements SubsystemIF {
 
         Chassis chassis = Chassis.getInstance();
 
+        LimitingCondition inTeamCommunity = (translation) -> {
+            if (DriverStation.getAlliance() == DriverStation.Alliance.Blue)
+                return translation.getX() < BLUE_COMMUNITY;
+            else
+                return translation.getX() > RED_COMMUNITY;
+        };
+
+        LimitingCondition inOpposingTeamCommunity = (translation) -> {
+            if (DriverStation.getAlliance() == DriverStation.Alliance.Red)
+                return translation.getX() < BLUE_COMMUNITY;
+            else
+                return translation.getX() > RED_COMMUNITY;
+        };
+
+        LimitingCondition inLoading = LimitingCondition.and_ed(
+                inOpposingTeamCommunity,
+                translation -> translation.getY() > LOADING_Y
+        );
+
+        LimitingCondition stowed = translation -> armMoveSelector.isStowed();
+
+        LimitingCondition translationLimiting = LimitingCondition.or_ed(
+                inTeamCommunity.and(stowed.not())
+        );
+
+        LimitingCondition rotationLimiting = LimitingCondition.or_ed(
+                inLoading.and(stowed.not()),
+                inTeamCommunity.and(stowed.not())
+        );
 
         chassis.setDefaultCommand(
                 new TeleopDriveCommand(
-                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY),
-                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY),
-                        () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
+                        () -> -desensitizePowerBased("X", driveController.getLeftY(), FORWARD_SENSITIVITY, translationLimiting),
+                        () -> -desensitizePowerBased("Y", driveController.getLeftX(), FORWARD_SENSITIVITY, translationLimiting),
+                        () -> -desensitizePowerBased("Rot", driveController.getRightX(), ROTATIONAL_SENSITIVITY, rotationLimiting)
                 )
         );
 
@@ -166,6 +198,10 @@ public final class OI implements SubsystemIF {
         manipMid.onTrue(armMoveSelector.setScoringLevel(OperatorArmMoveSelection.ScoringLevel.MID));
     }
 
+    public static OI getInstance() {
+        return INSTANCE;
+    }
+
     private static double deadband(double value) {
         if (Math.abs(value) > OI.DEAD_ZONE) {
             if (value > 0.0) {
@@ -178,6 +214,10 @@ public final class OI implements SubsystemIF {
         }
     }
 
+    public OperatorArmMoveSelection getArmMoveSelector() {
+        return armMoveSelector;
+    }
+
     /**
      * Reduces the sensitivity around the zero point to make the Robot more
      * controllable.
@@ -187,27 +227,20 @@ public final class OI implements SubsystemIF {
      *              reduces small values
      * @return 0 to +/- 100%
      */
-    private double desensitizePowerBased(double value, double power) {
+    private double desensitizePowerBased(String name, double value, double power, LimitingCondition... limitingConditions) {
         value = deadband(value);
-        var x = Chassis.getInstance().getPose().getTranslation().getX();
+        var translation = Chassis.getInstance().getPose().getTranslation();
 
         value *= Math.pow(Math.abs(value), power - 1);
 
-        if ((x < BLUE_COMMUNITY || x > RED_COMMUNITY) && !armMoveSelector.isStowed()) {
-            value /= 2;
-        }
+        boolean limit = false;
+        for (var condition : limitingConditions)
+            limit |= condition.check(translation);
+
+        if (limit) value /= 2;
+
         return value;
     }
-
-    private static final Executor rumbleExec = Executors.newFixedThreadPool(2,
-            r -> {
-                Thread t = new Thread(r, "RumbleThread");
-                t.setDaemon(true);
-                return t;
-            }
-    );
-
-    private static final long RUMBLE_TIMEOUT_MS = 300;
 
     private void rumble(XboxController controller) {
         rumbleExec.execute(() -> {
@@ -239,5 +272,41 @@ public final class OI implements SubsystemIF {
 
     public double getDriverLeftAxis() {
         return driveController.getLeftTriggerAxis();
+    }
+
+    interface LimitingCondition {
+        static LimitingCondition or_ed(LimitingCondition... conditions) {
+            return translation -> {
+                boolean limit = false;
+                for (var condition : conditions) {
+                    limit |= condition.check(translation);
+                }
+                return limit;
+            };
+        }
+
+        static LimitingCondition and_ed(LimitingCondition... conditions) {
+            return translation -> {
+                boolean limit = conditions[0].check(translation);
+                for (var condition : conditions) {
+                    limit &= condition.check(translation);
+                }
+                return limit;
+            };
+        }
+
+        boolean check(Translation2d translation);
+
+        default LimitingCondition or(LimitingCondition other) {
+            return translation -> this.check(translation) || other.check(translation);
+        }
+
+        default LimitingCondition and(LimitingCondition other) {
+            return translation -> this.check(translation) && other.check(translation);
+        }
+
+        default LimitingCondition not() {
+            return translation -> !check(translation);
+        }
     }
 }

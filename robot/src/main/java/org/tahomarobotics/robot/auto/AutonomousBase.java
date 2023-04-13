@@ -39,6 +39,7 @@ public abstract class AutonomousBase extends SequentialCommandGroup implements A
         return startPose;
     }
     public static final double FIELD_LENGTH = Units.inchesToMeters(651.25);
+    public static final double FIELD_WIDTH = Units.inchesToMeters(315.50);
     private static final Rotation2d RED_ROTATION = new Rotation2d(Math.PI);
 
     private final Function<Pose2d, Translation2d> RED_TRANSLATE = (Pose2d p) -> new Translation2d(FIELD_LENGTH - p.getX(), p.getY());
