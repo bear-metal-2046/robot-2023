@@ -52,6 +52,10 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
     private final Map<String, AutonomousOption> autoCommands = new HashMap<>();
     private final SendableChooser<AutonomousOption> autoCommandChooser = new SendableChooser<>();
     private Command autonomousCommand;
+
+    private AutonomousOption currentAutonomous;
+    private DriverStation.Alliance currentAlliance;
+
     private AutoShuffleboard shuffleboard;
 
     private final Timer automaticStowTimer = new Timer();
@@ -75,32 +79,13 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
 
         selectionAutoChange(autoCommandChooser.getSelected());
 
-        NetworkTableInstance netInstance = NetworkTableInstance.getDefault();
-        StringSubscriber subscriber = netInstance.getTable("Shuffleboard/Auto/Auto Chooser").getStringTopic("selected").subscribe("defaultAutoCommand");
-        BooleanSubscriber allianceChange = netInstance.getTable("FMSInfo").getBooleanTopic("IsRedAlliance").subscribe(true);
-
-        netInstance.addListener(
-                subscriber,
-                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
-                e -> new InstantCommand(
-                        () -> selectionAutoChange(autoCommands.get(e.valueData.value.getString()))
-                ).ignoringDisable(true).schedule()
-        );
-
-        netInstance.addListener(
-                allianceChange,
-                EnumSet.of(NetworkTableEvent.Kind.kValueAll),
-                e -> new InstantCommand(() ->
-                        selectionAutoChange(autoCommandChooser.getSelected())
-                ).ignoringDisable(true).schedule()
-        );
-
         return this;
     }
 
     @Override
     public void periodic() {
         shuffleboard.update();
+        selectionAutoChange(autoCommandChooser.getSelected());
     }
 
     private void addAuto(String name, Function<DriverStation.Alliance, Command> commandSup) {
@@ -119,10 +104,26 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
      */
     private void selectionAutoChange(AutonomousOption opt) {
         if (opt == null) return;
+
+        boolean changed = false;
+        if (currentAutonomous == null || currentAutonomous != opt) {
+            currentAutonomous = opt;
+            changed = true;
+        }
+        var alliance = DriverStation.getAlliance();
+        if (currentAlliance == null || currentAlliance != alliance) {
+            currentAlliance = alliance;
+            changed = true;
+        }
+        if (!changed) {
+            return;
+        }
+
         Command command = opt.supplier.apply(DriverStation.getAlliance());
         if (command instanceof AutonomousCommandIF) {
             ((AutonomousCommandIF) command).onSelection();
         }
+
     }
 
     private Command getSelectedCommand() {
