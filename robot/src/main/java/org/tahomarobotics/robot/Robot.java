@@ -36,6 +36,10 @@ import org.tahomarobotics.robot.util.SparkMaxHelper;
 import org.tahomarobotics.robot.util.SystemLogger;
 import org.tahomarobotics.robot.wrist.Wrist;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,70 +48,124 @@ import java.util.List;
 public class Robot extends TimedRobot {
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
 
+    private static final File WATCHDOG_FILE = new File("/tmp/robot_monitor.txt");
+
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final List<SubsystemIF> subsystems = new ArrayList<>();
 
+    private final RandomAccessFile raf;
+    private int heartbeat;
+
+    public Robot() {
+        RandomAccessFile temp = null;
+        try {
+            temp = new RandomAccessFile(WATCHDOG_FILE, "rw");
+        } catch (FileNotFoundException e) {
+            logger.error("Failed to create random access file", e);
+        }
+        this.raf = temp;
+    }
     @Override
     public void robotInit() {
 
-        SystemLogger.logRobotInit();
+        try {
+            SystemLogger.logRobotInit();
 
-        DriverStation.silenceJoystickConnectionWarning(true);
+            DriverStation.silenceJoystickConnectionWarning(true);
 
-        subsystems.add(Chassis.getInstance().initialize());
-        subsystems.add(Arm.getInstance().initialize());
-        subsystems.add(Grabber.getInstance().initialize());
-        subsystems.add(Wrist.getInstance().initialize());
-        subsystems.add(Paw.getLeftInstance().initialize());
-        subsystems.add(Paw.getRightInstance().initialize());
-        subsystems.add(Beacher.getBeacherInstance().initialize());
-        subsystems.add(Autonomous.getInstance().initialize());
-        subsystems.add(OI.getInstance().initialize());
+            subsystems.add(Chassis.getInstance().initialize());
+            subsystems.add(Arm.getInstance().initialize());
+            subsystems.add(Grabber.getInstance().initialize());
+            subsystems.add(Wrist.getInstance().initialize());
+            subsystems.add(Paw.getLeftInstance().initialize());
+            subsystems.add(Paw.getRightInstance().initialize());
+            subsystems.add(Beacher.getBeacherInstance().initialize());
+            subsystems.add(Autonomous.getInstance().initialize());
+            subsystems.add(OI.getInstance().initialize());
 
-        SparkMaxHelper.clear();
+            SparkMaxHelper.clear();
 
-        LED.getInstance().setLEDColor(LEDConstants.PARTY_MODE);
+            LED.getInstance().setLEDColor(LEDConstants.PARTY_MODE);
 
-        logger.info("Robot Initialized.");
+            logger.info("Robot Initialized.");
+        } catch(Throwable t) {
+            shutdown(t);
+        }
     }
 
     @Override
     public void robotPeriodic() {
-        CommandScheduler.getInstance().run();
+
+        updateWatchdog();
+        try {
+            CommandScheduler.getInstance().run();
+        } catch (Throwable t) {
+            shutdown(t);
+        }
+    }
+
+
+    private void updateWatchdog() {
+
+        try {
+            if (raf != null) {
+                raf.seek(0);
+                raf.writeBytes(Integer.toString(heartbeat++) + "\n");
+            }
+        } catch (IOException e) {
+            logger.error("failed to write to watchdog file", e);
+        }
     }
 
     @Override
     public void autonomousInit() {
+        try {
+            SystemLogger.logAutoInit();
 
-        SystemLogger.logAutoInit();
+            subsystems.forEach(SubsystemIF::onAutonomousInit);
 
-        subsystems.forEach(SubsystemIF::onAutonomousInit);
+            logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
 
-        logger.info("-=-=-=- AUTONOMOUS initiated -=-=-=-");
+        } catch (Throwable t) {
+            shutdown(t);
+        }
     }
 
     @Override
     public void teleopInit() {
-        SystemLogger.logTeleopInit();
+        try {
+            SystemLogger.logTeleopInit();
 
-        subsystems.forEach(SubsystemIF::onTeleopInit);
+            subsystems.forEach(SubsystemIF::onTeleopInit);
 
-        logger.info("-=-=-=- TELEOP initiated -=-=-=-");
+            logger.info("-=-=-=- TELEOP initiated -=-=-=-");
+        } catch (Throwable t) {
+            shutdown(t);
+        }
     }
 
     @Override
     public void disabledInit() {
-        SystemLogger.logDisabledInit();
+        try {
+            SystemLogger.logDisabledInit();
 
-        subsystems.forEach(SubsystemIF::onDisabledInit);
+            subsystems.forEach(SubsystemIF::onDisabledInit);
 
-        logger.info("-=-=-=- DISABLE initiated -=-=-=-");
+            logger.info("-=-=-=- DISABLE initiated -=-=-=-");
+        } catch (Throwable t) {
+            shutdown(t);
+        }
     }
     @Override
     public void testInit() {
-        SystemLogger.logTestInit();
+        try {
+            SystemLogger.logTestInit();
 
-        logger.info("-=-=-=- TEST initiated -=-=-=-");
+            logger.info("-=-=-=- TEST initiated -=-=-=-");
+
+        } catch (Throwable t) {
+            shutdown(t);
+        }
     }
 
     @Override
@@ -120,4 +178,10 @@ public class Robot extends TimedRobot {
     public void testPeriodic() {}
     @Override
     public void disabledPeriodic() {}
+
+    private void shutdown(Throwable t) {
+        t.printStackTrace(System.err);
+        SystemLogger.logThrowableCrash(t);
+        Runtime.getRuntime().halt(1);
+    }
 }
