@@ -9,6 +9,8 @@ import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.chassis.Chassis;
 
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class AutonomousBase extends SequentialCommandGroup implements AutonomousCommandIF{
+    protected static final Logger logger = LoggerFactory.getLogger(AutonomousBase.class);
 
     protected final List<Trajectory> trajectories = new ArrayList<>();
 

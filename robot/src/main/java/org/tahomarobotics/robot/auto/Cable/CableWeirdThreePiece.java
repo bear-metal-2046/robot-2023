@@ -122,7 +122,7 @@ public class CableWeirdThreePiece extends AutonomousBase {
                 ArmMovements.HIGH_BOX_TO_STOW.createArmWristMoveCommand(),
                 new InstantCommand(() -> {
                     t.stop();
-                    DriverStation.reportError("Time taken: " + t.get(), false);
+                    logger.info("Time taken: " + t.get());
                 })
         );
     }
