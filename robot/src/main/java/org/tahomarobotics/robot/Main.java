@@ -59,10 +59,12 @@ public class Main {
         if (deployScript.exists()) {
             try {
                 Files.copy(deployScript.toPath(), copiedScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                if (copiedScript.setExecutable(true)) {
+                copiedScript.setExecutable(true);
+                if (copiedScript.exists() && copiedScript.canExecute() && copiedScript.canRead()) {
                    Runtime.getRuntime().exec(copiedScript.getAbsolutePath());
                 }
             } catch (IOException e) {
+                e.printStackTrace(System.err);
                 SystemLogger.logThrowableCrash(e);
             }
         } else {
