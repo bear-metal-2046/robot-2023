@@ -11,7 +11,7 @@ while [ 1 ]; do
 
                    FRC_PID=$(ps -ef | grep java | grep -v grep | grep -v bash | xargs echo | cut -d' '  -f1)
 
-                   echo "$CURR == $LAST -- killing $FRC_PID"
+                   echo "$CURR == $LAST --  killing $FRC_PID"
 
                    kill -9 $FRC_PID
                    find /tmp/ -name 'hs_err_pid*' -exec cp "{}" ~ \;
