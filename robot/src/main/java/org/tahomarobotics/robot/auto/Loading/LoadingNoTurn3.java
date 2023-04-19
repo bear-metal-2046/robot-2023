@@ -32,11 +32,14 @@ public class LoadingNoTurn3 extends AutonomousBase {
                 .withYFudgeInches(0, 0);
         final FudgeablePose SECOND_PLACE_MIRRORED = SECOND_PLACE.getMirrored();
 
+        final FudgeablePose GOING_OUT = FudgeablePose.newWithInchesAndDegreesForZach(279, 182, 0)
+                .withYFudgeInches(0, 0);
+
         //Mid-Translations
         final FudgeableTranslation FIRST_GOING_OUT = FudgeableTranslation.newWithInches(153.6, 186.325);
-        final FudgeableTranslation FIRST_GOING_AROUND = FudgeableTranslation.newWithInches(264, 220.6);
-        final FudgeableTranslation FIRST_GOING_AROUND_2 = FudgeableTranslation.newWithInches(294, 206);
-        final FudgeableTranslation FIRST_GOING_COLLECT = FudgeableTranslation.newWithInches(264, 180);
+        final FudgeableTranslation FIRST_GOING_AROUND = FudgeableTranslation.newWithInches(262, 218.6);
+        final FudgeableTranslation FIRST_GOING_AROUND_2 = FudgeableTranslation.newWithInches(292, 206);
+        final FudgeableTranslation FIRST_GOING_COLLECT = FudgeableTranslation.newWithInches(262, 178);
 
         final FudgeableTranslation SECOND_GOING_AROUND = FudgeableTranslation.newWithInches(276, 177);
         final FudgeableTranslation SECOND_GOING_COLLECT = FudgeableTranslation.newWithInches(271, 130);
@@ -45,6 +48,7 @@ public class LoadingNoTurn3 extends AutonomousBase {
 
 
         final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
+        final Rotation2d GOING_OUT_HEADING = new Rotation2d(Units.degreesToRadians(180));
 
 
         final TrajectoryConfig CONFIG_GOING = createConfig(3., 3);
@@ -57,6 +61,7 @@ public class LoadingNoTurn3 extends AutonomousBase {
         // alliance converted trajectories
         Trajectory collectTrajectory1 = createTrajectory(FIRST_PLACE, List.of(FIRST_GOING_OUT, FIRST_GOING_AROUND, FIRST_GOING_AROUND_2, FIRST_GOING_COLLECT, FIRST_GOING_OUT), SECOND_PLACE, CONFIG_GOING);
         Trajectory collectTrajectory2 = createTrajectory(SECOND_PLACE_MIRRORED, List.of(FIRST_GOING_OUT, SECOND_GOING_AROUND, SECOND_GOING_COLLECT, SECOND_GOING_BACK, SECOND_GOING_BACK_2), SECOND_PLACE, CONFIG_GOING);
+        Trajectory collectTrajectory3 = createTrajectory(SECOND_PLACE, List.of(SECOND_GOING_BACK_2, SECOND_GOING_BACK), GOING_OUT, CONFIG_GOING);
 
         Timer t = new Timer();
 
@@ -102,14 +107,23 @@ public class LoadingNoTurn3 extends AutonomousBase {
                                 ArmMovements.STOW_TO_MID_BOX.createArmWristMoveCommand(),
                                 new ScoreCommand(0.1),
                                 new InstantCommand(() -> {
-                                    DriverStation.reportError("Time taken: " + t.get(), false);
-                                }),
-                                ArmMovements.MID_BOX_TO_STOW.createArmWristMoveCommand()
+                                    logger.info("Time taken: " + t.get());
+                                })
                         )
-                ),
+                )/*, This trajectory does not run for some reason
+                new ParallelCommandGroup(
+                        new TrajectoryCommand("Going Out",
+                                collectTrajectory3,
+                                GOING_OUT_HEADING,
+                                0.0,
+                                0.75,
+                                alliance == DriverStation.Alliance.Blue ? TrajectoryCommand.TurnDirection.CLOCKWISE : TrajectoryCommand.TurnDirection.COUNTER_CLOCKWISE,
+                                0.0
+                                )
+                )*/,
                 new InstantCommand(() -> {
                     t.stop();
-                    DriverStation.reportError("Time taken: " + t.get(), false);
+                    logger.info("Time taken: " + t.get());
                 })
         );
     }

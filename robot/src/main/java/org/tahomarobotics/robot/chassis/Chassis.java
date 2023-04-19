@@ -165,7 +165,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                     poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
 
                     if (DriverStation.isAutonomousEnabled()) {
-                        if ("Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
+                        if ("Right Front".equals(result.camera().cameraName) || "Left Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
                     }
                 } catch (ConcurrentModificationException ignored) {}
             }
@@ -410,14 +410,14 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void onDisabledInit() {
         swerveModules.forEach(s -> s.setDriveVoltage(0));
-        logger.info("Front Cam Updates: {}\tBack Cam Updates: {}", frontUpdateCount, backUpdateCount);
+        logger.info("Front Cam Updates: {}  Back Cam Updates: {}", frontUpdateCount, backUpdateCount);
         frontUpdateCount = 0;
         backUpdateCount = 0;
     }
 
     @Override
     public void onTeleopInit() {
-        logger.info("Front Cam Updates: {}\tBack Cam Updates: {}", frontUpdateCount, backUpdateCount);
+        logger.info("Front Cam Updates: {}  Back Cam Updates: {}", frontUpdateCount, backUpdateCount);
         frontUpdateCount = 0;
         backUpdateCount = 0;
     }
