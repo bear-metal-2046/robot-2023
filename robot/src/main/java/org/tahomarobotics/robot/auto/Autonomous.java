@@ -13,7 +13,7 @@ import org.tahomarobotics.robot.auto.Cable.CableTwoPieceEngage;
 import org.tahomarobotics.robot.auto.Cable.CableWeirdThreePiece;
 import org.tahomarobotics.robot.auto.Loading.LoadingNoTurn3;
 import org.tahomarobotics.robot.auto.Loading.LoadingThreePiece;
-import org.tahomarobotics.robot.auto.Loading.LoadingTwoPieceEngage;
+import org.tahomarobotics.robot.auto.Loading.LoadingZhoppeSloppeToppy;
 import org.tahomarobotics.robot.auto.Mid.MidEngage;
 
 import java.util.HashMap;
@@ -63,7 +63,8 @@ public class Autonomous extends SubsystemBase implements SubsystemIF {
         addAuto("Mid Engage", MidEngage::new);
 
 //        addAuto("Loading Two Piece", LoadingTwoPiece::new);
-        addAuto("Loading Two Piece Engage", LoadingTwoPieceEngage::new);
+//        addAuto("Loading Two Piece Engage", LoadingTwoPieceEngage::new);
+        addAuto("Loading No Turn Two Piece Engage", LoadingZhoppeSloppeToppy::new);
 //        addAuto("Loading Two Piece Collect", LoadingTwoPieceCollect::new);
         addAuto("Loading Three Piece", LoadingThreePiece::new);
         addAuto("Loading No Turn 3", LoadingNoTurn3::new);
