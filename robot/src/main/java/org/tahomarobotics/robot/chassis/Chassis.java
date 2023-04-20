@@ -165,7 +165,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                     poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
 
                     if (DriverStation.isAutonomousEnabled()) {
-                        if ("Right Front".equals(result.camera().cameraName) || "Left Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
+                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName) || Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)) {
+                            frontUpdateCount++;
+                        } else {
+                            backUpdateCount++;
+                        }
                     }
                 } catch (ConcurrentModificationException ignored) {}
             }
@@ -183,7 +187,11 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                     poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
 
                     if (DriverStation.isAutonomousEnabled()) {
-                        if ("Front".equals(result.camera().cameraName)) {frontUpdateCount++;} else {backUpdateCount++;}
+                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName) || Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)) {
+                            frontUpdateCount++;
+                        } else {
+                            backUpdateCount++;
+                        }
                     }
                 } catch (ConcurrentModificationException ignored) {}
             }
