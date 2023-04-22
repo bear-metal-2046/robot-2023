@@ -27,15 +27,15 @@ public class CableWeirdThreePiece extends AutonomousBase {
         final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
 
         final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 38, 0)
-                .withYFudgeInches(-5, -3).withXFudgeInches(6,0);
+                .withYFudgeInches(-8, -3).withXFudgeInches(6,0);
 
         final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
-                .withYFudgeInches(6, 6).withXFudgeInches(0, -20);
+                .withYFudgeInches(6, 6).withXFudgeInches(-6, -20);
 
-        final FudgeablePose PRE_BUMP = FudgeablePose.newWithInches(190, 26, Math.PI).withXFudgeInches(8,0);
+        final FudgeablePose PRE_BUMP = FudgeablePose.newWithInches(190, 26, Math.PI).withXFudgeInches(0,0);
 
         final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
-                .withYFudgeInches(-12, 0);
+                .withYFudgeInches(5, 0);
 
 
         // Midpoints

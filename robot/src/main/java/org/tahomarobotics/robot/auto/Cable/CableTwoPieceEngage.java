@@ -11,10 +11,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
-import org.tahomarobotics.robot.auto.AutonomousBase;
-import org.tahomarobotics.robot.auto.FudgeablePose;
-import org.tahomarobotics.robot.auto.FudgeableTranslation;
-import org.tahomarobotics.robot.auto.TrajectoryCommand;
+import org.tahomarobotics.robot.auto.*;
 import org.tahomarobotics.robot.chassis.Chassis;
 import org.tahomarobotics.robot.grabber.IngestCommand;
 import org.tahomarobotics.robot.grabber.ScoreCommand;
@@ -97,6 +94,7 @@ public class CableTwoPieceEngage extends AutonomousBase {
                          new TrajectoryCommand("Place to Engage", placeToEngage, shootHeading1, 0.0, 0.0,
                                 turnDirection1, 0.0)
                 ),
+                new BalancedCommand(),
                 new InstantCommand(() -> {
                     t.stop();
                     logger.info("Time taken: " + t.get());
