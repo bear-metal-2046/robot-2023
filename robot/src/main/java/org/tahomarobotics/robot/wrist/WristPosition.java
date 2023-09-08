@@ -23,17 +23,17 @@ import edu.wpi.first.math.util.Units;
 
 public enum WristPosition {
     PRE_CLIMB(Units.degreesToRadians(15d)),
-    STOW(Units.degreesToRadians(215d)),
-    CUBE_COLLECT(Units.degreesToRadians(210.0)),
-    CONE_COLLECT(Units.degreesToRadians(210.0)),
+    STOW(Units.degreesToRadians(211)),
+    CUBE_COLLECT(Units.degreesToRadians(199)),
+    CONE_COLLECT(Units.degreesToRadians(199)),
     CUBE_FEEDER_COLLECT(Units.degreesToRadians(193.0)),
     CONE_FEEDER_COLLECT(Units.degreesToRadians(193.0)),
-    MID_BOX_PLACE(Units.degreesToRadians(132.0)),
-    HIGH_BOX_PLACE(Units.degreesToRadians(70.0)),
-    MID_POLE_PLACE(Units.degreesToRadians(122.0)),
-    HIGH_POLE_PLACE(Units.degreesToRadians(104.0)),
-    CONE_SLIDER_COLLECT(Units.degreesToRadians(112.0)),
-    CUBE_SLIDER_COLLECT(Units.degreesToRadians(112.0));
+    MID_BOX_PLACE(Units.degreesToRadians(110)),
+    HIGH_BOX_PLACE(Units.degreesToRadians(105)),
+    MID_POLE_PLACE(Units.degreesToRadians(141)),
+    HIGH_POLE_PLACE(Units.degreesToRadians(119)),
+    CONE_SLIDER_COLLECT(Units.degreesToRadians(117)),
+    CUBE_SLIDER_COLLECT(Units.degreesToRadians(117.0));
 
     public final double angle;
     WristPosition(double angle) {

@@ -69,7 +69,6 @@ public class ArmState {
 
 
     public ArmState(double time, double shoulderPosition, double elbowPosition, ArmState previousState) {
-
         this.time = time;
 
         if (previousState != null) {

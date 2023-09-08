@@ -49,8 +49,8 @@ public class ArmFeedForward {
 
     // gravity acceleration
     private static final double g =  9.80665;
-    static final double k_m1glc1_m2gl1 = 18.39845800340516;
-    static final double k_m2glc2 = 20.375856190104;
+    static final double k_m1glc1_m2gl1 = 20.638487295270078;
+    static final double k_m2glc2 = 23.970448059525182;
     private static final double k_m2lc2 = k_m2glc2 / g;
 
 

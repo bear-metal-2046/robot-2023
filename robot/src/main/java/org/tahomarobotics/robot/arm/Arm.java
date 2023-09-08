@@ -234,6 +234,9 @@ public class Arm extends SubsystemBase implements ArmSubsystemIF {
         ArmState currentState = getCurrentArmState();
         ffVoltages = feedForward.calculate(desiredState, currentState);
 
+        SmartDashboard.putNumber("Elbow Diffo", desiredState.elbow.position() - currentState.elbow.position());
+        SmartDashboard.putNumber("Shoulder Diffo", desiredState.shoulder.position() - currentState.shoulder.position());
+
         // calculate and limit feed-back voltages
         // BUT DO NOT ALLOW FULL VOLTAGE to be applied to motor if there are large errors
         double shoulderFeedbackVoltage = MathUtil.clamp(

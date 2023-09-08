@@ -50,25 +50,25 @@ public class ArmMovements {
 
 
     private static final Translation2d START = new Translation2d(Units.inchesToMeters(10.5), Units.inchesToMeters(-2.1));
-    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(11.0), Units.inchesToMeters(0.0));
+    static final Translation2d STOW = new Translation2d(Units.inchesToMeters(11.7), Units.inchesToMeters(.9));
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
-    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(22.75), Units.inchesToMeters(-10.75));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(22.75), Units.inchesToMeters(-10.75));
+    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-7.7));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-7.7));
     private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
-    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(28.1));
-    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(24.2), Units.inchesToMeters(27.85));
+    private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(15.79), Units.inchesToMeters(27.1));
+    private static final Translation2d CONE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(15.79), Units.inchesToMeters(27.1));
 
 
     //Box scoring positions
-    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(33.8), Units.inchesToMeters(16.1));
-    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(54.4), Units.inchesToMeters(30.6));
+    private static final Translation2d MID_BOX = new Translation2d(Units.inchesToMeters(34.8), Units.inchesToMeters(19.5));
+    private static final Translation2d HIGH_BOX = new Translation2d(Units.inchesToMeters(47), Units.inchesToMeters(30));
 
     //Pole scoring positions
-    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(32.5), Units.inchesToMeters(20.0));
-    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(50.25), Units.inchesToMeters(29.5));
+    private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(29.4), Units.inchesToMeters(18.3));
+    private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(45), Units.inchesToMeters(30));
     private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(10.91));
 
     //Translations
@@ -77,6 +77,7 @@ public class ArmMovements {
     //Rotations
     private static final Rotation2d UP = new Rotation2d(Units.degreesToRadians(90));
     private static final Rotation2d DOWN = new Rotation2d(Units.degreesToRadians(-90));
+    private static final Rotation2d UP_REV = new Rotation2d(Units.degreesToRadians(135));
     private static final Rotation2d FWD = new Rotation2d(Units.degreesToRadians(0));
     private static final Rotation2d REV = new Rotation2d(Units.degreesToRadians(180));
 
@@ -216,11 +217,11 @@ public class ArmMovements {
             WristPosition.STOW);
 
     public static final ArmMove MID_BOX_TO_STOW = new ArmMove("Mid-Box Stow",
-            new ArmTrajectory(MID_BOX, STOW, NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(MID_BOX, UP_REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove HIGH_BOX_TO_STOW = new ArmMove("High-Box Stow",
-            new ArmTrajectory(HIGH_BOX, STOW, NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(HIGH_BOX, UP_REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove HIGH_BOX_TO_CUBE_COLLECT = new ArmMove("High-Box Cube",
@@ -228,11 +229,11 @@ public class ArmMovements {
             WristPosition.STOW);
 
     public static final ArmMove MID_POLE_TO_STOW = new ArmMove("Mid-Pole Stow",
-            new ArmTrajectory(MID_POLE, STOW, NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(MID_POLE, UP_REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove HIGH_POLE_TO_STOW = new ArmMove("High-Pole Stow",
-            new ArmTrajectory(new Pose2d(HIGH_POLE, REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(HIGH_POLE, UP_REV), NONE, new Pose2d(STOW, DOWN), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove HIGH_POLE_TO_CUBE_COLLECT = new ArmMove("High-Pole Cube Collect Fast",

@@ -88,13 +88,13 @@ public class DetermineGravityFeedforward extends CommandBase {
         Translation2d position;
 
         if (prev == null) {
-            position = new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(-5));
+            position = new Translation2d(Units.inchesToMeters(10), Units.inchesToMeters(0));
         } else {        // x range = 10 to 55, y range = -10 to 30 every 5 inches
             if (prev.arm.getY() >= Units.inchesToMeters(30) && prev.arm.getX() >= Units.inchesToMeters(55)) {
                 return new TestPoint(STOW, WristPosition.STOW);
             } else if (prev.arm.getY() >= Units.inchesToMeters(30)) {
                 // reset to minimum y and increment x
-                position = new Translation2d(prev.arm.getX() + Units.inchesToMeters(5), Units.inchesToMeters(-5));
+                position = new Translation2d(prev.arm.getX() + Units.inchesToMeters(5), Units.inchesToMeters(0));
             } else {
                 // increment y
                 position = new Translation2d(prev.arm.getX(), prev.arm.getY() + Units.inchesToMeters(5));
