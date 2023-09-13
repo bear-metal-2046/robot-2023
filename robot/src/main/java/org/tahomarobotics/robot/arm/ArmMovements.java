@@ -56,6 +56,7 @@ public class ArmMovements {
     //Collecting
     private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
     private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
+    private static final Translation2d COLLECT_MID_POINT = new Translation2d(Units.inchesToMeters(25), Units.inchesToMeters(-2));
    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(15.79), Units.inchesToMeters(27.1));
@@ -79,6 +80,7 @@ public class ArmMovements {
     private static final Rotation2d DOWN = new Rotation2d(Units.degreesToRadians(-90));
     private static final Rotation2d UP_REV = new Rotation2d(Units.degreesToRadians(135));
     private static final Rotation2d FWD = new Rotation2d(Units.degreesToRadians(0));
+    private static final Rotation2d FWD_UP = new Rotation2d(Units.degreesToRadians(45));
     private static final Rotation2d REV = new Rotation2d(Units.degreesToRadians(180));
 
     public record ArmMove(String name, ArmTrajectory trajectory, WristPosition wristPosition) {
@@ -189,11 +191,11 @@ public class ArmMovements {
 
     //Reversed Commands
     public static final ArmMove CONE_COLLECT_TO_STOW = new ArmMove("Cone Collect Stow",
-            new ArmTrajectory(new Pose2d(CONE_COLLECT, UP), NONE, new Pose2d(STOW, REV), NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(CONE_COLLECT, FWD_UP), List.of(COLLECT_MID_POINT), new Pose2d(STOW, REV), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove CUBE_COLLECT_TO_STOW = new ArmMove("Cube Collect Stow",
-            new ArmTrajectory(new Pose2d(CUBE_COLLECT, UP), NONE, new Pose2d(STOW, REV), NORMAL_SPEED),
+            new ArmTrajectory(new Pose2d(CUBE_COLLECT, FWD_UP), List.of(COLLECT_MID_POINT), new Pose2d(STOW, REV), NORMAL_SPEED),
             WristPosition.STOW);
 
     public static final ArmMove CUBE_COLLECT_TO_STOW_FAST = new ArmMove("Cube Collect Stow Fast",

@@ -79,41 +79,11 @@ public final class OI implements SubsystemIF {
 
         Chassis chassis = Chassis.getInstance();
 
-        LimitingCondition inTeamCommunity = (translation) -> {
-            if (DriverStation.getAlliance() == DriverStation.Alliance.Blue)
-                return translation.getX() < BLUE_COMMUNITY;
-            else
-                return translation.getX() > RED_COMMUNITY;
-        };
-
-        LimitingCondition inOpposingTeamCommunity = (translation) -> {
-            if (DriverStation.getAlliance() == DriverStation.Alliance.Red)
-                return translation.getX() < BLUE_COMMUNITY;
-            else
-                return translation.getX() > RED_COMMUNITY;
-        };
-
-        LimitingCondition inLoading = LimitingCondition.and_ed(
-                inOpposingTeamCommunity,
-                translation -> translation.getY() > LOADING_Y
-        );
-
-        LimitingCondition stowed = translation -> armMoveSelector.isStowed();
-
-        LimitingCondition translationLimiting = LimitingCondition.or_ed(
-                inTeamCommunity.and(stowed.not())
-        );
-
-        LimitingCondition rotationLimiting = LimitingCondition.or_ed(
-                inLoading.and(stowed.not()),
-                inTeamCommunity.and(stowed.not())
-        );
-
         chassis.setDefaultCommand(
                 new TeleopDriveCommand(
-                        () -> -desensitizePowerBased("X", driveController.getLeftY(), FORWARD_SENSITIVITY, translationLimiting),
-                        () -> -desensitizePowerBased("Y", driveController.getLeftX(), FORWARD_SENSITIVITY, translationLimiting),
-                        () -> -desensitizePowerBased("Rot", driveController.getRightX(), ROTATIONAL_SENSITIVITY, rotationLimiting)
+                        () -> -desensitizePowerBased(driveController.getLeftY(), FORWARD_SENSITIVITY),
+                        () -> -desensitizePowerBased(driveController.getLeftX(), FORWARD_SENSITIVITY),
+                        () -> -desensitizePowerBased(driveController.getRightX(), ROTATIONAL_SENSITIVITY)
                 )
         );
 
@@ -228,17 +198,9 @@ public final class OI implements SubsystemIF {
      *              reduces small values
      * @return 0 to +/- 100%
      */
-    private double desensitizePowerBased(String name, double value, double power, LimitingCondition... limitingConditions) {
+    private double desensitizePowerBased(double value, double power) {
         value = deadband(value);
-        var translation = Chassis.getInstance().getPose().getTranslation();
-
         value *= Math.pow(Math.abs(value), power - 1);
-
-        boolean limit = false;
-        for (var condition : limitingConditions)
-            limit |= condition.check(translation);
-
-        if (limit) value /= 2;
 
         return value;
     }
