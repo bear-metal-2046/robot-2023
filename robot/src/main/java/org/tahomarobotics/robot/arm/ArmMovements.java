@@ -54,8 +54,8 @@ public class ArmMovements {
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
-    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-7.7));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(22.8), Units.inchesToMeters(-7.7));
+    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
     private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_SLIDER_COLLECT = new Translation2d(Units.inchesToMeters(15.79), Units.inchesToMeters(27.1));
@@ -69,7 +69,7 @@ public class ArmMovements {
     //Pole scoring positions
     private static final Translation2d MID_POLE = new Translation2d(Units.inchesToMeters(29.4), Units.inchesToMeters(18.3));
     private static final Translation2d HIGH_POLE = new Translation2d(Units.inchesToMeters(45), Units.inchesToMeters(30));
-    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(10.91));
+    private static final Translation2d START_TO_HIGH_MID_PT = new Translation2d(Units.inchesToMeters(25.51), Units.inchesToMeters(20.91));
 
     //Translations
     private static final List<Translation2d> NONE = List.of();
