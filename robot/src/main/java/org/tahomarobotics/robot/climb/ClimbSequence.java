@@ -57,7 +57,7 @@ public class ClimbSequence extends SequentialCommandGroup {
                                 )
                         ),
                         new SequentialCommandGroup(
-                                new WaitCommand(1.5),
+                                new WaitCommand(1.15),
                                 ArmMovements.CLIMB_SWING.createArmWristMoveCommand()
                         )
                 )
