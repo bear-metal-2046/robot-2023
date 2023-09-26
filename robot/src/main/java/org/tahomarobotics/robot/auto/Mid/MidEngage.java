@@ -8,6 +8,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import org.tahomarobotics.robot.arm.ArmMovements;
 import org.tahomarobotics.robot.auto.AutonomousBase;
 import org.tahomarobotics.robot.auto.BalancedCommand;
@@ -52,6 +53,7 @@ public class MidEngage extends AutonomousBase {
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
 
                 ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
+                new WaitCommand(0.25),
                 new ScoreCommand(0.25),
 
                 new ParallelCommandGroup(

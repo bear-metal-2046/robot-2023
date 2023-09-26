@@ -22,9 +22,9 @@ import java.util.List;
 public class LoadingZhoppeSloppeToppy extends AutonomousBase {
     public LoadingZhoppeSloppeToppy(DriverStation.Alliance alliance) {
 
-        final FudgeablePose FIRST_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(69.6, 196.325, 0);
+        final FudgeablePose FIRST_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(73, 196.325, 0);
 
-        final FudgeablePose SECOND_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(71.6, 196.325 - 24.0, 180)
+        final FudgeablePose SECOND_PLACE = FudgeablePose.newWithInchesAndDegreesForZach(73, 196.325 - 24.0, 180)
                 .withYFudgeInches(0, 0);
         final FudgeablePose ENGAGE = FudgeablePose.newWithInchesAndDegreesForZach(69.6 + 93.0, 125, 0);
 
@@ -38,7 +38,7 @@ public class LoadingZhoppeSloppeToppy extends AutonomousBase {
 
         final Rotation2d PLACE_HEADING = new Rotation2d(Units.degreesToRadians(180));
 
-        final TrajectoryConfig CONFIG_GOING = createConfig(3., 3);
+        final TrajectoryConfig CONFIG_GOING = createConfig(3.5, 3);
         final TrajectoryConfig PLZ_MAKE_IT_BACK_CONFIG = new TrajectoryConfig(3.5, 3)
                 .setKinematics(Chassis.getInstance().getSwerveDriveKinematics());
 
@@ -57,6 +57,7 @@ public class LoadingZhoppeSloppeToppy extends AutonomousBase {
                 new InstantCommand(t::restart),
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 ArmMovements.START_TO_HIGH_POLE.createArmWristMoveCommand(),
+                new WaitCommand(0.30),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("First Collect",
