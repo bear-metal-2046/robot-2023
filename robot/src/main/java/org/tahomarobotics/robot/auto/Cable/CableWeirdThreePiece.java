@@ -24,18 +24,18 @@ import java.util.List;
 public class CableWeirdThreePiece extends AutonomousBase {
     public CableWeirdThreePiece(DriverStation.Alliance alliance) {
         // Poses
-        final FudgeablePose START_POSE = FudgeablePose.newWithInches(69.6, 20.029, 0);
+        final FudgeablePose START_POSE = FudgeablePose.newWithInches(73, 20.029, 0);
 
         final FudgeablePose FIRST_COLLECT = FudgeablePose.newWithInches(282.035, 38, 0)
-                .withYFudgeInches(-8, -3).withXFudgeInches(6,0);
+                .withYFudgeInches(-11, -3).withXFudgeInches(6,0);
 
-        final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(69.6, 41.16, Math.PI)
-                .withYFudgeInches(6, 6).withXFudgeInches(-6, -20);
+        final FudgeablePose CUBE_PLACE = FudgeablePose.newWithInches(73, 41.16, Math.PI)
+                .withYFudgeInches(6, 6).withXFudgeInches(2, 0);
 
         final FudgeablePose PRE_BUMP = FudgeablePose.newWithInches(190, 26, Math.PI).withXFudgeInches(0,0);
 
         final FudgeablePose SECOND_COLLECT = FudgeablePose.newWithInches(291.91, 96.81, Math.PI / 4)
-                .withYFudgeInches(5, 0);
+                .withYFudgeInches(2, 0);
 
 
         // Midpoints
@@ -43,22 +43,22 @@ public class CableWeirdThreePiece extends AutonomousBase {
 
         // Headings
         final Rotation2d SHOOT_HEADING_1 = new Rotation2d(Math.PI);
-        final Rotation2d SHOOT_HEADING_2 = new Rotation2d(Math.PI * 0.95);
+        final Rotation2d SHOOT_HEADING_2 = new Rotation2d(Math.PI);
         final Rotation2d COLLECT_HEADING = new Rotation2d(0);
         final Rotation2d SECOND_COLLECT_HEADING = new Rotation2d(Math.PI / 6);
 
         // Config(s)
         final TrajectoryConfig CONFIG = createConfig(4, 2);
-        final TrajectoryConfig FAST_CONFIG = createConfig(5, 4.5);
+        final TrajectoryConfig FAST_CONFIG = createConfig(4, 3); // Was 5 4.5
 
         /////////////////////////
         initialize(alliance, new Pose2d(START_POSE.getFudgedTranslation(alliance), SHOOT_HEADING_1));
 
-        Trajectory placeToCollect = createTrajectory(START_POSE, FIRST_COLLECT, CONFIG);
+        Trajectory placeToCollect = createTrajectory(START_POSE, FIRST_COLLECT, FAST_CONFIG);
         Trajectory collectToShoot = createTrajectory(FIRST_COLLECT.getMirrored(), PRE_BUMP, FAST_CONFIG);
         Trajectory shootToCollect = createTrajectory(PRE_BUMP.getMirrored(), List.of(SECOND_COLLECT_MID), SECOND_COLLECT, FAST_CONFIG);
         Trajectory collectToPlace = createTrajectory(SECOND_COLLECT.getMirrored(), List.of(PRE_BUMP.getFudgedTranslation(alliance)),
-                CUBE_PLACE, CONFIG);
+                CUBE_PLACE, FAST_CONFIG);
 
         Rotation2d collectHeading1 = createRotation(COLLECT_HEADING);
         Rotation2d collectHeading2 = createRotation(SECOND_COLLECT_HEADING);
@@ -74,13 +74,13 @@ public class CableWeirdThreePiece extends AutonomousBase {
                 new InstantCommand(t::restart),
                 new InstantCommand(() -> Chassis.getInstance().resetOdometry(startPose)),
                 ArmMovements.START_TO_HIGH_POLE_FAST.createArmWristMoveCommand(),
+                new WaitCommand(0.25),
                 new ScoreCommand(0.25),
                 new ParallelCommandGroup(
                         new TrajectoryCommand("Start to Collect", placeToCollect, collectHeading1, 0.0, 0.5,
                                 turnDirection1, 0.0),
                         new ParallelCommandGroup(
                                 new SequentialCommandGroup(
-                                        new WaitCommand(0.5),
                                         ArmMovements.HIGH_POLE_TO_CUBE_COLLECT.createArmWristMoveCommand()
                                 ),
                                 new SequentialCommandGroup(
@@ -108,11 +108,11 @@ public class CableWeirdThreePiece extends AutonomousBase {
                         new TrajectoryCommand("Second Collect to Bump", collectToPlace, shootHeading1, 0.0, 0.6,
                                 turnDirection2, 0.0),
                         new SequentialCommandGroup(
-                                new WaitCommand(1),
+                                new WaitCommand(1.25),
                                 new ParallelCommandGroup(
                                         ArmMovements.CUBE_COLLECT_TO_HIGH_POLE_FAST.createArmWristMoveCommand(),
                                         new SequentialCommandGroup(
-                                                new WaitCommand(2.25),
+                                                new WaitCommand(2),
                                                 new ScoreCommand(0.25)
                                         )
                                 )
