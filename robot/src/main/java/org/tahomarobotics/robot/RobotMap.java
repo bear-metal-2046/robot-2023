@@ -25,6 +25,7 @@ package org.tahomarobotics.robot;
 public final class RobotMap {
     public record SwerveModulePorts(int drive, int steer, int encoder) {}
 
+    public static final boolean IS_REPLAYING = false;
 
     /*
     Swerve Modules

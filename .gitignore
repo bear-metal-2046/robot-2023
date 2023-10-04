@@ -347,3 +347,4 @@ networktables.json
 .outlineviewer
 
 crash_tracking.txt
+/robot/src/main/java/org/tahomarobotics/robot/BuildConstants.java

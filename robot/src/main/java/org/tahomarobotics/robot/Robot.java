@@ -20,8 +20,14 @@
 package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tahomarobotics.robot.arm.Arm;
@@ -45,7 +51,7 @@ import java.util.List;
 
 
 
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
     private static final Logger logger = LoggerFactory.getLogger(Robot.class);
 
     private static final File WATCHDOG_FILE = new File("/tmp/robot_monitor.txt");
@@ -70,6 +76,22 @@ public class Robot extends TimedRobot {
 
         try {
             SystemLogger.logRobotInit();
+
+            var aklogger = org.littletonrobotics.junction.Logger.getInstance();
+            aklogger.recordMetadata("ProjectName", "robot-2023");
+
+            if (isReal()) {
+//                aklogger.addDataReceiver(new WPILOGWriter("/U")); USB Stick
+                aklogger.addDataReceiver(new NT4Publisher()); // Publish to NT
+                new PowerDistribution(1, PowerDistribution.ModuleType.kRev); // Power Logging
+            } else if (RobotMap.IS_REPLAYING) {
+                setUseTiming(false); // Run as fast as possible
+                String logPath = LogFileUtil.findReplayLog(); // Find the log or prompt the user.
+                aklogger.setReplaySource(new WPILOGReader(logPath)); // Read the replay log
+                aklogger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save the output to a new log
+            }
+
+            aklogger.start();
 
             DriverStation.silenceJoystickConnectionWarning(true);
 
