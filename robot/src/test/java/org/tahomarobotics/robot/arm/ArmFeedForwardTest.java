@@ -44,7 +44,7 @@ public class ArmFeedForwardTest {
                 armStates.add(a);
             }
 
-            double dT = Robot.kDefaultPeriod;
+            double dT = Robot.defaultPeriodSecs;
 
             ArmState currentState = armStates.get(0);
             for (double time = dT; time < trajectory.getTotalTimeSeconds(); time += dT) {

@@ -21,7 +21,6 @@ package org.tahomarobotics.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -78,17 +77,40 @@ public class Robot extends LoggedRobot {
             SystemLogger.logRobotInit();
 
             var aklogger = org.littletonrobotics.junction.Logger.getInstance();
-            aklogger.recordMetadata("ProjectName", "robot-2023");
+
+            // Record metadata
+            aklogger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+            aklogger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+            aklogger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+            aklogger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+            aklogger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+            switch (BuildConstants.DIRTY) {
+                case 0:
+                    aklogger.recordMetadata("GitDirty", "All changes committed");
+                    break;
+                case 1:
+                    aklogger.recordMetadata("GitDirty", "Uncommitted changes");
+                    break;
+                default:
+                    aklogger.recordMetadata("GitDirty", "Unknown");
+                    break;
+            }
 
             if (isReal()) {
-//                aklogger.addDataReceiver(new WPILOGWriter("/U")); USB Stick
+                aklogger.addDataReceiver(new WPILOGWriter("/U")); // USB Stick
                 aklogger.addDataReceiver(new NT4Publisher()); // Publish to NT
                 new PowerDistribution(1, PowerDistribution.ModuleType.kRev); // Power Logging
-            } else if (RobotMap.IS_REPLAYING) {
-                setUseTiming(false); // Run as fast as possible
-                String logPath = LogFileUtil.findReplayLog(); // Find the log or prompt the user.
-                aklogger.setReplaySource(new WPILOGReader(logPath)); // Read the replay log
-                aklogger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save the output to a new log
+            } else {
+                if (RobotMap.IS_REPLAYING) { // Replay
+                    setUseTiming(false); // Run as fast as possible
+                    String logPath = LogFileUtil.findReplayLog(); // Find the log or prompt the user.
+                    aklogger.setReplaySource(new WPILOGReader(logPath)); // Read the replay log
+                    aklogger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim"))); // Save the output to a new log
+                } else { // Sim
+                    aklogger.addDataReceiver(new WPILOGWriter("")); // Local Folder
+                    aklogger.addDataReceiver(new NT4Publisher()); // Publish to NT
+                    new PowerDistribution(1, PowerDistribution.ModuleType.kRev); // Power Logging?
+                }
             }
 
             aklogger.start();
