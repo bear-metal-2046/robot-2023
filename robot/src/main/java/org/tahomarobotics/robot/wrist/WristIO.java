@@ -25,14 +25,7 @@ public interface WristIO {
 
     void disable();
 
-    default void updateInputs(WristIOInputs inputs) {
-        inputs.position = getPosition();
-        inputs.velocity = getVelocity();
-    }
-
-    double getVelocity();
-
-    double getPosition();
+    void updateInputs(WristIOInputs inputs);
 
     void setPosition(double angle);
 
@@ -62,16 +55,6 @@ public interface WristIO {
         }
 
         @Override
-        public double getVelocity() {
-            return absEncoder.getVelocity();
-        }
-
-        @Override
-        public double getPosition() {
-            return absEncoder.getPosition();
-        }
-
-        @Override
         public void setPosition(double angle) {
             if (!Double.isNaN(angle)) {
                 pidController.setReference(angle, CANSparkMax.ControlType.kPosition);
@@ -93,6 +76,12 @@ public interface WristIO {
                 case Finalize -> setZeroOffset(calibrationData.set(absEncoder.getPosition()));
             }
         }
+
+        @Override
+        public void updateInputs(WristIOInputs inputs) {
+            inputs.position = absEncoder.getPosition();
+            inputs.velocity = absEncoder.getVelocity();
+        }
     }
 
     class WristIOSim implements WristIO {
@@ -104,21 +93,17 @@ public interface WristIO {
         }
 
         @Override
-        public double getVelocity() {
-            return velocity;
-        }
-
-        @Override
-        public double getPosition() {
-            return position;
-        }
-
-        @Override
         public void setPosition(double newAngle) {
             if (!Double.isNaN(newAngle)) {
                 velocity = (position - newAngle) / Robot.defaultPeriodSecs;
                 position = newAngle;
             }
+        }
+
+        @Override
+        public void updateInputs(WristIOInputs inputs) {
+            inputs.position = position;
+            inputs.velocity = velocity;
         }
     }
 }

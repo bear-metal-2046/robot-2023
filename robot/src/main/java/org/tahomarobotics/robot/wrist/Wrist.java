@@ -64,11 +64,11 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
     }
 
     public double getPosition() {
-        return io.getPosition();
+        return inputs.position;
     }
 
     public double getVelocity() {
-        return io.getVelocity();
+        return inputs.velocity;
     }
 }
 

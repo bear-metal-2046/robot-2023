@@ -348,3 +348,4 @@ networktables.json
 
 crash_tracking.txt
 /robot/src/main/java/org/tahomarobotics/robot/BuildConstants.java
+*.wpilog
