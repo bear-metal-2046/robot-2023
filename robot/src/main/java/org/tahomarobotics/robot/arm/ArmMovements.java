@@ -54,8 +54,8 @@ public class ArmMovements {
     static final Translation2d PRE_CLIMB = new Translation2d(Units.inchesToMeters(22.7), Units.inchesToMeters(4.7));
 
     //Collecting
-    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
-    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23), Units.inchesToMeters(-7.7));
+    private static final Translation2d CUBE_COLLECT = new Translation2d(Units.inchesToMeters(23.25), Units.inchesToMeters(-8.25));
+    private static final Translation2d CONE_COLLECT = new Translation2d(Units.inchesToMeters(23.25), Units.inchesToMeters(-8.25));
     private static final Translation2d COLLECT_MID_POINT = new Translation2d(Units.inchesToMeters(25), Units.inchesToMeters(-2));
    private static final Translation2d CONE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
     private static final Translation2d CUBE_FEEDER_COLLECT = new Translation2d(Units.inchesToMeters(15.75), Units.inchesToMeters(9.4));
