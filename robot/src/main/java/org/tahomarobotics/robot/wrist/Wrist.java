@@ -22,6 +22,7 @@ package org.tahomarobotics.robot.wrist;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 import org.tahomarobotics.robot.Robot;
 import org.tahomarobotics.robot.SubsystemIF;
 import org.tahomarobotics.robot.util.CalibrationAction;
@@ -34,6 +35,7 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
     }
 
     private final WristIO io;
+    private final WristIOInputsAutoLogged inputs = new WristIOInputsAutoLogged();
 
     private Wrist(WristIO io) {
         this.io = io;
@@ -51,6 +53,8 @@ public class Wrist extends SubsystemBase implements SubsystemIF {
 
     @Override
     public void periodic() {
+        io.updateInputs(inputs);
+        Logger.getInstance().processInputs("Wrist", inputs);
         if (DriverStation.isDisabled())
             io.disable();
     }

@@ -15,7 +15,7 @@ public interface WristIO {
     Logger logger = LoggerFactory.getLogger(WristIO.class);
 
     @AutoLog
-    class Inputs {
+    class WristIOInputs {
         public double position = 0;
         public double velocity = 0;
     }
@@ -25,7 +25,7 @@ public interface WristIO {
 
     void disable();
 
-    default void updateInputs(Inputs inputs) {
+    default void updateInputs(WristIOInputs inputs) {
         inputs.position = getPosition();
         inputs.velocity = getVelocity();
     }
