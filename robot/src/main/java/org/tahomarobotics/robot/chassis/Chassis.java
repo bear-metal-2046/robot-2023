@@ -190,8 +190,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                     poseEstimator.addVisionMeasurement(noHdgPose, result.timestamp(), stds);
 
                     if (DriverStation.isAutonomousEnabled()) {
-                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName) || Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)) {
+                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName)) {
                             frontLeftUpdateCount++;
+                        } else if (Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)){
+                            frontRightUpdateCount++;
                         } else {
                             backUpdateCount++;
                         }
