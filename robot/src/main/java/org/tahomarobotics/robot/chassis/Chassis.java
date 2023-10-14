@@ -82,16 +82,17 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private final CalibrationData<Double[]> swerveCalibration;
 
-    private final Vision lFrontVision;
-    private final Vision rFrontVision;
-    private final Vision backVision;
+    private Vision lFrontVision;
+    private Vision rFrontVision;
+    private Vision backVision;
 
     private double lastUpdateTime = getFPGATimestamp();
 
     private double velocity = 0d;
 
     private int largeDifferenceCount = 0;
-    private int frontUpdateCount = 0;
+    private int frontLeftUpdateCount = 0;
+    private int frontRightUpdateCount = 0;
     private int backUpdateCount = 0;
 
     private Chassis() {
@@ -139,8 +140,8 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         // Only add vision measurements where the apriltags are close to the robot
         // Only add vision measurements close to where the robot currently thinks it is.
         if (poseDiff.getTranslation().getNorm() > VisionConstants.POSE_DIFFERENCE_THRESHOLD ||
-            poseDiff.getRotation().getDegrees() > VisionConstants.DEGREES_DIFFERENCE_THRESHOLD) {
-                return;
+                poseDiff.getRotation().getDegrees() > VisionConstants.DEGREES_DIFFERENCE_THRESHOLD) {
+            return;
 //            // accept large differences only if vision is confirming current position isn't good
 //            if (++largeDifferenceCount < VisionConstants.LARGE_DIFFERENCE_COUNT_ACCEPTANCE) {
 //                return;
@@ -155,9 +156,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
         if (result.numTargets() > 1 && distanceToTargets < VisionConstants.TARGET_DISTANCE_THRESHOLD) {
             // Multi-tag PnP provides very trustworthy data
             var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.01 * distanceToTargets,
-                0.01 * distanceToTargets,
-                0.01
+                    0.01 * distanceToTargets,
+                    0.01 * distanceToTargets,
+                    0.01
             );
 
             synchronized (poseEstimator) {
@@ -165,8 +166,10 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
                     poseEstimator.addVisionMeasurement(result.poseMeters(), result.timestamp(), stds);
 
                     if (DriverStation.isAutonomousEnabled()) {
-                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName) || Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)) {
-                            frontUpdateCount++;
+                        if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName)) {
+                            frontLeftUpdateCount++;
+                        } else if (Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)){
+                            frontRightUpdateCount++;
                         } else {
                             backUpdateCount++;
                         }
@@ -177,9 +180,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
             // Single tag results are not very trustworthy. Do not use headings from them
             Pose2d noHdgPose = new Pose2d(result.poseMeters().getTranslation(), getPose().getRotation());
             var stds = new MatBuilder<>(Nat.N3(), Nat.N1()).fill(
-                0.25 * distanceToTargets,
-                0.25 * distanceToTargets,
-                0.5
+                    0.25 * distanceToTargets,
+                    0.25 * distanceToTargets,
+                    0.5
             );
 
             synchronized (poseEstimator) {
@@ -188,7 +191,7 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
                     if (DriverStation.isAutonomousEnabled()) {
                         if (Vision.PVCamera.LEFT_FRONT.cameraName.equals(result.camera().cameraName) || Vision.PVCamera.RIGHT_FRONT.cameraName.equals(result.camera().cameraName)) {
-                            frontUpdateCount++;
+                            frontLeftUpdateCount++;
                         } else {
                             backUpdateCount++;
                         }
@@ -418,15 +421,15 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
     @Override
     public void onDisabledInit() {
         swerveModules.forEach(s -> s.setDriveVoltage(0));
-        logger.info("Front Cam Updates: {}  Back Cam Updates: {}", frontUpdateCount, backUpdateCount);
-        frontUpdateCount = 0;
+        logger.info("Front Left Cam Updates: {}     Front Right Cam Updates: {}    Back Cam Updates: {}", frontLeftUpdateCount, frontRightUpdateCount, backUpdateCount);
+        frontLeftUpdateCount = 0;
         backUpdateCount = 0;
     }
 
     @Override
     public void onTeleopInit() {
-        logger.info("Front Cam Updates: {}  Back Cam Updates: {}", frontUpdateCount, backUpdateCount);
-        frontUpdateCount = 0;
+        logger.info("Front Cam Updates: {}  Back Cam Updates: {}", frontLeftUpdateCount, backUpdateCount);
+        frontLeftUpdateCount = 0;
         backUpdateCount = 0;
     }
 }
