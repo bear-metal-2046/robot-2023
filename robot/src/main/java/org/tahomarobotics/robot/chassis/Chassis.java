@@ -82,9 +82,9 @@ public class Chassis extends SubsystemBase implements SubsystemIF {
 
     private final CalibrationData<Double[]> swerveCalibration;
 
-    private Vision lFrontVision;
-    private Vision rFrontVision;
-    private Vision backVision;
+    private final Vision lFrontVision;
+    private final Vision rFrontVision;
+    private final Vision backVision;
 
     private double lastUpdateTime = getFPGATimestamp();
 

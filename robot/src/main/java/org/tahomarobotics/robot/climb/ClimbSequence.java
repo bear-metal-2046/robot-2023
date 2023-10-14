@@ -32,7 +32,7 @@ public class ClimbSequence extends SequentialCommandGroup {
     private static final double START_MOVE_ANGLE = 1.6; // radians
     private static final double FINAL_ANGLE = 2.72;
 
-    private static final double VELOCITY = 2.5;
+    private static final double VELOCITY = Math.PI;
     public ClimbSequence() {
 
         addCommands(
