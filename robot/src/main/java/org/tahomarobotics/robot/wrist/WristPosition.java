@@ -24,8 +24,8 @@ import edu.wpi.first.math.util.Units;
 public enum WristPosition {
     PRE_CLIMB(Units.degreesToRadians(15d)),
     STOW(Units.degreesToRadians(211)),
-    CUBE_COLLECT(Units.degreesToRadians(205)),
-    CONE_COLLECT(Units.degreesToRadians(205)),
+    CUBE_COLLECT(Units.degreesToRadians(203)),
+    CONE_COLLECT(Units.degreesToRadians(203)),
     CUBE_FEEDER_COLLECT(Units.degreesToRadians(193.0)),
     CONE_FEEDER_COLLECT(Units.degreesToRadians(193.0)),
     MID_BOX_PLACE(Units.degreesToRadians(110)),
